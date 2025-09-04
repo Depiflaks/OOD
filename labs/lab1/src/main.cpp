@@ -46,7 +46,7 @@ int main()
 	bar(123, 334, "Abobus");
 	std::map<std::string, int> t;
 
-	Abobus b;
+	Abobus23 b;
 	std::string g;
 
 	bar(2, 3, "123");

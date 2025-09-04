@@ -1,15 +1,15 @@
 #include <iostream>
 
-class Abobus
+class Abobus23
 {
 public:
 	int a = 3;
 };
 
-class Class
+class Class123
 {
 public:
-	Class()
+	Class123()
 	{
 		std::cout << "123";
 	}
