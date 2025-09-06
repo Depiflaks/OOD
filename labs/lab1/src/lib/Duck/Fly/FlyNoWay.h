@@ -15,11 +15,8 @@ public:
 
 	int GetFlyCount() const override
 	{
-		return m_flyCount;
+		return 0;
 	}
-
-private:
-	int m_flyCount{ 0 };
 };
 
 #endif

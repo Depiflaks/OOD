@@ -3,9 +3,6 @@
 
 #include "../src/lib/Duck/Dance/NoDanceBehavior.h"
 #include "../src/lib/Duck/Duck.h"
-#include "../src/lib/Duck/Fly/FlyNoWay.h"
-#include "../src/lib/Duck/Fly/FlyWithWings.h"
-#include "../src/lib/Duck/Quack/QuackBehavior.h"
 
 class TestDuck : public Duck
 {
