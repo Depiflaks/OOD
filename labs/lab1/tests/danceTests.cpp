@@ -5,7 +5,13 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-class MockDanceBehavior : public IDanceBehavior
+class MockDanceBehavior1 : public IDanceBehavior
+{
+public:
+	MOCK_METHOD(void, Dance, (), (override));
+};
+
+class MockDanceBehavior2 : public IDanceBehavior
 {
 public:
 	MOCK_METHOD(void, Dance, (), (override));
@@ -30,7 +36,7 @@ public:
 
 TEST(DuckDanceTest, TestDanceBehavior)
 {
-	std::unique_ptr<MockDanceBehavior> danceBehavior = std::make_unique<MockDanceBehavior>();
+	std::unique_ptr<MockDanceBehavior1> danceBehavior = std::make_unique<MockDanceBehavior1>();
 
 	EXPECT_CALL(*danceBehavior, Dance()).Times(1);
 
@@ -38,3 +44,17 @@ TEST(DuckDanceTest, TestDanceBehavior)
 	duck.Dance();
 }
 
+TEST(DuckDanceTest, TestDanceBehaviorWhenChangeDanceBehavior)
+{
+	std::unique_ptr<MockDanceBehavior1> danceBehavior1 = std::make_unique<MockDanceBehavior1>();
+
+	std::unique_ptr<MockDanceBehavior2> danceBehavior2 = std::make_unique<MockDanceBehavior2>();
+
+	EXPECT_CALL(*danceBehavior1, Dance()).Times(1);
+	EXPECT_CALL(*danceBehavior2, Dance()).Times(1);
+
+	TestDuck duck(std::move(danceBehavior1));
+	duck.Dance();
+	duck.SetDanceBehavior(std::move(danceBehavior2));
+	duck.Dance();
+}
