@@ -58,3 +58,5 @@ TEST(DuckDanceTest, TestDanceBehaviorWhenChangeDanceBehavior)
 	duck.SetDanceBehavior(std::move(danceBehavior2));
 	duck.Dance();
 }
+// TODO: что после std::move
+
