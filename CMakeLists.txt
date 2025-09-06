@@ -9,8 +9,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS_OUTPUT_DIR ${CMAKE_BINARY_DIR})
 include(FetchContent)
 FetchContent_Declare(
         googletest
-        URL https://github.com/google/googletest/archive/refs/heads/main.zip
+        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
 )
 FetchContent_MakeAvailable(googletest)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
+  include(GoogleTest)
+endif()
 
 add_subdirectory(labs/lab1 ${CMAKE_BINARY_DIR}/labs/lab1)

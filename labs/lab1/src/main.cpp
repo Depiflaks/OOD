@@ -1,55 +1,30 @@
-#include <iostream>
-
-#include "Class.cpp"
-#include <map>
-#include <string>
-#include <vector>
-
-int foo()
-{
-	int a = 3;
-	std::string asd{ "213" };
-	return 2;
-}
-
-class A
-{
-public:
-	A()
-	{
-		std::cout << 123;
-	}
-
-	std::string InsertColumn()
-	{
-		return "123";
-	}
-};
-
-int bar(int b, int a, std::string aboba)
-{
-	return 3;
-}
-
-int LetHimCook(int b, int c, std::string abc)
-{
-	return 123;
-}
+#include "lib/Duck/DecoyDuck.h"
+#include "lib/Duck/MallardDuck.h"
+#include "lib/Duck/ModelDuck.h"
+#include "lib/Duck/RedheadDuck.h"
+#include "lib/Duck/RubberDuck.h"
+#include "lib/DuckFunctions.h"
+#include <cstdlib>
 
 int main()
 {
-	int a = 1;
-	std::cin >> a;
-	std::cout << "hello world\n";
+	MallardDuck mallardDuck;
+	PlayWithDuck(mallardDuck);
 
-	std::vector<std::string> s{};
-	bar(123, 334, "Abobus");
-	std::map<std::string, int> t;
+	RedheadDuck redheadDuck;
+	PlayWithDuck(redheadDuck);
 
-	Abobus23 b;
-	std::string g;
+	RubberDuck rubberDuck;
+	PlayWithDuck(rubberDuck);
 
-	bar(2, 3, "123");
+	DecoyDuck decoyDuck;
+	PlayWithDuck(decoyDuck);
 
-	foo();
+	ModelDuck modelDuck;
+	PlayWithDuck(modelDuck);
+
+	modelDuck.SetFlyBehavior(std::make_unique<FlyWithWings>());
+	PlayWithDuck(modelDuck);
+
+	return EXIT_SUCCESS;
 }
