@@ -91,4 +91,3 @@ TEST_F(DuckTest, QuackDontCalledWhenEvenFlyCountAndCanNotFly)
 
 	duck->Fly();
 }
-
