@@ -16,4 +16,8 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
   include(GoogleTest)
 endif()
 
-add_subdirectory(labs/lab1 ${CMAKE_BINARY_DIR}/labs/lab1)
+find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
+
+add_subdirectory(labs/lab1/object_ducks ${CMAKE_BINARY_DIR}/labs/lab1/object_ducks)
+add_subdirectory(labs/lab1/functional_ducks ${CMAKE_BINARY_DIR}/labs/lab1/functional_ducks)
+add_subdirectory(labs/lab1/shapes ${CMAKE_BINARY_DIR}/labs/lab1/shapes)

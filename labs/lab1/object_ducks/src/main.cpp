@@ -34,6 +34,5 @@ int main()
 	newDuck.Fly();
 	newDuck.Fly();
 
-
 	return EXIT_SUCCESS;
 }
