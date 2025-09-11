@@ -4,6 +4,9 @@
 #include <iostream>
 #include <string>
 
+namespace commands
+{
+
 class ICommandListener
 {
 public:
@@ -21,5 +24,7 @@ public:
 		return line;
 	}
 };
+
+} // namespace commands
 
 #endif /* COMMANDLISTENER_H */

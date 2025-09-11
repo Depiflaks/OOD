@@ -39,6 +39,7 @@ classDiagram
         class IShapeModel {
             <<interface>>
             +GetBounds() 
+            +Move(double dx, double dy)
             +Draw(ICanvas& canvas, Color fillColor)
         }
 
@@ -114,6 +115,7 @@ classDiagram
         class Shape {
             -m_shapeModel IShapeModel
             -m_id std::string
+            -m_fillColor Color
         }
 
 

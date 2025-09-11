@@ -29,6 +29,12 @@ public:
 		canvas.LineTo(m_bounds.position.x, m_bounds.position.y);
 	}
 
+	void Move(double dx, double dy) override
+	{
+		m_bounds.position.x += dx;
+		m_bounds.position.y += dy;
+	}
+
 private:
 	Bounds m_bounds;
 };

@@ -26,6 +26,12 @@ public:
 		canvas.DrawEllipse(m_center.x, m_center.y, m_r, m_r);
 	}
 
+	void Move(double dx, double dy) override
+	{
+		m_center.x += dx;
+		m_center.y += dy;
+	}
+
 private:
 	Position m_center;
 	double m_r;

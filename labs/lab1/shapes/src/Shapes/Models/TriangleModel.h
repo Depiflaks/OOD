@@ -36,6 +36,16 @@ public:
 		canvas.LineTo(m_vertex1.x, m_vertex1.y);
 	}
 
+	void Move(double dx, double dy) override
+	{
+		m_vertex1.x += dx;
+		m_vertex1.y += dy;
+		m_vertex2.x += dx;
+		m_vertex2.x += dx;
+		m_vertex3.y += dy;
+		m_vertex3.y += dy;
+	}
+
 private:
 	Position m_vertex1;
 	Position m_vertex2;

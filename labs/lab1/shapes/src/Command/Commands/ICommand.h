@@ -1,12 +1,15 @@
 #ifndef ICOMMAND_H
 #define ICOMMAND_H
 
-class ICommand
-{ 
-public:
+namespace commands
+{
 
+class ICommand
+{
+public:
 private:
 };
 
-#endif /* ICOMMAND_H */
+} // namespace commands
 
+#endif /* ICOMMAND_H */

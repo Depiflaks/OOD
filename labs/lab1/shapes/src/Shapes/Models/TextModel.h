@@ -27,6 +27,12 @@ public:
 		canvas.DrawText(m_position.x, m_position.y, m_size, m_content);
 	}
 
+	void Move(double dx, double dy) override
+	{
+		m_position.x += dx;
+		m_position.y += dy;
+	}
+
 private:
 	Position m_position;
 	double m_size;

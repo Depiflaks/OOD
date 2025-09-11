@@ -31,6 +31,12 @@ public:
 		canvas.LineTo(m_p2.x, m_p2.y);
 	}
 
+	void Move(double dx, double dy) override
+	{
+		m_p1 = {m_p1.x + dx, m_p1.y + dy};
+		m_p2 = {m_p2.x + dx, m_p2.y + dy};
+	}
+
 private:
 	Position m_p1;
 	Position m_p2;
