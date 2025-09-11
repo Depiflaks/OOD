@@ -13,7 +13,7 @@ public:
 	static FlyBehavior CreateFlyByWings()
 	{
 		return [flyCount = 0]() mutable -> int {
-			std::cout << "Fly with wings!!";
+			std::cout << "Fly with wings!!\n";
 			return ++flyCount;
 		};
 	}

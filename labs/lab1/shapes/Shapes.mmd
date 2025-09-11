@@ -1,64 +1,156 @@
+
 classDiagram
     direction TB
 
-    class Duck {
-        +Quack()
-        +Swim()
-        +Fly()
-        +Dance()
-        +SetDanceBehavior()
-        +SetFlyBehavior()
-        +Display()
-        -m_danceBehavior
-        -m_flyBehavior
-        -m_quackBehavior
+    namespace gfx {
+        class ICanvas {
+            <<interface>>
+            + MoveTo(x: double, y: double)
+            + SetColor(color: Color)
+            + LineTo(x: double, y: double)
+            + DrawEpilse(cx: double, cy: double, rx: double, ry: double)
+            + DrawText(left: double, top: double, fontSize: double, text: string)
+        }
     }
 
-    ModelDuck --|> Duck
-    DecoyDuck --|> Duck
-    RubberDuck --|> Duck
-    RedheadDuck --|> Duck
-    MallardDuck --|> Duck
+    namespace shapes {
+        class Bounds {
+            +position Position
+            +size Size
+        }
+
+        class Position {
+            +x double
+            +y double
+        }
+
+        class Size {
+            +w double
+            +h double
+        }
+
+        class IShapeModel {
+            <<interface>>
+            +GetBounds() 
+            +Draw(ICanvas& canvas)
+        }
+
+        class RectangleModel {
+        }
+
+        class TriangleModel {
+            -m_vert1 double
+            -m_vert2 double
+            -m_vert3 double
+        }
+
+        class Color {
+            +Value() uint32t
+            +ToString() std::string
+
+            -color uint32t
+        }
+
+        class Picture {
+            +Picture(ICanvas& canvas)
+            +DrawPicture() void
+            +DrawShape(std::string id) void
+            +AddShape(std::string id, Color color, IShapeModel model)
+            +ChangeShape(std::string id, IShapeModel model)
+            +ChangeColor(std::string id, Color color)
+            +List()
+            +DeleteShape(std::string id)
+            +MovePicture(double dx, double dy)
+            +MoveShape(std::string id, double dx, double dy)
 
 
-    class IFlyBehavior {
-        <<interface>>
-        +Fly()
-        +CanFly() bool
-        +GetFlyCount() int
+            -m_bounds Bounds
+
+            -m_canvas ICanvas*
+            -m_shapes std::unordered_map<std::string, IShape>
+        }
+
+        class IShape {
+            <<interface>>
+            +Draw(ICanvas canvas) void
+            +SetFillColor(Color color) void
+            +ChangeShape(IShapeModel model) void
+            +Move(double dx, double dy) void
+
+            +ToString() std::string
+        }
+
+        class Shape {
+            -m_shapeModel IShapeModel
+        }
+
+
+        class ShapesCommandLine {
+            +Start(Picture& picture) void
+
+            -ExecuteCommand(Picture& picture)
+        }
     }
 
-    class FlyWithWings {
-        -m_flyCount
+    namespace commands {
+
+        class ArgumentType {
+            <<enum>>
+            +string
+            +int
+            +double
+            +shape
+        }
+
+        class CommandType {
+            <<enum>>
+            +AddShape
+            +MoveShape
+            ...
+        }
+
+        class ICommandListener {
+            <<interface>>
+            +GetLine() std::string
+        }
+
+        class StdCommandListener {
+            +GetLine() std::string
+        }
+
+        class CommandExecutor {
+            +Execute(Picture& picture, std::string commandLine)
+
+            -ParseCommandName(std::string command) std::string
+            -ExecuteCommand() void
+        }
+
+        class ICommand {
+            <<interface>>
+            +Execute(Picture& picture, std::string argumentsLine)
+        }
+
+
+        class AddShapeCommand {
+            +Execute(Picture& picture, std::string argumentsLine)
+
+            -Parse(...)
+            -m_argumentsTypes std::vector<ArgumentType>
+        }
+        
+
+        class ShapeParser {
+            +Parse(std::string shapeParameters) IShapeModel
+        }
     }
 
-    IFlyBehavior <|.. FlyWithWings
-    IFlyBehavior <|.. FlyNoWay
+    IShape <|.. Shape
+    ICommandListener <|.. StdCommandListener
+    ICommand <|.. AddShapeCommand
 
-    class IDanceBehavior {
-        <<interface>>
-        +Dance()
-    }
+    Picture o--> ICanvas
 
-    IDanceBehavior <|.. WaltzBehavior
-    IDanceBehavior <|.. MinuetBehavior
-    IDanceBehavior <|.. NoDanceBehavior
-
-    class IQuackBehavior {
-        <<interface>>
-        +Quack()
-    }
-
-    IQuackBehavior <|.. QuackBehavior
-    IQuackBehavior <|.. MuteQuackBehavior
-    IQuackBehavior <|.. SqueakBehavior
-
-    FlyNoWay o-- ModelDuck 
-    QuackBehavior o-- ModelDuck 
-    NoDanceBehavior o-- ModelDuck 
-
-    FlyNoWay o-- DecoyDuck 
-    MuteQuackBehavior o-- DecoyDuck 
-    NoDanceBehavior o-- DecoyDuck 
+    IShapeModel <|.. RectangleModel
+    IShapeModel <|.. TriangleModel
 
 

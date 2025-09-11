@@ -1,9 +1,15 @@
 #include <iostream>
 
 #include "lib/Duck.h"
+#include "lib/MallardDuck.h"
 
 int main()
 {
-	Duck duck{ FlyBehaviorFactory::CreateFlyByWings(), QuackBehaviorFactory::CreateSqueakBehavior(), DanceBehaviorFactory::CreateDanceWaltz() } std::cout << "123\n";
-	
+	MallardDuck duck{};
+	duck.Display();
+	duck.Dance();
+	duck.Fly();
+	duck.Quack();
+	std::cout << "\n";
+	return 0;
 }
