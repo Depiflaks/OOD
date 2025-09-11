@@ -39,9 +39,9 @@ classDiagram
         }
 
         class TriangleModel {
-            -m_vert1 double
-            -m_vert2 double
-            -m_vert3 double
+            -m_vertex1 double
+            -m_vertex2 double
+            -m_vertex3 double
         }
 
         class Color {
@@ -137,8 +137,8 @@ classDiagram
             -Parse(...)
             -m_argumentsTypes std::vector<ArgumentType>
         }
-        
 
+        
         class ShapeParser {
             +Parse(std::string shapeParameters) IShapeModel
         }
