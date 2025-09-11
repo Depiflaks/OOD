@@ -1,0 +1,64 @@
+classDiagram
+    direction TB
+
+    class Duck {
+        +Quack()
+        +Swim()
+        +Fly()
+        +Dance()
+        +SetDanceBehavior()
+        +SetFlyBehavior()
+        +Display()
+        -m_danceBehavior
+        -m_flyBehavior
+        -m_quackBehavior
+    }
+
+    ModelDuck --|> Duck
+    DecoyDuck --|> Duck
+    RubberDuck --|> Duck
+    RedheadDuck --|> Duck
+    MallardDuck --|> Duck
+
+
+    class IFlyBehavior {
+        <<interface>>
+        +Fly()
+        +CanFly() bool
+        +GetFlyCount() int
+    }
+
+    class FlyWithWings {
+        -m_flyCount
+    }
+
+    IFlyBehavior <|.. FlyWithWings
+    IFlyBehavior <|.. FlyNoWay
+
+    class IDanceBehavior {
+        <<interface>>
+        +Dance()
+    }
+
+    IDanceBehavior <|.. WaltzBehavior
+    IDanceBehavior <|.. MinuetBehavior
+    IDanceBehavior <|.. NoDanceBehavior
+
+    class IQuackBehavior {
+        <<interface>>
+        +Quack()
+    }
+
+    IQuackBehavior <|.. QuackBehavior
+    IQuackBehavior <|.. MuteQuackBehavior
+    IQuackBehavior <|.. SqueakBehavior
+
+    FlyNoWay o-- ModelDuck 
+    QuackBehavior o-- ModelDuck 
+    NoDanceBehavior o-- ModelDuck 
+
+    FlyNoWay o-- DecoyDuck 
+    MuteQuackBehavior o-- DecoyDuck 
+    NoDanceBehavior o-- DecoyDuck 
+
+

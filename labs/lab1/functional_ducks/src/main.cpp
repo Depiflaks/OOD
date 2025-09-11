@@ -1,5 +1,9 @@
 #include <iostream>
 
-int main() {
-	std::cout << "123\n";
+#include "lib/Duck.h"
+
+int main()
+{
+	Duck duck{ FlyBehaviorFactory::CreateFlyByWings(), QuackBehaviorFactory::CreateSqueakBehavior(), DanceBehaviorFactory::CreateDanceWaltz() } std::cout << "123\n";
+	
 }
