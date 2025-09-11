@@ -2,6 +2,7 @@
 #define SHAPE_H
 
 #include "./IShape.h"
+#include "Shapes/Geometry.h"
 
 namespace shapes
 {
@@ -45,6 +46,11 @@ public:
 	{
 		// TODO: переделать формат вывода
 		return "Shape ID: " + m_id + ", Color: " + m_fillColor.ToHexString();
+	}
+
+	Bounds GetBounds() override
+	{
+		return m_shapeModel->GetBounds();
 	}
 
 private:

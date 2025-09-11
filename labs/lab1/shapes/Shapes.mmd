@@ -38,9 +38,11 @@ classDiagram
 
         class IShapeModel {
             <<interface>>
-            +GetBounds() 
-            +Move(double dx, double dy)
-            +Draw(ICanvas& canvas, Color fillColor)
+            +GetBounds() Bounds
+            +Move(double dx, double dy) void
+            +Draw(ICanvas& canvas, Color fillColor) void
+            +GetShapeName() std::string
+            +GetModelParameters() std::string
         }
 
         class RectangleModel {
@@ -86,14 +88,14 @@ classDiagram
             +Picture(ICanvas& canvas)
             +DrawPicture() void
             +DrawShape(std::string id) void
-            +AddShape(std::string id, Color color, IShapeModel model)
-            +ChangeShape(std::string id, IShapeModel model)
-            +ChangeColor(std::string id, Color color)
-            +List()
-            +DeleteShape(std::string id)
-            +MovePicture(double dx, double dy)
-            +MoveShape(std::string id, double dx, double dy)
-
+            +AddShape(std::string id, Color color, IShapeModel model) void
+            +ChangeShape(std::string id, IShapeModel model) void
+            +ChangeColor(std::string id, Color color) void
+            +List() void 
+            +DeleteShape(std::string id) void
+            +MovePicture(double dx, double dy) void
+            +MoveShape(std::string id, double dx, double dy) void
+            +GetBounds() Bounds
 
             -m_bounds Bounds
 
@@ -107,6 +109,7 @@ classDiagram
             +SetFillColor(Color color) void
             +ChangeShape(IShapeModel model) void
             +Move(double dx, double dy) void
+            +GetBounds() Bounds
             +GetId() std::string
 
             +ToString() std::string
