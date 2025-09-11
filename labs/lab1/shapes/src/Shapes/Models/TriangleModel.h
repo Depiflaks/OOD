@@ -1,0 +1,41 @@
+#ifndef TRIANGLEMODEL_H
+#define TRIANGLEMODEL_H
+
+#include "IShapeModel.h"
+#include <algorithm>
+class TriangleModel : public IShapeModel
+{
+public:
+	TriangleModel(Position vertex1, Position vertex2, Position vertex3)
+		: m_vertex1(vertex1)
+		, m_vertex2(vertex2)
+		, m_vertex3(vertex3)
+	{
+	}
+
+	Bounds GetBounds() override
+	{
+		double minX = std::min({ m_vertex1.x, m_vertex2.x, m_vertex3.x });
+		double minY = std::min({ m_vertex1.y, m_vertex2.y, m_vertex3.y });
+		double maxX = std::max({ m_vertex1.x, m_vertex2.x, m_vertex3.x });
+		double maxY = std::max({ m_vertex1.y, m_vertex2.y, m_vertex3.y });
+
+		return { { minX, minY }, { maxX - minX, maxY - minY } };
+	}
+
+	void Draw(ICanvas& canvas, const Color& fillColor) override
+	{
+		canvas.SetColor(fillColor);
+		canvas.MoveTo(m_vertex1.x, m_vertex1.y);
+		canvas.LineTo(m_vertex2.x, m_vertex2.y);
+		canvas.LineTo(m_vertex3.x, m_vertex3.y);
+		canvas.LineTo(m_vertex1.x, m_vertex1.y);
+	}
+
+private:
+	Position m_vertex1;
+	Position m_vertex2;
+	Position m_vertex3;
+};
+
+#endif /* TRIANGLEMODEL_H */

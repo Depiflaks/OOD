@@ -4,6 +4,9 @@
 #include "../src/GFX/ICanvas.h"
 #include <gmock/gmock.h>
 
+namespace gfx
+{
+
 class MockCanvas : public ICanvas
 {
 public:
@@ -13,5 +16,7 @@ public:
 	MOCK_METHOD(void, DrawEllipse, (double cx, double cy, double rx, double ry), (override));
 	MOCK_METHOD(void, DrawText, (double left, double top, double fontSize, const std::string& text), (override));
 };
+
+} // namespace gfx
 
 #endif /* MOCKCANVAS_H */

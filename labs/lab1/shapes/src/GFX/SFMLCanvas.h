@@ -4,6 +4,9 @@
 #include "ICanvas.h"
 #include <SFML/Graphics.hpp>
 
+namespace gfx
+{
+
 class SFMLCanvas : public ICanvas
 {
 public:
@@ -64,5 +67,7 @@ private:
 	sf::Vector2f m_currentPosition;
 	sf::Color m_currentColor;
 };
+
+} // namespace gfx
 
 #endif /* SFMLCANVAS_H */

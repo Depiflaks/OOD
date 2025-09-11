@@ -39,16 +39,45 @@ classDiagram
         class IShapeModel {
             <<interface>>
             +GetBounds() 
-            +Draw(ICanvas& canvas)
+            +Draw(ICanvas& canvas, Color fillColor)
         }
 
         class RectangleModel {
+            +RectangleModel(Bounds bounds)
         }
 
         class TriangleModel {
+            +TriangleModel(
+                vertex1 double,
+                vertex2 double,
+                vertex3 double,
+            )
+
             -m_vertex1 double
             -m_vertex2 double
             -m_vertex3 double
+        }
+
+        class TextModel {
+            +TextModel(Position p, double size, std::string content)
+
+            -m_content std::string
+            -m_p Position
+            -m_size double
+        }
+
+        class LineModel {
+            +LineModel(Position p1, Position p2)
+
+            -m_p1 Position
+            -m_p2 Position
+        }
+
+        class CircleModel {
+            +CircleModel(Position center, double r)
+
+            -m_center Position
+            -m_r double
         }
 
 
@@ -77,12 +106,14 @@ classDiagram
             +SetFillColor(Color color) void
             +ChangeShape(IShapeModel model) void
             +Move(double dx, double dy) void
+            +GetId() std::string
 
             +ToString() std::string
         }
 
         class Shape {
             -m_shapeModel IShapeModel
+            -m_id std::string
         }
 
 
@@ -107,7 +138,7 @@ classDiagram
             <<enum>>
             +AddShape
             +MoveShape
-            ...
+            ....
         }
 
         class ICommandListener {
