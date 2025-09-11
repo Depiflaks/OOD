@@ -11,6 +11,13 @@ classDiagram
             + DrawEpilse(cx: double, cy: double, rx: double, ry: double)
             + DrawText(left: double, top: double, fontSize: double, text: string)
         }
+
+        class Color {
+            +Value() uint32t
+            +ToString() std::string
+
+            -color uint32t
+        }
     }
 
     namespace shapes {
@@ -44,12 +51,6 @@ classDiagram
             -m_vertex3 double
         }
 
-        class Color {
-            +Value() uint32t
-            +ToString() std::string
-
-            -color uint32t
-        }
 
         class Picture {
             +Picture(ICanvas& canvas)
