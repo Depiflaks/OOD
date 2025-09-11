@@ -137,4 +137,81 @@ TEST(ShapeModelsTest, CircleModelBoundsTest)
 	EXPECT_DOUBLE_EQ(result.size.w, 50);
 	EXPECT_DOUBLE_EQ(result.size.h, 50);
 }
+
+TEST(ShapeModelsTest, RectangleModelMoveTest)
+{
+	Bounds bounds{ { 5, 10 }, { 15, 20 } };
+	RectangleModel rectangle(bounds);
+
+	rectangle.Move(3, 4);
+	auto result = rectangle.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 8);
+	EXPECT_DOUBLE_EQ(result.position.y, 14);
+
+	rectangle.Move(-2, -1);
+	result = rectangle.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 6);
+	EXPECT_DOUBLE_EQ(result.position.y, 13);
+}
+
+TEST(ShapeModelsTest, TriangleModelMoveTest)
+{
+	TriangleModel triangle({ 0, 10 }, { 30, 10 }, { 15, 40 });
+
+	triangle.Move(5, -3);
+	auto result = triangle.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 5);
+	EXPECT_DOUBLE_EQ(result.position.y, 7);
+
+	triangle.Move(-2, 1);
+	result = triangle.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 3);
+	EXPECT_DOUBLE_EQ(result.position.y, 8);
+}
+
+TEST(ShapeModelsTest, TextModelMoveTest)
+{
+	TextModel text({ 50, 60 }, 12, "Test");
+
+	text.Move(10, -5);
+	auto result = text.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 60);
+	EXPECT_DOUBLE_EQ(result.position.y, 55);
+
+	text.Move(-15, 3);
+	result = text.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 45);
+	EXPECT_DOUBLE_EQ(result.position.y, 58);
+}
+
+TEST(ShapeModelsTest, LineModelMoveTest)
+{
+	LineModel line({ 10, 20 }, { 30, 40 });
+
+	line.Move(5, -10);
+	auto result = line.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 15);
+	EXPECT_DOUBLE_EQ(result.position.y, 10);
+
+	line.Move(-3, 5);
+	result = line.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 12);
+	EXPECT_DOUBLE_EQ(result.position.y, 15);
+}
+
+TEST(ShapeModelsTest, CircleModelMoveTest)
+{
+	CircleModel circle({ 100, 100 }, 25);
+
+	circle.Move(20, -15);
+	auto result = circle.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 95);
+	EXPECT_DOUBLE_EQ(result.position.y, 60);
+
+	circle.Move(-10, 5);
+	result = circle.GetBounds();
+	EXPECT_DOUBLE_EQ(result.position.x, 85);
+	EXPECT_DOUBLE_EQ(result.position.y, 65);
+}
+
 } // namespace shapes

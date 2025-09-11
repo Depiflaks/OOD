@@ -51,6 +51,7 @@ private:
 	Position m_vertex2;
 	Position m_vertex3;
 };
+
 }; // namespace shapes
 
 #endif /* TRIANGLEMODEL_H */
