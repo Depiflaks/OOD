@@ -4,12 +4,17 @@
 #include "../../GFX/ICanvas.h"
 #include "../Geometry.h"
 
+namespace shapes
+{
+
 class IShapeModel
 {
 public:
 	virtual ~IShapeModel() = default;
 	virtual Bounds GetBounds() = 0;
-	virtual void Draw(ICanvas& canvas, const Color& fillColor) = 0;
+	virtual void Draw(gfx::ICanvas& canvas, const Color& fillColor) = 0;
 };
+
+}; // namespace shapes
 
 #endif /* ISHAPEMODEL_H */

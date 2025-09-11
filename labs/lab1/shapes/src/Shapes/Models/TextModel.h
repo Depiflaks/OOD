@@ -3,6 +3,9 @@
 
 #include "IShapeModel.h"
 
+namespace shapes
+{
+
 class TextModel : public IShapeModel
 {
 public:
@@ -18,7 +21,7 @@ public:
 		return { m_position, { m_content.length() * m_size * 0.6, m_size } };
 	}
 
-	void Draw(ICanvas& canvas, const Color& fillColor) override
+	void Draw(gfx::ICanvas& canvas, const Color& fillColor) override
 	{
 		canvas.SetColor(fillColor);
 		canvas.DrawText(m_position.x, m_position.y, m_size, m_content);
@@ -29,5 +32,7 @@ private:
 	double m_size;
 	std::string m_content;
 };
+
+} // namespace shapes
 
 #endif /* TEXTMODEL_H */

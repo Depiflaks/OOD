@@ -10,6 +10,9 @@
 
 using ::testing::_;
 
+namespace shapes
+{
+
 TEST(ShapeModelsTest, RectangleModelDrawTest)
 {
 	gfx::MockCanvas canvas;
@@ -134,3 +137,4 @@ TEST(ShapeModelsTest, CircleModelBoundsTest)
 	EXPECT_DOUBLE_EQ(result.size.w, 50);
 	EXPECT_DOUBLE_EQ(result.size.h, 50);
 }
+} // namespace shapes

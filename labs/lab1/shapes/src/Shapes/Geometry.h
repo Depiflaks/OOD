@@ -1,6 +1,9 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
+namespace shapes
+{
+
 struct Position
 {
 	double x;
@@ -42,5 +45,7 @@ struct Bounds
 	{
 	}
 };
+
+} // namespace shapes
 
 #endif /* GEOMETRY_H */

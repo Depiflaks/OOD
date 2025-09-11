@@ -3,6 +3,9 @@
 
 #include "IShapeModel.h"
 
+namespace shapes
+{
+
 class CircleModel : public IShapeModel
 {
 public:
@@ -17,7 +20,7 @@ public:
 		return { { m_center.x - m_r, m_center.y - m_r }, { 2 * m_r, 2 * m_r } };
 	}
 
-	void Draw(ICanvas& canvas, const Color& fillColor) override
+	void Draw(gfx::ICanvas& canvas, const Color& fillColor) override
 	{
 		canvas.SetColor(fillColor);
 		canvas.DrawEllipse(m_center.x, m_center.y, m_r, m_r);
@@ -27,5 +30,7 @@ private:
 	Position m_center;
 	double m_r;
 };
+
+}; // namespace shapes
 
 #endif /* CIRCLEMODEL_H */

@@ -3,6 +3,9 @@
 
 #include "IShapeModel.h"
 
+namespace shapes
+{
+
 class RectangleModel : public IShapeModel
 {
 public:
@@ -16,7 +19,7 @@ public:
 		return m_bounds;
 	}
 
-	void Draw(ICanvas& canvas, const Color& fillColor) override
+	void Draw(gfx::ICanvas& canvas, const Color& fillColor) override
 	{
 		canvas.SetColor(fillColor);
 		canvas.MoveTo(m_bounds.position.x, m_bounds.position.y);
@@ -30,5 +33,6 @@ private:
 	Bounds m_bounds;
 };
 
+} // namespace shapes
 
 #endif /* RECTANGLEMODEL_H */

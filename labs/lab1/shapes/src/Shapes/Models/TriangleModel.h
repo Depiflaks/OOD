@@ -3,6 +3,10 @@
 
 #include "IShapeModel.h"
 #include <algorithm>
+
+namespace shapes
+{
+
 class TriangleModel : public IShapeModel
 {
 public:
@@ -23,7 +27,7 @@ public:
 		return { { minX, minY }, { maxX - minX, maxY - minY } };
 	}
 
-	void Draw(ICanvas& canvas, const Color& fillColor) override
+	void Draw(gfx::ICanvas& canvas, const Color& fillColor) override
 	{
 		canvas.SetColor(fillColor);
 		canvas.MoveTo(m_vertex1.x, m_vertex1.y);
@@ -37,5 +41,6 @@ private:
 	Position m_vertex2;
 	Position m_vertex3;
 };
+}; // namespace shapes
 
 #endif /* TRIANGLEMODEL_H */

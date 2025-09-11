@@ -3,6 +3,8 @@
 
 #include "IShapeModel.h"
 
+namespace shapes
+{
 class LineModel : public IShapeModel
 {
 public:
@@ -22,7 +24,7 @@ public:
 		return { { minX, minY }, { maxX - minX, maxY - minY } };
 	}
 
-	void Draw(ICanvas& canvas, const Color& fillColor) override
+	void Draw(gfx::ICanvas& canvas, const Color& fillColor) override
 	{
 		canvas.SetColor(fillColor);
 		canvas.MoveTo(m_p1.x, m_p1.y);
@@ -33,6 +35,7 @@ private:
 	Position m_p1;
 	Position m_p2;
 };
-;
+
+}; // namespace shapes
 
 #endif /* LINEMODEL_H */
