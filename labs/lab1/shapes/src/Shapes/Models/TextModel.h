@@ -25,6 +25,7 @@ public:
 	{
 		canvas.SetColor(fillColor);
 		canvas.DrawText(m_position.x, m_position.y, m_size, m_content);
+		canvas.Render();
 	}
 
 	void Move(double dx, double dy) override

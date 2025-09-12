@@ -3,6 +3,7 @@
 
 #include "ICanvas.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 
 namespace gfx
 {
@@ -10,8 +11,8 @@ namespace gfx
 class SFMLCanvas : public ICanvas
 {
 public:
-	SFMLCanvas(sf::RenderTarget& target)
-		: m_target(target)
+	SFMLCanvas(sf::RenderWindow& window)
+		: m_window(window)
 	{
 	}
 
@@ -32,7 +33,7 @@ public:
 			sf::Vertex(sf::Vector2f(m_currentPosition.x, m_currentPosition.y), m_currentColor),
 			sf::Vertex(sf::Vector2f(x, y), m_currentColor)
 		};
-		m_target.draw(line, 2, sf::Lines);
+		m_window.draw(line, 2, sf::Lines);
 		m_currentPosition.x = x;
 		m_currentPosition.y = y;
 	}
@@ -45,7 +46,7 @@ public:
 		ellipse.setFillColor(sf::Color::Transparent);
 		ellipse.setOutlineColor(m_currentColor);
 		ellipse.setOutlineThickness(1.0f);
-		m_target.draw(ellipse);
+		m_window.draw(ellipse);
 	}
 
 	void DrawText(double left, double top, double fontSize, const std::string& text) override
@@ -59,11 +60,17 @@ public:
 		sf::Text sfText(text, font, static_cast<unsigned int>(fontSize));
 		sfText.setPosition(left, top);
 		sfText.setFillColor(m_currentColor);
-		m_target.draw(sfText);
+		m_window.draw(sfText);
+	}
+
+	void Render() override
+	{
+		m_window.clear();
+		m_window.display();
 	}
 
 private:
-	sf::RenderTarget& m_target;
+	sf::RenderWindow& m_window;
 	sf::Vector2f m_currentPosition;
 	sf::Color m_currentColor;
 };

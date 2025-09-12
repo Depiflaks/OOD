@@ -16,6 +16,7 @@ public:
 			std::cout << "I'm dancing waltz!\n";
 		};
 	}
+	// TODO: засунуть в пространство имён (мы не в java)
 
 	static DanceBehavior CreateDanceMinuet()
 	{

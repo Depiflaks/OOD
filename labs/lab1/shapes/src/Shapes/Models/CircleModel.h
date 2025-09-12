@@ -24,6 +24,7 @@ public:
 	{
 		canvas.SetColor(fillColor);
 		canvas.DrawEllipse(m_center.x, m_center.y, m_r, m_r);
+		canvas.Render();
 	}
 
 	void Move(double dx, double dy) override

@@ -29,6 +29,7 @@ public:
 		canvas.SetColor(fillColor);
 		canvas.MoveTo(m_p1.x, m_p1.y);
 		canvas.LineTo(m_p2.x, m_p2.y);
+		canvas.Render();
 	}
 
 	void Move(double dx, double dy) override

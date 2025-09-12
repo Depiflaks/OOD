@@ -14,6 +14,7 @@ class IShape
 public:
 	virtual ~IShape() = default;
 	virtual void Draw(gfx::ICanvas& canvas) = 0;
+	// TODO: навести красоту со константыми методами
 	virtual void SetFillColor(const Color& color) = 0;
 	virtual Bounds GetBounds() = 0;
 	virtual void ChangeShape(std::unique_ptr<IShapeModel> model) = 0;

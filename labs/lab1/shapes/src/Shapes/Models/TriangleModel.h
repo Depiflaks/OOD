@@ -34,6 +34,7 @@ public:
 		canvas.LineTo(m_vertex2.x, m_vertex2.y);
 		canvas.LineTo(m_vertex3.x, m_vertex3.y);
 		canvas.LineTo(m_vertex1.x, m_vertex1.y);
+		canvas.Render();
 	}
 
 	void Move(double dx, double dy) override

@@ -1,10 +1,6 @@
 #include "../src/Shapes/Geometry.h"
-#include "../src/Shapes/Geometry.h"
 #include "../src/Shapes/Models/CircleModel.h"
-#include "../src/Shapes/Models/LineModel.h"
 #include "../src/Shapes/Models/RectangleModel.h"
-#include "../src/Shapes/Models/TextModel.h"
-#include "../src/Shapes/Models/TriangleModel.h"
 #include "../src/Shapes/Shape.h"
 
 #include "./MockCanvas.h"
@@ -55,7 +51,7 @@ TEST(ShapeTest, OldModelAfterChangeTest)
 
 	shape.ChangeShape(std::move(newModel));
 
-    EXPECT_FALSE(oldModel);
+	EXPECT_FALSE(oldModel);
 }
 
 } // namespace shapes

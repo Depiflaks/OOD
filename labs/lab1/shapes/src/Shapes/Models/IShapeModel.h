@@ -11,6 +11,7 @@ class IShapeModel
 {
 public:
 	virtual ~IShapeModel() = default;
+	// TODO: виртуальный деструктор зачем нужен
 	virtual Bounds GetBounds() = 0;
 	virtual void Draw(gfx::ICanvas& canvas, const Color& fillColor) = 0;
 	virtual void Move(double dx, double dy) = 0;
