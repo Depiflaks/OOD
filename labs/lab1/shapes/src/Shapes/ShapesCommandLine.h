@@ -1,35 +1,36 @@
 #ifndef SHAPESCOMMANDLINE_H
 #define SHAPESCOMMANDLINE_H
 
+#include "../Command/CommandListener.h"
+#include "./Picture.h"
+#include "Command/CommandExecutor.h"
+#include <iostream>
+
+namespace shapes
+{
+
 class ShapesCommandLine
 {
 public:
-	void Start(Picture& picture, ICommandListener& listener)
+	ShapesCommandLine()
+		: m_executor(commands::CommandExecutor{})
 	{
-		RunWithErrorHandling(picture, listener);
 	}
 
-private:
-	void RunWithErrorHandling(Picture& picture, ICommandListener& listener)
+	void ExecuteCommand(Picture& picture, commands::ICommandListener& listener)
 	{
-		while (true)
+		try
 		{
-			try
-			{
-				ExecuteCommand(picture, listener);
-			}
-			catch (const std::runtime_error& e)
-			{
-				std::cout << "Error: " << e.what() << std::endl;
-			}
-			catch (...)
-			{
-				std::cout << "Unknown error occurred" << std::endl;
-			}
+			Execute(picture, listener);
+		}
+		catch (const std::runtime_error& e)
+		{
+			std::cout << "Error: " << e.what() << std::endl;
 		}
 	}
 
-	void ExecuteCommand(Picture& picture, ICommandListener& listener)
+private:
+	void Execute(Picture& picture, commands::ICommandListener& listener)
 	{
 		std::string commandLine = listener.GetLine();
 		if (commandLine.empty())
@@ -37,9 +38,11 @@ private:
 			return;
 		}
 
-		CommandExecutor executor;
-		executor.Execute(picture, commandLine);
+		m_executor.Execute(picture, commandLine);
 	}
+
+	commands::CommandExecutor m_executor;
 };
+} // namespace shapes
 
 #endif /* SHAPESCOMMANDLINE_H */

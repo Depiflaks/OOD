@@ -1,14 +1,18 @@
 #include <SFML/Graphics.hpp>
 
+#include "./Command/CommandListener.h"
+#include "./GFX/SFMLCanvas.h"
+#include "./Shapes/ShapesCommandLine.h"
 #include <iostream>
-#include <memory>
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
-	sf::CircleShape shape(100.f);
-	shape.setFillColor(sf::Color::Green);
+	sf::RenderWindow window(sf::VideoMode(800, 600), "Shapes");
 
+	gfx::SFMLCanvas canvas{ window };
+	shapes::Picture picture(canvas);
+	commands::StdCommandListener listener;
+	shapes::ShapesCommandLine app;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -20,12 +24,7 @@ int main()
 
 		try
 		{
-			gfx::MockCanvas canvas;
-			Picture picture(canvas);
-			StdCommandListener listener;
-			ShapesCommandLine app;
-
-			app.Start(picture, listener);
+			app.ExecuteCommand(picture, listener);
 		}
 		catch (const std::exception& e)
 		{
@@ -34,7 +33,6 @@ int main()
 		}
 
 		window.clear();
-		window.draw(shape);
 		window.display();
 	}
 
