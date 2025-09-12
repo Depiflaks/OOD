@@ -148,4 +148,5 @@ TEST(PictureTest, MultipleShapesBounds)
 	EXPECT_DOUBLE_EQ(bounds.size.w, 35);
 	EXPECT_DOUBLE_EQ(bounds.size.h, 55);
 }
+// TODO: допилить тесты для List
 } // namespace shapes

@@ -1,4 +1,3 @@
-
 classDiagram
     direction TB
 
@@ -11,6 +10,9 @@ classDiagram
             + DrawEpilse(cx: double, cy: double, rx: double, ry: double)
             + DrawText(left: double, top: double, fontSize: double, text: string)
         }
+
+        class SFMLCanvas
+        class MockCanvas
 
         class Color {
             +Value() uint32t
@@ -50,11 +52,7 @@ classDiagram
         }
 
         class TriangleModel {
-            +TriangleModel(
-                vertex1 double,
-                vertex2 double,
-                vertex3 double,
-            )
+            +TriangleModel(vertex1 double, vertex2 double, vertex3 double)
 
             -m_vertex1 double
             -m_vertex2 double
@@ -134,7 +132,6 @@ classDiagram
         class ArgumentType {
             <<enum>>
             +string
-            +int
             +double
             +shape
         }
@@ -167,27 +164,95 @@ classDiagram
             +Execute(Picture& picture, std::string argumentsLine)
         }
 
+        class AddShapeCommand
 
-        class AddShapeCommand {
-            +Execute(Picture& picture, std::string argumentsLine)
+        class DrawPicture
 
-            -Parse(...)
-            -m_argumentsTypes std::vector<ArgumentType>
-        }
+        class DrawShape
 
-        
-        class ShapeParser {
+        class AddShape
+
+        class ChangeShape
+
+        class ChangeColor
+
+        class List
+
+        class DeleteShape
+
+        class MovePicture
+
+        class MoveShape
+
+        class IShapeParser {
+            <<interface>>
             +Parse(std::string shapeParameters) IShapeModel
         }
+
+        class RectangleParser 
+
+        class CircleParser 
+
+        class TextParser 
+
+        class LineParser 
+
+        class TriangeParser 
     }
 
-    IShape <|.. Shape
-    ICommandListener <|.. StdCommandListener
-    ICommand <|.. AddShapeCommand
+    %% Commands
 
-    Picture o--> ICanvas
+    CommandExecutor o--> ICommandListener
+    CommandExecutor o--> ICommand
+    CommandExecutor o--> Picture
+
+    ICommandListener <|.. StdCommandListener
+
+    ICommand <|.. AddShapeCommand
+    ICommand <|.. DrawPicture
+    ICommand <|.. DrawShape
+    ICommand <|.. AddShape
+    ICommand <|.. ChangeShape
+    ICommand <|.. ChangeColor
+    ICommand <|.. List
+    ICommand <|.. DeleteShape
+    ICommand <|.. MovePicture
+    ICommand <|.. MoveShape
+
+
+    %% Shapes
+
+    IShapeParser <|.. RectangleParser
+    IShapeParser <|.. CircleParser
+    IShapeParser <|.. TextParser
+    IShapeParser <|.. LineParser
+    IShapeParser <|.. TriangeParser
+
+    MoveShape --> IShapeParser
 
     IShapeModel <|.. RectangleModel
     IShapeModel <|.. TriangleModel
+    IShapeModel <|.. CircleModel
+    IShapeModel <|.. TextModel
+    IShapeModel <|.. LineModel
+
+    IShape <|.. Shape
+
+    Shape --> Bounds
+    Shape --> Size
+    Shape --> Position
+    Shape --> Color
+
+    Shape o--> IShapeModel
+
+    Picture o--> IShape
+    Picture o--> ICanvas
+
+
+    %% GFX
+
+    ICanvas <|.. MockCanvas
+    ICanvas <|.. SFMLCanvas
+
 
 
