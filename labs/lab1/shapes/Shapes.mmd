@@ -121,27 +121,13 @@ classDiagram
 
 
         class ShapesCommandLine {
-            +Start(Picture& picture) void
+            +Start(Picture& picture, ICommandListener& listener) void
 
             -ExecuteCommand(Picture& picture)
         }
     }
 
     namespace commands {
-
-        class ArgumentType {
-            <<enum>>
-            +string
-            +double
-            +shape
-        }
-
-        class CommandType {
-            <<enum>>
-            +AddShape
-            +MoveShape
-            ....
-        }
 
         class ICommandListener {
             <<interface>>
@@ -198,16 +184,29 @@ classDiagram
         class LineParser 
 
         class TriangeParser 
+
+        class ShapeParserFactory {
+            +GetParserByType(std::string type)$ IShapeParser
+        }
+
+        class CommandFactory {
+            +GetCommand(std::string commandLine)$ ICommand
+        }
+
     }
 
     %% Commands
 
-    CommandExecutor o--> ICommandListener
-    CommandExecutor o--> ICommand
-    CommandExecutor o--> Picture
+
+    ShapesCommandLine o--> ICommandListener
+    ShapesCommandLine o--> Picture
+    ShapesCommandLine *--> CommandExecutor
+
+    CommandExecutor --> CommandFactory
 
     ICommandListener <|.. StdCommandListener
 
+    CommandFactory o--> ICommand
     ICommand <|.. AddShapeCommand
     ICommand <|.. DrawPicture
     ICommand <|.. DrawShape
@@ -219,16 +218,17 @@ classDiagram
     ICommand <|.. MovePicture
     ICommand <|.. MoveShape
 
-
-    %% Shapes
-
     IShapeParser <|.. RectangleParser
     IShapeParser <|.. CircleParser
     IShapeParser <|.. TextParser
     IShapeParser <|.. LineParser
     IShapeParser <|.. TriangeParser
 
-    MoveShape --> IShapeParser
+    MoveShape --> ShapeParserFactory
+
+    ShapeParserFactory o--> IShapeParser
+
+    %% Shapes
 
     IShapeModel <|.. RectangleModel
     IShapeModel <|.. TriangleModel
