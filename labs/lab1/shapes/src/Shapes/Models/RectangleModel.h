@@ -2,6 +2,7 @@
 #define RECTANGLEMODEL_H
 
 #include "IShapeModel.h"
+#include <iostream>
 
 namespace shapes
 {
@@ -27,7 +28,6 @@ public:
 		canvas.LineTo(m_bounds.position.x + m_bounds.size.w, m_bounds.position.y + m_bounds.size.h);
 		canvas.LineTo(m_bounds.position.x, m_bounds.position.y + m_bounds.size.h);
 		canvas.LineTo(m_bounds.position.x, m_bounds.position.y);
-		canvas.Render();
 	}
 
 	void Move(double dx, double dy) override

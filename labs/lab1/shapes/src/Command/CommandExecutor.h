@@ -3,6 +3,7 @@
 
 #include "../Command/Commands/CommandFactory.h"
 #include "../Shapes/Picture.h"
+#include <iostream>
 
 namespace commands
 {

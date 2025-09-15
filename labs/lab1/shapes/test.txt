@@ -1,0 +1,3 @@
+AddShape rect1 #ff0000 rectangle 10 10 20 20
+AddShape ell #ff0000 circle 50 50 50
+DrawShape rect1

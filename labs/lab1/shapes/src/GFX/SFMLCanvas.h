@@ -65,7 +65,6 @@ public:
 
 	void Render() override
 	{
-		m_window.clear();
 		m_window.display();
 	}
 
