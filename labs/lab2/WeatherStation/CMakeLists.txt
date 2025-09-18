@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(lab1_functional_ducks)
+project(lab2_weather_data)
 
 set(CMAKE_CXX_STANDARD 20)
 
