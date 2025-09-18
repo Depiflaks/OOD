@@ -1,4 +1,4 @@
-#include "WeatherData.h"
+#include "./WeatherData.h"
 
 int main()
 {

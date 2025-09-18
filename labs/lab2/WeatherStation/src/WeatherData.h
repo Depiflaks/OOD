@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <iostream>
-#include <vector>
-#include <algorithm>
+#include <limits>
 #include <climits>
 #include "Observer.h"
 
@@ -58,7 +57,6 @@ private:
 	double m_maxTemperature = -std::numeric_limits<double>::infinity();
 	double m_accTemperature = 0;
 	unsigned m_countAcc = 0;
-
 };
 
 class CWeatherData : public CObservable<SWeatherInfo>
