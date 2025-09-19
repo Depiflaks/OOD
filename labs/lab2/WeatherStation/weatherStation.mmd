@@ -1,6 +1,13 @@
 classDiagram
   direction TB
 
+  class SubscribeType {
+    <<enum>>
+    +TEMPERAURE_CHANGE
+    +HUMIDITY_CHANGE
+    +PRESSURE_CHANGE
+  }
+
   class IObserver {
     <<interface>>
     +Update() void
@@ -46,10 +53,15 @@ classDiagram
 
   class ISubject {
     <<interface>>
-    +RegisterObserver(IObserver<T>& observer) void
+    +Subscribe(SubscribeType type, std::weak_ptr~IObserver~ observer) void
+    +Unsubscribe(SubscribeType type, std::weak_ptr~IObserver~ observer) void
+    +UnsubscribeObserver(std::weak_ptr~IObserver~ observer) void
+    +UnsubscribeAllByType(SubscribeType type) void
     +NotifyObservers() void
-    +RemoveObserver(IObserver<T>& observer) void
     +GetData() T
+
+    +NotifyAll() void
+    +Notify(SubscribeType type) void
   }
 
   class Subject {
@@ -72,6 +84,7 @@ classDiagram
   }
 
   ISubject ..|> Subject
+  Subject ..|> SubscribeType : use
   Subject --|> WeatherData
 
   Subject o--> IObserver
