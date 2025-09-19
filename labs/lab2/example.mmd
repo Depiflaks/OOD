@@ -1,0 +1,30 @@
+classDiagram
+    direction TB
+
+    class Observable {
+        +RegisterObserver(IObserver& observer) void
+        +RemoveObserver(IObserver& observer) void
+        +NotifyObservers() void
+    }
+
+    class IObserver {
+        <<interface>>
+        +Update(Context context)
+    }
+
+    class Observer {
+        +Update(Context context)
+    }
+
+    IObserver ..|> Observer
+
+    class Context
+
+    Observable o--> IObserver
+
+    Observable ..> Context : create
+    IObserver ..> Context : use
+    Observer ..> Context : use
+
+
+
