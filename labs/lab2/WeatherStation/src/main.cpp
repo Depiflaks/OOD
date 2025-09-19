@@ -1,28 +1,24 @@
 #include "./WeatherData.h"
+#include <memory>
 
 int main()
 {
-	WeatherData wd;
 
-	Display display;
-	wd.RegisterObserver(display);
+	auto weatherData = std::make_shared<WeatherData>();
 
-	PressureStatsDisplay pressureStatsDisplay;
-	HumStatsDisplay humStatsDisplay;
-	TemperatureStatsDisplay tempStatsDisplay;
-	wd.RegisterObserver(pressureStatsDisplay);
-	wd.RegisterObserver(humStatsDisplay);
-	wd.RegisterObserver(tempStatsDisplay);
+	auto display = std::make_shared<Display>(weatherData);
+	auto tempDisplay = std::make_shared<TemperatureStatsDisplay>(weatherData);
+	auto humDisplay = std::make_shared<HumStatsDisplay>(weatherData);
+	auto pressureDisplay = std::make_shared<PressureStatsDisplay>(weatherData);
 
-	wd.SetMeasurements(3, 0.7, 760);
-	wd.SetMeasurements(4, 0.8, 761);
+	weatherData->SetMeasurements(3, 0.7, 760);
+	weatherData->SetMeasurements(4, 0.8, 761);
 
-	wd.RemoveObserver(pressureStatsDisplay);
-	wd.RemoveObserver(humStatsDisplay);
-	wd.RemoveObserver(tempStatsDisplay);
+	weatherData->RemoveObserver(humDisplay);
+	weatherData->RemoveObserver(pressureDisplay);
+	weatherData->RemoveObserver(tempDisplay);
 
-
-	wd.SetMeasurements(10, 0.8, 761);
-	wd.SetMeasurements(-10, 0.8, 761);
+	weatherData->SetMeasurements(10, 0.8, 761);
+	weatherData->SetMeasurements(-10, 0.8, 761);
 	return 0;
 }

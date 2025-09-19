@@ -2,57 +2,93 @@
 #include "Observer.h"
 #include <climits>
 #include <iostream>
+#include <memory>
 
 struct WeatherInfo
 {
-	double temperature = 0;
-	double humidity = 0;
-	double pressure = 0;
+	double m_temperature = 0;
+	double m_humidity = 0;
+	double m_pressure = 0;
 };
 
-class Display : public IObserver<WeatherInfo>
+class WeatherData;
+
+class Display : public AbstractObserver<WeatherInfo>
 {
+public:
+    Display(std::weak_ptr<WeatherData> weatherData)
+        : AbstractObserver<WeatherInfo>(std::static_pointer_cast<ISubject<WeatherInfo>>(weatherData.lock()))
+    {
+    }
+
 private:
-	void Update(WeatherInfo const& data) override
-	{
-		std::cout << "Current Temp " << data.temperature << std::endl;
-		std::cout << "Current Hum " << data.humidity << std::endl;
-		std::cout << "Current Pressure " << data.pressure << std::endl;
-		std::cout << "----------------" << std::endl;
-	}
+    void Update() override
+    {
+        auto subject = GetSubject();
+        auto data = subject.lock()->GetData();
+
+        std::cout << "Current Temp " << data.m_temperature << std::endl;
+        std::cout << "Current Hum " << data.m_humidity << std::endl;
+        std::cout << "Current Pressure " << data.m_pressure << std::endl;
+        std::cout << "----------------" << std::endl;
+    }
 };
 
 class PressureStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
 {
+public:
+    PressureStatsDisplay(std::weak_ptr<WeatherData> weatherData)
+        : AbstractStatsObserver<WeatherInfo, double>(std::static_pointer_cast<ISubject<WeatherInfo>>(weatherData.lock()))
+    {
+    }
+
 private:
-	void Update(WeatherInfo const& data) override
-	{
-		UpdateStatistics(data.pressure);
-		PrintValues("Pressure");
-	}
+    void Update() override
+    {
+        auto subject = GetSubject();
+        auto data = subject.lock()->GetData();
+        UpdateStatistics(data.m_pressure);
+        PrintValues("Pressure");
+    }
 };
 
 class HumStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
 {
+public:
+    HumStatsDisplay(std::weak_ptr<WeatherData> weatherData)
+        : AbstractStatsObserver<WeatherInfo, double>(std::static_pointer_cast<ISubject<WeatherInfo>>(weatherData.lock()))
+    {
+    }
+
 private:
-	void Update(WeatherInfo const& data) override
-	{
-		UpdateStatistics(data.humidity);
-		PrintValues("Hum");
-	}
+    void Update() override
+    {
+        auto subject = GetSubject();
+        auto data = subject.lock()->GetData();
+        UpdateStatistics(data.m_humidity);
+        PrintValues("Hum");
+    }
 };
 
 class TemperatureStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
 {
+public:
+    TemperatureStatsDisplay(std::weak_ptr<WeatherData> weatherData)
+        : AbstractStatsObserver<WeatherInfo, double>(std::static_pointer_cast<ISubject<WeatherInfo>>(weatherData.lock()))
+    {
+    }
+
 private:
-	void Update(WeatherInfo const& data) override
-	{
-		UpdateStatistics(data.temperature);
-		PrintValues("Temp");
-	}
+    void Update() override
+    {
+        auto subject = GetSubject();
+        auto data = subject.lock()->GetData();
+        UpdateStatistics(data.m_temperature);
+        PrintValues("Temp");
+    }
 };
 
-class WeatherData : public Observable<WeatherInfo>
+class WeatherData : public Subject<WeatherInfo>
 {
 public:
 	double GetTemperature() const
@@ -84,13 +120,12 @@ public:
 		MeasurementsChanged();
 	}
 
-protected:
-	WeatherInfo GetChangedData() const override
+	WeatherInfo GetData() const override
 	{
 		WeatherInfo info;
-		info.temperature = GetTemperature();
-		info.humidity = GetHumidity();
-		info.pressure = GetPressure();
+		info.m_temperature = GetTemperature();
+		info.m_humidity = GetHumidity();
+		info.m_pressure = GetPressure();
 		return info;
 	}
 

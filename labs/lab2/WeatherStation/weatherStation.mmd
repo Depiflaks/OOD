@@ -3,39 +3,58 @@ classDiagram
 
   class IObserver {
     <<interface>>
-    +Update(data) void
+    +Update() void
+  }
+
+  class AbstractObserver {
+    +AbstractObserver(ISubject* subject)
+    +GetSubject() std::weak_ptr~ISubject~
+    -std::weak_ptr~ISubject~ m_subject
   }
 
   class AbstractStatsObserver {
-    +UpdateStatistics(value) void
-    +PrintValues(name) void
-    -m_minValue ValueType
-    -m_maxValue ValueType
-    -m_accValue ValueType
+    #UpdateStatistics(value) void
+    #PrintValues(name) void
+    -ValueType m_minValue
+    -ValueType m_maxValue
+    -ValueType m_accValue
   }
 
-  class Display 
+  class Display {
+    -Update() void
+  }
 
-  class PressureStatsDisplay
-  class HumStatsDisplay
-  class TemperatureStatsDisplay
+  class PressureStatsDisplay {
+    -Update() void
+  }
+  class HumStatsDisplay {
+    -Update() void
+  }
 
-  IObserver ..|> AbstractStatsObserver
-  IObserver ..|> Display
+  class TemperatureStatsDisplay {
+    -Update() void
+  }
+
+  IObserver ..|> AbstractObserver
+  AbstractObserver --|> AbstractStatsObserver
+  AbstractObserver --|> Display
   AbstractStatsObserver --|> PressureStatsDisplay
   AbstractStatsObserver --|> HumStatsDisplay
   AbstractStatsObserver --|> TemperatureStatsDisplay
 
-  class IObservable {
+  AbstractObserver o--> ISubject
+
+  class ISubject {
     <<interface>>
-	+RegisterObserver(IObserver<T>& observer) void
-	+NotifyObservers() void
-	+RemoveObserver(IObserver<T>& observer) void
+    +RegisterObserver(IObserver<T>& observer) void
+    +NotifyObservers() void
+    +RemoveObserver(IObserver<T>& observer) void
+    +GetData() T
   }
 
-  class Observable {
-	#GetChangedData() T
-	-m_observers std::set<ObserverType*> 
+  class Subject {
+    #GetChangedData() T
+    -m_observers std::set~std::weak_ptr~IObserver~~
   }
 
   class WeatherData {
@@ -43,18 +62,19 @@ classDiagram
     +GetHumidity() double
     +GetPressure() double
     +MeasurementsChanged() void
+    +GetData() WeatherInfo
 
     +SetMeasurements(double temp, double humidity, double pressure) void
 
-	m_temperature double 
-	m_humidity double 
-	m_pressure double 
+    m_temperature double 
+    m_humidity double 
+    m_pressure double 
   }
 
-  IObservable ..|> Observable
-  Observable --|> WeatherData
+  ISubject ..|> Subject
+  Subject --|> WeatherData
 
-  Observable o--> IObserver
+  Subject o--> IObserver
   WeatherData --> WeatherInfo : creates
 
   class WeatherInfo {
@@ -62,9 +82,3 @@ classDiagram
     +humidity double 
     +pressure double 
   }
-
-
-
-
-
-

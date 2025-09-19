@@ -2,43 +2,123 @@
 
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <set>
+#include <stdexcept>
 #include <string_view>
+#include <sys/stat.h>
+
+#include "./Concepts.h"
+
+template <typename T>
+class IObserver;
+
+template <typename T>
+class ISubject
+{
+public:
+	virtual ~ISubject() = default;
+	virtual void RegisterObserver(std::weak_ptr<IObserver<T>> observer) = 0;
+	virtual void NotifyObservers() = 0;
+	virtual void RemoveObserver(std::weak_ptr<IObserver<T>> observer) = 0;
+	virtual T GetData() const = 0;
+};
+
+template <class T>
+class Subject : public ISubject<T>
+{
+public:
+	typedef IObserver<T> ObserverType;
+
+	void RegisterObserver(std::weak_ptr<ObserverType> observer) override
+	{
+		m_observers.insert(observer);
+	}
+
+	void NotifyObservers() override
+	{
+		T data = GetData();
+		for (auto& observer : m_observers)
+		{
+			if (std::shared_ptr<ObserverType> observerPtr = observer.lock())
+			{
+				observerPtr->Update();
+			}
+			else
+			{
+				RemoveObserver(observer);
+			}
+		}
+	}
+
+	void RemoveObserver(std::weak_ptr<ObserverType> observer) override
+	{
+		m_observers.erase(observer);
+	}
+
+	virtual T GetData() const = 0;
+
+private:
+	std::set<std::weak_ptr<ObserverType>, std::owner_less<std::weak_ptr<ObserverType>>> m_observers;
+
+	static void CheckObserverExist(std::weak_ptr<ObserverType> observer)
+	{
+		if (observer.expired())
+		{
+			throw std::runtime_error{ "Observer no longer exists" };
+		}
+	}
+};
 
 template <typename T>
 class IObserver
 {
 public:
-	virtual void Update(T const& data) = 0;
+	virtual void Update() = 0;
 	virtual ~IObserver() = default;
 };
 
 template <typename T>
-concept Arithmetic = requires(T a, T b) {
-	requires std::is_arithmetic_v<T>;
-	{ a + b } -> std::same_as<T>;
-	{ a - b } -> std::same_as<T>;
-	{ a * b } -> std::same_as<T>;
-	{ a / b } -> std::same_as<T>;
-	{ a < b } -> std::convertible_to<bool>;
-	{ a > b } -> std::convertible_to<bool>;
-	{ a == b } -> std::convertible_to<bool>;
-};
+class AbstractObserver : public IObserver<T>
+	, public std::enable_shared_from_this<IObserver<T>>
+{
+protected:
+	AbstractObserver(std::weak_ptr<ISubject<T>> subject)
+		: m_subject(subject)
+	{
+		CheckSubjectExist(subject);
 
-template <typename T>
-concept HasNumericLimits = requires {
-	typename std::numeric_limits<T>;
-	{ std::numeric_limits<T>::infinity() } -> std::convertible_to<T>;
-	{ std::numeric_limits<T>::max() } -> std::convertible_to<T>;
-	{ std::numeric_limits<T>::min() } -> std::convertible_to<T>;
-};
+		std::shared_ptr<ISubject<T>> subjectPtr = subject.lock();
+		subjectPtr->RegisterObserver(this->shared_from_this());
+	}
 
-template <typename T>
-concept SuitableValueType = Arithmetic<T> && HasNumericLimits<T>;
+	std::weak_ptr<ISubject<T>> GetSubject() const
+	{
+		CheckSubjectExist(m_subject);
+		return m_subject;
+	}
+
+private:
+	std::weak_ptr<ISubject<T>> m_subject;
+
+	static void CheckSubjectExist(std::weak_ptr<ISubject<T>> subject)
+	{
+		if (subject.expired())
+		{
+			throw std::runtime_error{ "Subject no longer exists" };
+		}
+	}
+};
 
 template <typename ContextType, SuitableValueType ValueType>
-class AbstractStatsObserver : public IObserver<ContextType>
+class AbstractStatsObserver : public AbstractObserver<ContextType>
 {
+public:
+	AbstractStatsObserver(std::weak_ptr<ISubject<ContextType>> subject)
+		: AbstractObserver<ContextType>{ subject }
+	{
+	}
+
 protected:
 	void UpdateStatistics(const ValueType& value)
 	{
@@ -67,46 +147,4 @@ private:
 	ValueType m_maxValue = -std::numeric_limits<ValueType>::infinity();
 	ValueType m_accValue = 0;
 	unsigned m_countAcc = 0;
-};
-
-template <typename T>
-class IObservable
-{
-public:
-	virtual ~IObservable() = default;
-	virtual void RegisterObserver(IObserver<T>& observer) = 0;
-	virtual void NotifyObservers() = 0;
-	virtual void RemoveObserver(IObserver<T>& observer) = 0;
-};
-
-template <class T>
-class Observable : public IObservable<T>
-{
-public:
-	typedef IObserver<T> ObserverType;
-
-	void RegisterObserver(ObserverType& observer) override
-	{
-		m_observers.insert(&observer);
-	}
-
-	void NotifyObservers() override
-	{
-		T data = GetChangedData();
-		for (auto& observer : m_observers)
-		{
-			observer->Update(data);
-		}
-	}
-
-	void RemoveObserver(ObserverType& observer) override
-	{
-		m_observers.erase(&observer);
-	}
-
-protected:
-	virtual T GetChangedData() const = 0;
-
-private:
-	std::set<ObserverType*> m_observers;
 };
