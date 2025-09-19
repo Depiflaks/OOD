@@ -2,18 +2,25 @@
 
 int main()
 {
-	CWeatherData wd;
+	WeatherData wd;
 
-	CDisplay display;
+	Display display;
 	wd.RegisterObserver(display);
 
-	CStatsDisplay statsDisplay;
-	wd.RegisterObserver(statsDisplay);
+	PressureStatsDisplay pressureStatsDisplay;
+	HumStatsDisplay humStatsDisplay;
+	TemperatureStatsDisplay tempStatsDisplay;
+	wd.RegisterObserver(pressureStatsDisplay);
+	wd.RegisterObserver(humStatsDisplay);
+	wd.RegisterObserver(tempStatsDisplay);
 
 	wd.SetMeasurements(3, 0.7, 760);
 	wd.SetMeasurements(4, 0.8, 761);
 
-	wd.RemoveObserver(statsDisplay);
+	wd.RemoveObserver(pressureStatsDisplay);
+	wd.RemoveObserver(humStatsDisplay);
+	wd.RemoveObserver(tempStatsDisplay);
+
 
 	wd.SetMeasurements(10, 0.8, 761);
 	wd.SetMeasurements(-10, 0.8, 761);

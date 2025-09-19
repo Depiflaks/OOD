@@ -2,7 +2,6 @@
 #include "Observer.h"
 #include <climits>
 #include <iostream>
-#include <limits>
 
 struct WeatherInfo
 {
@@ -23,32 +22,34 @@ private:
 	}
 };
 
-class StatsDisplay : public IObserver<WeatherInfo>
+class PressureStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
 {
 private:
 	void Update(WeatherInfo const& data) override
 	{
-		if (m_minTemperature > data.temperature)
-		{
-			m_minTemperature = data.temperature;
-		}
-		if (m_maxTemperature < data.temperature)
-		{
-			m_maxTemperature = data.temperature;
-		}
-		m_accTemperature += data.temperature;
-		++m_countAcc;
-
-		std::cout << "Max Temp " << m_maxTemperature << std::endl;
-		std::cout << "Min Temp " << m_minTemperature << std::endl;
-		std::cout << "Average Temp " << (m_accTemperature / m_countAcc) << std::endl;
-		std::cout << "----------------" << std::endl;
+		UpdateStatistics(data.pressure);
+		PrintValues("Pressure");
 	}
+};
 
-	double m_minTemperature = std::numeric_limits<double>::infinity();
-	double m_maxTemperature = -std::numeric_limits<double>::infinity();
-	double m_accTemperature = 0;
-	unsigned m_countAcc = 0;
+class HumStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
+{
+private:
+	void Update(WeatherInfo const& data) override
+	{
+		UpdateStatistics(data.humidity);
+		PrintValues("Hum");
+	}
+};
+
+class TemperatureStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
+{
+private:
+	void Update(WeatherInfo const& data) override
+	{
+		UpdateStatistics(data.temperature);
+		PrintValues("Temp");
+	}
 };
 
 class WeatherData : public Observable<WeatherInfo>

@@ -1,0 +1,70 @@
+classDiagram
+  direction TB
+
+  class IObserver {
+    <<interface>>
+    +Update(data) void
+  }
+
+  class AbstractStatsObserver {
+    +UpdateStatistics(value) void
+    +PrintValues(name) void
+    -m_minValue ValueType
+    -m_maxValue ValueType
+    -m_accValue ValueType
+  }
+
+  class Display 
+
+  class PressureStatsDisplay
+  class HumStatsDisplay
+  class TemperatureStatsDisplay
+
+  IObserver ..|> AbstractStatsObserver
+  IObserver ..|> Display
+  AbstractStatsObserver --|> PressureStatsDisplay
+  AbstractStatsObserver --|> HumStatsDisplay
+  AbstractStatsObserver --|> TemperatureStatsDisplay
+
+  class IObservable {
+    <<interface>>
+	+RegisterObserver(IObserver<T>& observer) void
+	+NotifyObservers() void
+	+RemoveObserver(IObserver<T>& observer) void
+  }
+
+  class Observable {
+	#GetChangedData() T
+	-m_observers std::set<ObserverType*> 
+  }
+
+  class WeatherData {
+    +GetTemperature() double
+    +GetHumidity() double
+    +GetPressure() double
+    +MeasurementsChanged() void
+
+    +SetMeasurements(double temp, double humidity, double pressure) void
+
+	m_temperature double 
+	m_humidity double 
+	m_pressure double 
+  }
+
+  IObservable ..|> Observable
+  Observable --|> WeatherData
+
+  Observable o--> IObserver
+  WeatherData --> WeatherInfo : creates
+
+  class WeatherInfo {
+    +temperature double 
+    +humidity double 
+    +pressure double 
+  }
+
+
+
+
+
+
