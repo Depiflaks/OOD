@@ -1,8 +1,6 @@
 #ifndef SUBJECT_H
 #define SUBJECT_H
 
-#include <complex>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
