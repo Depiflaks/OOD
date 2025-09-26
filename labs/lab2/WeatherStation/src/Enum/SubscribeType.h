@@ -1,0 +1,11 @@
+#ifndef SUBSCRIBETYPE_H
+#define SUBSCRIBETYPE_H
+
+enum class SubscribeType
+{
+	TEMPERATURE_CHANGE,
+	HUMIDITY_CHANGE,
+	PRESSURE_CHANGE,
+};
+
+#endif /* SUBSCRIBETYPE_H */

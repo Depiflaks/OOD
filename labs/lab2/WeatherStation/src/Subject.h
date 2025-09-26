@@ -7,14 +7,20 @@ template <typename T>
 class IObserver;
 
 template <typename T>
-class ISubject
+class IObservable
 {
 public:
-	virtual ~ISubject() = default;
-	virtual void RegisterObserver(std::weak_ptr<IObserver<T>> observer) = 0;
-	virtual void NotifyObservers() = 0;
-	virtual void RemoveObserver(std::weak_ptr<IObserver<T>> observer) = 0;
+	virtual ~IObservable() = default;
+	virtual void RegisterObserver(const std::weak_ptr<IObserver<T>>& observer) = 0;
+	virtual void RemoveObserver(const std::weak_ptr<IObserver<T>>& observer) = 0;
 	virtual T GetData() const = 0;
+};
+
+template <typename T>
+class ISubject : public IObservable<T>
+{
+public:
+	virtual void NotifyObservers() = 0;
 };
 
 template <class T>
@@ -23,44 +29,38 @@ class Subject : public ISubject<T>
 public:
 	typedef IObserver<T> ObserverType;
 
-	void RegisterObserver(std::weak_ptr<ObserverType> observer) override
+	void RegisterObserver(const std::weak_ptr<IObserver<T>>& observer) override
 	{
 		m_observers.insert(observer);
 	}
 
 	void NotifyObservers() override
 	{
-		T data = GetData();
-		for (auto& observer : m_observers)
+		for (auto observer : m_observers)
 		{
-			if (std::shared_ptr<ObserverType> observerPtr = observer.lock())
-			{
-				observerPtr->Update();
-			}
-			else
-			{
-				RemoveObserver(observer);
-			}
+			UpdateObserver();
 		}
 	}
 
-	void RemoveObserver(std::weak_ptr<ObserverType> observer) override
+	void RemoveObserver(const std::weak_ptr<IObserver<T>>& observer) override
 	{
 		m_observers.erase(observer);
 	}
 
-	virtual T GetData() const = 0;
-
 private:
-	std::set<std::weak_ptr<ObserverType>, std::owner_less<std::weak_ptr<ObserverType>>> m_observers;
+	std::set<const ObserverType*> m_observers;
 
-	static void CheckObserverExist(std::weak_ptr<ObserverType> observer)
+	void UpdateObserver(const std::weak_ptr<IObserver<T>>& observer)
 	{
-		if (observer.expired())
+		if (auto shared_observer = observer.lock())
 		{
-			throw std::runtime_error{ "Observer no longer exists" };
+			shared_observer->Update(*this);
+		}
+		else
+		{
+			m_observers.erase(observer);
 		}
 	}
 };
-#endif /* SUBJECT_H */
 
+#endif /* SUBJECT_H */

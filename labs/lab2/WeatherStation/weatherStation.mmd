@@ -8,43 +8,63 @@ classDiagram
     +PRESSURE_CHANGE
   }
 
-  class IObserver {
+  class IObserver~typename... Ts~ {
     <<interface>>
-    +Update() void
+    +Update(const IObservable~T~& observables) void
+    +UpdateObservables(const IObservable~Ts~&... observables) void
   }
 
-  class AbstractObserver {
-    +AbstractObserver(ISubject* subject)
-    +GetSubject() std::weak_ptr~ISubject~
-    -std::weak_ptr~ISubject~ m_subject
+  class AbstractObserver~typename... Ts~ {
+    +AbstractObserver(const IObservable~T1~& observable ....)
+    #GetObservables() std::vector~void*~
+    -std::vector~void*~ m_observables
   }
 
-  class AbstractStatsObserver {
-    #UpdateStatistics(value) void
-    #PrintValues(name) void
+  class MonoAbstractObserver~T~ {
+    +MonoObserver(const IObservable~T~& observable)
+  }
+
+  class DuoAbstractObserver~T1, T2~ {
+    +DuoAbstractObserver(const IObservable~T1~& first, const IObservable~T2~& second)
+    -Update(const IObservable~T~&) void
+    #UpdateFirst(const IObservable~T1~& observable) void = 0
+    #UpdateSecond(const IObservable~T2~& observable) void = 0
+  }
+
+  class DuoObserver~T1, T2~ {
+    -UpdateFirst(const IObservable~T1~& observable) void
+    -UpdateSecond(const IObservable~T2~& observable) void
+  }
+
+  class AbstractStatsObserver~ContextType, ValueType~ {
+    #UpdateStatistics(ValueType value) void
+    #PrintValues(std::string name) void
     -ValueType m_minValue
     -ValueType m_maxValue
     -ValueType m_accValue
   }
 
   class Display {
-    -Update() void
+    -Update(const IObservable~T~& observable) void
   }
 
   class PressureStatsDisplay {
-    -Update() void
+    -Update(const IObservable~T~& observable) void
   }
   class HumStatsDisplay {
-    -Update() void
+    -Update(const IObservable~T~& observable) void
   }
 
   class TemperatureStatsDisplay {
-    -Update() void
+    -Update(const IObservable~T~& observable) void
   }
 
   IObserver ..|> AbstractObserver
-  AbstractObserver --|> AbstractStatsObserver
-  AbstractObserver --|> Display
+  AbstractObserver --|> MonoAbstractObserver
+  AbstractObserver --|> DuoAbstractObserver
+  MonoAbstractObserver --|> AbstractStatsObserver
+  MonoAbstractObserver --|> Display
+  DuoAbstractObserver --|> DuoObserver
   AbstractStatsObserver --|> PressureStatsDisplay
   AbstractStatsObserver --|> HumStatsDisplay
   AbstractStatsObserver --|> TemperatureStatsDisplay
@@ -54,8 +74,9 @@ classDiagram
   class IObservable {
     <<interface>>
 
-    +Subscribe(SubscribeType type, std::weak_ptr~IObserver~ observer) void
-    +Unsubscribe(SubscribeType type, std::weak_ptr~IObserver~ observer) void
+    %% TODO: добавить поддержку типа
+    +Subscribe(const std::weak_ptr~IObserver~& observer) void
+    +Unsubscribe(const std::weak_ptr~IObserver~& observer) void
     +GetData() T
   }
 
@@ -65,7 +86,7 @@ classDiagram
   }
 
   class Subject {
-    +UnsubscribeObserver(std::weak_ptr~IObserver~ observer) void
+    +UnsubscribeObserver(const std::weak_ptr~IObserver~& observer) void
     +UnsubscribeAllByType(SubscribeType type) void
 
     -m_observers std::set~std::weak_ptr~IObserver~~

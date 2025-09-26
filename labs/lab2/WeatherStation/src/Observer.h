@@ -10,18 +10,16 @@
 #include "./Concepts.h"
 #include "./Subject.h"
 
-
 template <typename T>
 class IObserver
 {
 public:
-	virtual void Update() = 0;
+	virtual void Update(const IObservable<T>& observable) = 0;
 	virtual ~IObserver() = default;
 };
 
 template <typename T>
 class AbstractObserver : public IObserver<T>
-	, public std::enable_shared_from_this<IObserver<T>>
 {
 protected:
 	AbstractObserver(std::weak_ptr<ISubject<T>> subject)
@@ -30,7 +28,15 @@ protected:
 		CheckSubjectExist(subject);
 
 		std::shared_ptr<ISubject<T>> subjectPtr = subject.lock();
-		subjectPtr->RegisterObserver(this->shared_from_this());
+		subjectPtr->RegisterObserver(this);
+	}
+
+	~AbstractObserver()
+	{
+		CheckSubjectExist(m_subject);
+
+		std::shared_ptr<ISubject<T>> subjectPtr = m_subject.lock();
+		subjectPtr->RemoveObserver(this);
 	}
 
 	std::weak_ptr<ISubject<T>> GetSubject() const
