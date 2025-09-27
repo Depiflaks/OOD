@@ -8,24 +8,28 @@ classDiagram
     +PRESSURE_CHANGE
   }
 
-  class IObserver~typename... Ts~ {
+  class IObserver~T~ {
     <<interface>>
-    +Update(const IObservable~T~& observables) void
-    +UpdateObservables(const IObservable~Ts~&... observables) void
+    +Update(const IObservable~T~& observables) void = 0
   }
 
-  class AbstractObserver~typename... Ts~ {
-    +AbstractObserver(const IObservable~T1~& observable ....)
-    #GetObservables() std::vector~void*~
-    -std::vector~void*~ m_observables
+  class AbstractObserver~T~ {
+    +AbstractObserver(const IObservable~T~& observable)
+    #ChangeObservable(const IObservable~T~& observable) void
+    #GetObservable() voidPtr
+    #ChangeObservable(const IObservable~T~& observable) void
+    #CheckSameObservable(const IObservable~T~& observable) bool
+    -void* m_observable
   }
 
   class MonoAbstractObserver~T~ {
     +MonoObserver(const IObservable~T~& observable)
+    +ChangeObservable(const IObservable~T~& observable) void
   }
 
   class DuoAbstractObserver~T1, T2~ {
     +DuoAbstractObserver(const IObservable~T1~& first, const IObservable~T2~& second)
+    +ChangeObservables(const IObservable~T1~& first, const IObservable~T2~& second) void
     -Update(const IObservable~T~&) void
     #UpdateFirst(const IObservable~T1~& observable) void = 0
     #UpdateSecond(const IObservable~T2~& observable) void = 0
@@ -61,7 +65,8 @@ classDiagram
 
   IObserver ..|> AbstractObserver
   AbstractObserver --|> MonoAbstractObserver
-  AbstractObserver --|> DuoAbstractObserver
+  AbstractObserver --|> DuoAbstractObserver : T1
+  AbstractObserver --|> DuoAbstractObserver : T2
   MonoAbstractObserver --|> AbstractStatsObserver
   MonoAbstractObserver --|> Display
   DuoAbstractObserver --|> DuoObserver

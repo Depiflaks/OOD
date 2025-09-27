@@ -19,7 +19,7 @@ public:
 	MOCK_METHOD(int, GetData, (), (const, override));
 };
 
-TEST(ObserverPatternTest, SingleObserver)
+TEST(SubjectTest, SingleObserver)
 {
 	MockSubject subject;
 	auto observer = std::make_shared<MockObserver>();
@@ -30,7 +30,7 @@ TEST(ObserverPatternTest, SingleObserver)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, TwoObservers)
+TEST(SubjectTest, TwoObservers)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -44,7 +44,7 @@ TEST(ObserverPatternTest, TwoObservers)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, RemoveObserver)
+TEST(SubjectTest, RemoveObserver)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -59,7 +59,7 @@ TEST(ObserverPatternTest, RemoveObserver)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, ObserverLifetime)
+TEST(SubjectTest, ObserverLifetime)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -76,7 +76,7 @@ TEST(ObserverPatternTest, ObserverLifetime)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, PriorityOrderBasic)
+TEST(SubjectTest, PriorityOrderBasic)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -91,7 +91,7 @@ TEST(ObserverPatternTest, PriorityOrderBasic)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, PriorityOrderReverseRegistration)
+TEST(SubjectTest, PriorityOrderReverseRegistration)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -106,7 +106,7 @@ TEST(ObserverPatternTest, PriorityOrderReverseRegistration)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, SamePrioritySequentialExecution)
+TEST(SubjectTest, SamePrioritySequentialExecution)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -124,7 +124,7 @@ TEST(ObserverPatternTest, SamePrioritySequentialExecution)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, ChangePriority)
+TEST(SubjectTest, ChangePriority)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -146,7 +146,7 @@ TEST(ObserverPatternTest, ChangePriority)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, DublicatedSubscribe)
+TEST(SubjectTest, DublicatedSubscribe)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -167,7 +167,7 @@ TEST(ObserverPatternTest, DublicatedSubscribe)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, MiddleObserverDestroyed)
+TEST(SubjectTest, MiddleObserverDestroyed)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -186,7 +186,7 @@ TEST(ObserverPatternTest, MiddleObserverDestroyed)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, FirstObserverDestroyed)
+TEST(SubjectTest, FirstObserverDestroyed)
 {
 	MockSubject subject;
 	auto observer2 = std::make_shared<MockObserver>();
@@ -205,7 +205,7 @@ TEST(ObserverPatternTest, FirstObserverDestroyed)
 	subject.NotifyObservers();
 }
 
-TEST(ObserverPatternTest, NegativePriority)
+TEST(SubjectTest, NegativePriority)
 {
 	MockSubject subject;
 	auto observer1 = std::make_shared<MockObserver>();
@@ -219,3 +219,5 @@ TEST(ObserverPatternTest, NegativePriority)
 	subject.RegisterObserver(observer1, -5);
 	subject.NotifyObservers();
 }
+
+

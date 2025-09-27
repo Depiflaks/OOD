@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <set>
+
 template <typename T>
 class IObserver;
 
@@ -42,9 +43,11 @@ public:
 
 	void NotifyObservers() override
 	{
-		for (auto it = m_priorityMap.begin(); it != m_priorityMap.end();)
+		auto it = m_priorityMap.begin();
+		while (it != m_priorityMap.end())
 		{
-			auto current = it++;
+			auto current = it;
+			++it;
 			UpdateObserver(current->second);
 		}
 	}
