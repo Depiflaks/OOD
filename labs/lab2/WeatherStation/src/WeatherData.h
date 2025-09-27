@@ -26,12 +26,18 @@ struct InsideTemperatureInfo
 	double m_temperature = 0;
 };
 
+struct HospitalSensorsInfo
+{
+	OutsideWeatherInfo m_outsideWeather;
+	int m_patientPulse;
+};
+
 template <>
-class MonoAbstractStatsObserver<OutsideWeatherInfo, WindInfo> : public MonoAbstractObserver<OutsideWeatherInfo>
+class MonoAbstractStatsObserver<HospitalSensorsInfo, WindInfo> : public MonoAbstractObserver<HospitalSensorsInfo>
 {
 public:
-	MonoAbstractStatsObserver(const IObservable<OutsideWeatherInfo>& observable)
-		: MonoAbstractObserver<OutsideWeatherInfo>{ observable }
+	MonoAbstractStatsObserver(const IObservable<HospitalSensorsInfo>& observable)
+		: MonoAbstractObserver<HospitalSensorsInfo>{ observable }
 	{
 	}
 
@@ -110,89 +116,90 @@ private:
 	}
 };
 
-class Display : public MonoAbstractObserver<OutsideWeatherInfo>
+class WeatherDisplay : public MonoAbstractObserver<HospitalSensorsInfo>
 {
 public:
-	Display(const IObservable<OutsideWeatherInfo>& weatherData)
-		: MonoAbstractObserver<OutsideWeatherInfo>(weatherData)
+	WeatherDisplay(const IObservable<HospitalSensorsInfo>& sensorsData)
+		: MonoAbstractObserver<HospitalSensorsInfo>(sensorsData)
 	{
 	}
 
 protected:
-	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	void UpdateObserver(const IObservable<HospitalSensorsInfo>& observable) override
 	{
 		auto data = observable.GetData();
-		std::cout << "Current Temp " << data.m_temperature << "\n";
-		std::cout << "Current Hum " << data.m_humidity << "\n";
-		std::cout << "Current Pressure " << data.m_pressure << "\n";
+		std::cout << "Current Temp " << data.m_outsideWeather.m_temperature << "\n";
+		std::cout << "Current Hum " << data.m_outsideWeather.m_humidity << "\n";
+		std::cout << "Current Pressure " << data.m_outsideWeather.m_pressure << "\n";
 		std::cout << "----------------\n";
 	}
 };
+;
 
-class PressureStatsDisplay : public MonoAbstractStatsObserver<OutsideWeatherInfo, double>
+class PressureStatsDisplay : public MonoAbstractStatsObserver<HospitalSensorsInfo, double>
 {
 public:
-	PressureStatsDisplay(const IObservable<OutsideWeatherInfo>& weatherData)
-		: MonoAbstractStatsObserver<OutsideWeatherInfo, double>(weatherData)
+	PressureStatsDisplay(const IObservable<HospitalSensorsInfo>& sensorsData)
+		: MonoAbstractStatsObserver<HospitalSensorsInfo, double>(sensorsData)
 	{
 	}
 
 protected:
-	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	void UpdateObserver(const IObservable<HospitalSensorsInfo>& observable) override
 	{
 		auto data = observable.GetData();
-		UpdateStatistics(data.m_pressure);
+		UpdateStatistics(data.m_outsideWeather.m_pressure);
 		PrintValues("Pressure");
 	}
 };
 
-class HumStatsDisplay : public MonoAbstractStatsObserver<OutsideWeatherInfo, double>
+class HumStatsDisplay : public MonoAbstractStatsObserver<HospitalSensorsInfo, double>
 {
 public:
-	HumStatsDisplay(const IObservable<OutsideWeatherInfo>& weatherData)
-		: MonoAbstractStatsObserver<OutsideWeatherInfo, double>(weatherData)
+	HumStatsDisplay(const IObservable<HospitalSensorsInfo>& sensorsData)
+		: MonoAbstractStatsObserver<HospitalSensorsInfo, double>(sensorsData)
 	{
 	}
 
 protected:
-	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	void UpdateObserver(const IObservable<HospitalSensorsInfo>& observable) override
 	{
 		auto data = observable.GetData();
-		UpdateStatistics(data.m_humidity);
+		UpdateStatistics(data.m_outsideWeather.m_humidity);
 		PrintValues("Hum");
 	}
 };
 
-class TemperatureStatsDisplay : public MonoAbstractStatsObserver<OutsideWeatherInfo, double>
+class TemperatureStatsDisplay : public MonoAbstractStatsObserver<HospitalSensorsInfo, double>
 {
 public:
-	TemperatureStatsDisplay(const IObservable<OutsideWeatherInfo>& weatherData)
-		: MonoAbstractStatsObserver<OutsideWeatherInfo, double>(weatherData)
+	TemperatureStatsDisplay(const IObservable<HospitalSensorsInfo>& sensorsData)
+		: MonoAbstractStatsObserver<HospitalSensorsInfo, double>(sensorsData)
 	{
 	}
 
 protected:
-	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	void UpdateObserver(const IObservable<HospitalSensorsInfo>& observable) override
 	{
 		auto data = observable.GetData();
-		UpdateStatistics(data.m_temperature);
+		UpdateStatistics(data.m_outsideWeather.m_temperature);
 		PrintValues("Temp");
 	}
 };
 
-class DuoTemperatureDisplay : public DuoAbstractObserver<OutsideWeatherInfo, InsideTemperatureInfo>
+class DuoTemperatureDisplay : public DuoAbstractObserver<HospitalSensorsInfo, InsideTemperatureInfo>
 {
 public:
-	DuoTemperatureDisplay(const IObservable<OutsideWeatherInfo>& inside, const IObservable<InsideTemperatureInfo>& outside)
-		: DuoAbstractObserver<OutsideWeatherInfo, InsideTemperatureInfo>(inside, outside)
+	DuoTemperatureDisplay(const IObservable<HospitalSensorsInfo>& hospitalSensors, const IObservable<InsideTemperatureInfo>& insideTemp)
+		: DuoAbstractObserver<HospitalSensorsInfo, InsideTemperatureInfo>(hospitalSensors, insideTemp)
 	{
 	}
 
 protected:
-	void UpdateFirst(const IObservable<OutsideWeatherInfo>& observable) override
+	void UpdateFirst(const IObservable<HospitalSensorsInfo>& observable) override
 	{
 		auto data = observable.GetData();
-		std::cout << "Outside Temp: " << data.m_temperature << "\n";
+		std::cout << "Hospital Outside Temp: " << data.m_outsideWeather.m_temperature << "\n";
 	}
 
 	void UpdateSecond(const IObservable<InsideTemperatureInfo>& observable) override
@@ -202,20 +209,37 @@ protected:
 	}
 };
 
-class WindStatsDisplay : public MonoAbstractStatsObserver<OutsideWeatherInfo, WindInfo>
+class WindStatsDisplay : public MonoAbstractStatsObserver<HospitalSensorsInfo, WindInfo>
 {
 public:
-	WindStatsDisplay(const IObservable<OutsideWeatherInfo>& weatherData)
-		: MonoAbstractStatsObserver<OutsideWeatherInfo, WindInfo>(weatherData)
+	WindStatsDisplay(const IObservable<HospitalSensorsInfo>& sensorsData)
+		: MonoAbstractStatsObserver<HospitalSensorsInfo, WindInfo>(sensorsData)
 	{
 	}
 
 protected:
-	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	void UpdateObserver(const IObservable<HospitalSensorsInfo>& observable) override
 	{
 		auto data = observable.GetData();
-		UpdateStatistics(data.m_wind);
+		UpdateStatistics(data.m_outsideWeather.m_wind);
 		PrintValues("Wind");
+	}
+};
+
+class PulseStatsDisplay : public MonoAbstractStatsObserver<HospitalSensorsInfo, int>
+{
+public:
+	PulseStatsDisplay(const IObservable<HospitalSensorsInfo>& sensorsData)
+		: MonoAbstractStatsObserver<HospitalSensorsInfo, int>(sensorsData)
+	{
+	}
+
+protected:
+	void UpdateObserver(const IObservable<HospitalSensorsInfo>& observable) override
+	{
+		auto data = observable.GetData();
+		UpdateStatistics(data.m_patientPulse);
+		PrintValues("Pulse");
 	}
 };
 
@@ -239,7 +263,7 @@ private:
 	double m_temperature = 0.0;
 };
 
-class OutsideWeatherData : public Subject<OutsideWeatherInfo>
+class HospitalSensorsData : public Subject<HospitalSensorsInfo>
 {
 public:
 	void MeasurementsChanged()
@@ -247,30 +271,27 @@ public:
 		NotifyObservers();
 	}
 
-	void SetMeasurements(double temp, double humidity, double pressure, double windSpeed, double windDirection)
+	void SetMeasurements(double temp, double humidity, double pressure, double windSpeed, double windDirection, int patientPulse)
 	{
-		m_humidity = humidity;
-		m_temperature = temp;
-		m_pressure = pressure;
-		m_wind.direction = windDirection;
-		m_wind.speed = windSpeed;
+		m_outsideWeather.m_temperature = temp;
+		m_outsideWeather.m_humidity = humidity;
+		m_outsideWeather.m_pressure = pressure;
+		m_outsideWeather.m_wind.speed = windSpeed;
+		m_outsideWeather.m_wind.direction = windDirection;
+		m_patientPulse = patientPulse;
 
 		MeasurementsChanged();
 	}
 
-	OutsideWeatherInfo GetData() const override
+	HospitalSensorsInfo GetData() const override
 	{
-		OutsideWeatherInfo info;
-		info.m_temperature = m_temperature;
-		info.m_humidity = m_humidity;
-		info.m_pressure = m_pressure;
-		info.m_wind = m_wind;
+		HospitalSensorsInfo info;
+		info.m_outsideWeather = m_outsideWeather;
+		info.m_patientPulse = m_patientPulse;
 		return info;
 	}
 
 private:
-	double m_temperature = 0.0;
-	double m_humidity = 0.0;
-	double m_pressure = 760.0;
-	WindInfo m_wind{};
+	OutsideWeatherInfo m_outsideWeather;
+	int m_patientPulse = 0;
 };

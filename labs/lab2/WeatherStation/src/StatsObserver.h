@@ -1,9 +1,7 @@
 #ifndef STATSOBSERVER_H
 #define STATSOBSERVER_H
 
-#include "Concepts.h"
 #include "Observer.h"
-#include "WeatherData.h"
 #include <cmath>
 
 // template <typename ContextType, SuitableValueType ValueType>

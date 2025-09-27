@@ -1,6 +1,11 @@
 classDiagram
   direction TB
 
+  class WindInfo {
+    +double m_speed
+    +double m_direction
+  }
+
   class SubscribeType {
     <<enum>>
     +TEMPERAURE_CHANGE
@@ -50,7 +55,15 @@ classDiagram
     -ValueType m_accValue
   }
 
-  class Display {
+  class MonoAbstractStatsObserver~Hoj, ValueType~ {
+    #UpdateStatistics(ValueType value) void
+    #PrintValues(std::string name) void
+    -ValueType m_minValue
+    -ValueType m_maxValue
+    -ValueType m_accValue
+  }
+
+  class WeatherDisplay {
     -Update(const IObservable~T~& observable) void
   }
 
@@ -70,7 +83,7 @@ classDiagram
   AbstractObserver --|> DuoAbstractObserver : T1
   AbstractObserver --|> DuoAbstractObserver : T2
   MonoAbstractObserver --|> MonoAbstractStatsObserver
-  MonoAbstractObserver --|> Display
+  MonoAbstractObserver --|> WeatherDisplay
   DuoAbstractObserver --|> DuoTemperatureObserver
   AbstractStatsObserver --|> PressureStatsDisplay
   AbstractStatsObserver --|> HumStatsDisplay
@@ -99,27 +112,23 @@ classDiagram
     -m_observers std::set~std::weak_ptr~IObserver~~
   }
 
-  class WeatherData {
-    +GetTemperature() double
-    +GetHumidity() double
-    +GetPressure() double
+  class HospitalSensorsData {
     +MeasurementsChanged() void
     +GetData() WeatherInfo
 
-    +SetMeasurements(double temp, double humidity, double pressure) void
+    +SetMeasurements(double temp, double humidity, double pressure, double windSpeed, double windDirection, int patientPulse) void
 
-    m_temperature double 
-    m_humidity double 
-    m_pressure double 
+    -OutsideWeatherInfo m_outsideWeather;
+    -int m_patientPulse;
   }
 
   IObservable ..|> ISubject
   ISubject ..|> Subject
   Subject ..|> SubscribeType : use
-  Subject --|> WeatherData
+  Subject --|> HospitalSensorsData
 
   Subject o--> IObserver
-  WeatherData --> WeatherInfo : creates
+  HospitalSensorsData --> WeatherInfo : creates
 
   class WeatherInfo {
     +temperature double 
