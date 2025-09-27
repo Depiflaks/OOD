@@ -13,6 +13,13 @@ classDiagram
     +Update(const IObservable~T~& observable) void = 0
   }
 
+  class HospitalSensorsInfo {
+    +OutsideWeatherInfo m_outsideWeather;
+    +int m_patientPulse;
+  }
+
+  HospitalSensorsInfo *--> OutsideWeatherInfo
+
   class AbstractObserver~T~ {
     +AbstractObserver(const IObservable~T~& observable)
     #ChangeObservable(const IObservable~T~& observable) void
@@ -37,7 +44,7 @@ classDiagram
     -Update(const IObservable~T~& observable) void
   }
 
-  class DuoTemperatureObserver~T1, T2~ {
+  class DuoTemperatureStatsDisplay~T1, T2~ {
     -UpdateFirst(const IObservable~T1~& observable) void
     -UpdateSecond(const IObservable~T2~& observable) void
   }
@@ -50,12 +57,15 @@ classDiagram
     -ValueType m_accValue
   }
 
-  class MonoAbstractStatsObserver~Hoj, ValueType~ {
+  class MonoAbstractStatsObserver~ContextType, ValueType~ {
     #UpdateStatistics(ValueType value) void
     #PrintValues(std::string name) void
     -ValueType m_minValue
     -ValueType m_maxValue
     -ValueType m_accValue
+  }
+
+  class MonoAbstractStatsObserver~HospitalSensorsInfo, WindInfo~ {
   }
 
   class WeatherDisplay {
@@ -79,10 +89,10 @@ classDiagram
   AbstractObserver --|> DuoAbstractObserver : T2
   MonoAbstractObserver --|> MonoAbstractStatsObserver
   MonoAbstractObserver --|> WeatherDisplay
-  DuoAbstractObserver --|> DuoTemperatureObserver
-  AbstractStatsObserver --|> PressureStatsDisplay
-  AbstractStatsObserver --|> HumStatsDisplay
-  AbstractStatsObserver --|> TemperatureStatsDisplay
+  DuoAbstractObserver --|> DuoTemperatureStatsDisplay
+  MonoAbstractStatsObserver --|> PressureStatsDisplay
+  MonoAbstractStatsObserver --|> HumStatsDisplay
+  MonoAbstractStatsObserver --|> TemperatureStatsDisplay
 
   AbstractObserver o--> IObservable
 
@@ -113,8 +123,8 @@ classDiagram
 
     +SetMeasurements(double temp, double humidity, double pressure, double windSpeed, double windDirection, int patientPulse) void
 
-    -OutsideWeatherInfo m_outsideWeather;
-    -int m_patientPulse;
+    -OutsideWeatherInfo m_outsideWeather
+    -int m_patientPulse
   }
 
   class InsideTemperatureData {
@@ -127,22 +137,22 @@ classDiagram
   ISubject ..|> Subject
   Subject ..|> SubscribeType : use
   Subject --|> HospitalSensorsData
+  Subject --|> InsideTemperatureData
 
   Subject o--> IObserver
-  HospitalSensorsData --> OutsideWeatherInfo : creates
-  InsideTemperatureData --> InsideWeatherInfo : creates
+  HospitalSensorsData --> HospitalSensorsInfo : creates
+  InsideTemperatureData --> InsideTemperatureInfo : creates
 
   class InsideTemperatureInfo {
     +double m_temperature
   }
 
-  class OutsideWeatherInfo
-  {
+  class OutsideWeatherInfo {
     +double m_temperature = 0;
     +double m_humidity = 0;
     +double m_pressure = 0;
-    +WindInfo m_wind{};
-  };
+    +WindInfo m_wind;
+  }
 
   class WindInfo {
     +double m_speed
