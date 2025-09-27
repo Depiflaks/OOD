@@ -124,6 +124,7 @@ TEST(SubjectTest, SamePrioritySequentialExecution)
 	subject.RegisterObserver(observer1, 1);
 	subject.RegisterObserver(observer3, 1);
 	subject.RegisterObserver(observer2, 1);
+    // TODO: приоритеты перепролдумать
 	subject.NotifyObservers();
 }
 
