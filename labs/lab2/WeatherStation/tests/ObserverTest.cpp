@@ -56,9 +56,10 @@ public:
 		return data;
 	}
 
-	void SetData(int newData)
+	void SetData(int newData, SubscribeType type = SubscribeType::TEMPERATURE_CHANGE)
 	{
 		data = newData;
+		Notify(type);
 	}
 
 private:
@@ -75,11 +76,17 @@ public:
 
 	std::string GetData() const override { return data; }
 
-	void SetData(const std::string& newData) { data = newData; }
+	void SetData(const std::string& newData, SubscribeType type = SubscribeType::TEMPERATURE_CHANGE)
+	{
+		data = newData;
+		Notify(type);
+	}
 
 private:
 	std::string data;
 };
+
+const SubscribeType DEFAULT_TYPE = SubscribeType::TEMPERATURE_CHANGE;
 
 TEST(ObserverTest, MultipleObserversGetNotified)
 {
@@ -89,17 +96,17 @@ TEST(ObserverTest, MultipleObserversGetNotified)
 	auto observer2 = std::make_shared<MockObserver>(*subject);
 	auto observer3 = std::make_shared<MockObserver>(*subject);
 
-	subject->RegisterObserver(observer1);
-	subject->RegisterObserver(observer2);
-	subject->RegisterObserver(observer3);
+	subject->Subscribe(DEFAULT_TYPE, observer1);
+	subject->Subscribe(DEFAULT_TYPE, observer2);
+	subject->Subscribe(DEFAULT_TYPE, observer3);
 
 	EXPECT_CALL(*observer1, Update(_)).Times(3);
 	EXPECT_CALL(*observer2, Update(_)).Times(3);
 	EXPECT_CALL(*observer3, Update(_)).Times(3);
 
-	subject->NotifyObservers();
-	subject->NotifyObservers();
-	subject->NotifyObservers();
+	subject->Notify(DEFAULT_TYPE);
+	subject->Notify(DEFAULT_TYPE);
+	subject->Notify(DEFAULT_TYPE);
 }
 
 TEST(MonoObserverTest, OnlySubscribedObservableTriggersUpdate)
@@ -113,11 +120,11 @@ TEST(MonoObserverTest, OnlySubscribedObservableTriggersUpdate)
 
 	EXPECT_CALL(*mockObserver, UpdateObserver(testing::Ref(*subject1))).Times(1);
 
-	subject1->RegisterObserver(observer);
-	subject2->RegisterObserver(observer);
+	subject1->Subscribe(DEFAULT_TYPE, observer);
+	subject2->Subscribe(DEFAULT_TYPE, observer);
 
-	subject1->NotifyObservers();
-	subject2->NotifyObservers();
+	subject1->Notify(DEFAULT_TYPE);
+	subject2->Notify(DEFAULT_TYPE);
 }
 
 TEST(DuoObserverTest, BothSubjectsTriggerCorrectUpdates)
@@ -133,11 +140,11 @@ TEST(DuoObserverTest, BothSubjectsTriggerCorrectUpdates)
 	EXPECT_CALL(*mockObserver, UpdateFirst(testing::Ref(*intSubject))).InSequence(seq);
 	EXPECT_CALL(*mockObserver, UpdateSecond(testing::Ref(*stringSubject))).InSequence(seq);
 
-	intSubject->RegisterObserver(observer);
-	stringSubject->RegisterObserver(observer);
+	intSubject->Subscribe(DEFAULT_TYPE, observer);
+	stringSubject->Subscribe(DEFAULT_TYPE, observer);
 
-	intSubject->NotifyObservers();
-	stringSubject->NotifyObservers();
+	intSubject->Notify(DEFAULT_TYPE);
+	stringSubject->Notify(DEFAULT_TYPE);
 }
 
 TEST(DuoObserverTest, ChangeObservablesUpdatesSubscription)
@@ -156,11 +163,11 @@ TEST(DuoObserverTest, ChangeObservablesUpdatesSubscription)
 	EXPECT_CALL(*mockObserver, UpdateFirst(testing::Ref(*intSubject2))).Times(1);
 	EXPECT_CALL(*mockObserver, UpdateSecond(testing::Ref(*stringSubject2))).Times(1);
 
-	intSubject2->RegisterObserver(observer);
-	stringSubject2->RegisterObserver(observer);
+	intSubject2->Subscribe(DEFAULT_TYPE, observer);
+	stringSubject2->Subscribe(DEFAULT_TYPE, observer);
 
-	intSubject2->NotifyObservers();
-	stringSubject2->NotifyObservers();
+	intSubject2->Notify(DEFAULT_TYPE);
+	stringSubject2->Notify(DEFAULT_TYPE);
 }
 
 TEST(DuoObserverTest, SurvivingSubjectWorksAfterOtherDestroyed)
@@ -172,14 +179,14 @@ TEST(DuoObserverTest, SurvivingSubjectWorksAfterOtherDestroyed)
 
 	testing::StrictMock<MockDuoObserver>* mockObserver = static_cast<testing::StrictMock<MockDuoObserver>*>(observer.get());
 
-	intSubject->RegisterObserver(observer);
-	stringSubject->RegisterObserver(observer);
+	intSubject->Subscribe(DEFAULT_TYPE, observer);
+	stringSubject->Subscribe(DEFAULT_TYPE, observer);
 
 	stringSubject.reset();
 
 	EXPECT_CALL(*mockObserver, UpdateFirst(testing::Ref(*intSubject))).Times(1);
 
-	intSubject->NotifyObservers();
+	intSubject->Notify(DEFAULT_TYPE);
 }
 
 TEST(DuoObserverTest, OnlySubscribedSubjectsTriggerUpdates)
@@ -200,5 +207,43 @@ TEST(DuoObserverTest, OnlySubscribedSubjectsTriggerUpdates)
 	observer->Update(*intSubject1);
 	observer->Update(*stringSubject1);
 	observer->Update(*stringSubject2);
+}
+
+TEST(DuoObserverTest, DifferentSubscribeTypesForDifferentSubjects)
+{
+	auto intSubject = std::make_shared<MockIntSubject>(42);
+	auto stringSubject = std::make_shared<MockStringSubject>("test");
+
+	auto observer = std::make_shared<MockDuoObserver>(*intSubject, *stringSubject);
+
+	testing::StrictMock<MockDuoObserver>* mockObserver = static_cast<testing::StrictMock<MockDuoObserver>*>(observer.get());
+
+	EXPECT_CALL(*mockObserver, UpdateFirst(testing::Ref(*intSubject))).Times(1);
+	EXPECT_CALL(*mockObserver, UpdateSecond(testing::Ref(*stringSubject))).Times(1);
+
+	intSubject->Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer);
+	stringSubject->Subscribe(SubscribeType::HUMIDITY_CHANGE, observer);
+
+	intSubject->Notify(SubscribeType::TEMPERATURE_CHANGE);
+	stringSubject->Notify(SubscribeType::HUMIDITY_CHANGE);
+}
+
+TEST(MonoObserverTest, UnsubscribeFromSpecificType)
+{
+	auto subject = std::make_shared<MockIntSubject>(42);
+
+	auto observer = std::make_shared<MockMonoObserver>(*subject);
+
+	testing::StrictMock<MockMonoObserver>* mockObserver = static_cast<testing::StrictMock<MockMonoObserver>*>(observer.get());
+
+	EXPECT_CALL(*mockObserver, UpdateObserver(testing::Ref(*subject))).Times(1);
+
+	subject->Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer);
+	subject->Subscribe(SubscribeType::HUMIDITY_CHANGE, observer);
+
+	subject->Unsubscribe(SubscribeType::HUMIDITY_CHANGE, observer);
+
+	subject->Notify(SubscribeType::TEMPERATURE_CHANGE);
+	subject->Notify(SubscribeType::HUMIDITY_CHANGE);
 }
 } // namespace observerTests

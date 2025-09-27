@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Enum/SubscribeType.h"
 #include "Observer.h"
 #include "StatsObserver.h"
 #include "Subject.h"
@@ -253,10 +254,10 @@ public:
 		return info;
 	}
 
-	void SetMeasurements(double temperature)
+	void UpdateTemperature(double temperature)
 	{
 		m_temperature = temperature;
-		NotifyObservers();
+		Notify(SubscribeType::TEMPERATURE_CHANGE);
 	}
 
 private:
@@ -266,9 +267,34 @@ private:
 class HospitalSensorsData : public Subject<HospitalSensorsInfo>
 {
 public:
-	void MeasurementsChanged()
+	void MeasurementsChanged(SubscribeType type)
 	{
-		NotifyObservers();
+		Notify(type);
+	}
+
+	void UpdateTemperature(double temp) {
+		m_outsideWeather.m_temperature = temp;
+		MeasurementsChanged(SubscribeType::TEMPERATURE_CHANGE);
+	}
+
+	void UpdateHumidity(double humidity) {
+		m_outsideWeather.m_humidity = humidity;
+		MeasurementsChanged(SubscribeType::HUMIDITY_CHANGE);
+	}
+
+	void UpdatePressure(double pressure) {
+		m_outsideWeather.m_pressure = pressure;
+		MeasurementsChanged(SubscribeType::PRESSURE_CHANGE);
+	}
+
+	void UpdateWind(double windSpeed, double windDirection) {
+		m_outsideWeather.m_wind = WindInfo{windSpeed, windDirection};
+		MeasurementsChanged(SubscribeType::WIND_CHANGE);
+	}
+
+	void UpdatePulse(int patientPulse) {
+		m_patientPulse = patientPulse;
+		MeasurementsChanged(SubscribeType::PULSE_CHANGE);
 	}
 
 	void SetMeasurements(double temp, double humidity, double pressure, double windSpeed, double windDirection, int patientPulse)
@@ -280,7 +306,11 @@ public:
 		m_outsideWeather.m_wind.direction = windDirection;
 		m_patientPulse = patientPulse;
 
-		MeasurementsChanged();
+		MeasurementsChanged(SubscribeType::TEMPERATURE_CHANGE);
+		MeasurementsChanged(SubscribeType::PRESSURE_CHANGE);
+		MeasurementsChanged(SubscribeType::HUMIDITY_CHANGE);
+		MeasurementsChanged(SubscribeType::WIND_CHANGE);
+		MeasurementsChanged(SubscribeType::PULSE_CHANGE);
 	}
 
 	HospitalSensorsInfo GetData() const override

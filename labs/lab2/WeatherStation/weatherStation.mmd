@@ -57,14 +57,6 @@ classDiagram
     -ValueType m_accValue
   }
 
-  class MonoAbstractStatsObserver~ContextType, ValueType~ {
-    #UpdateStatistics(ValueType value) void
-    #PrintValues(std::string name) void
-    -ValueType m_minValue
-    -ValueType m_maxValue
-    -ValueType m_accValue
-  }
-
   class MonoAbstractStatsObserver~HospitalSensorsInfo, WindInfo~ {
   }
 
@@ -75,6 +67,7 @@ classDiagram
   class PressureStatsDisplay {
     -Update(const IObservable~T~& observable) void
   }
+
   class HumStatsDisplay {
     -Update(const IObservable~T~& observable) void
   }
@@ -100,8 +93,8 @@ classDiagram
     <<interface>>
 
     %% TODO: добавить поддержку типа
-    +Subscribe(const std::weak_ptr~IObserver~& observer) void
-    +Unsubscribe(const std::weak_ptr~IObserver~& observer) void
+    +Subscribe(SubscribeType type, const std::weak_ptr~IObserver~& observer, int priority = 0) void
+    +Unsubscribe(SubscribeType type, const std::weak_ptr~IObserver~& observer) void
     +GetData() T
   }
 
@@ -111,15 +104,18 @@ classDiagram
   }
 
   class Subject {
-    +UnsubscribeObserver(const std::weak_ptr~IObserver~& observer) void
-    +UnsubscribeAllByType(SubscribeType type) void
-
     -m_observers std::set~std::weak_ptr~IObserver~~
   }
 
   class HospitalSensorsData {
     +MeasurementsChanged() void
     +GetData() WeatherInfo
+
+    +UpdateTemperature(double temp) void
+    +UpdateHumidity(double humidity) void
+    +UpdatePressure(double pressure) void
+    +UpdateWind(double windSpeed, double windDirection) void
+    +UpdatePulse(int patientPulse) void
 
     +SetMeasurements(double temp, double humidity, double pressure, double windSpeed, double windDirection, int patientPulse) void
 

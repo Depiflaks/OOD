@@ -1,9 +1,11 @@
 #ifndef SUBJECT_H
 #define SUBJECT_H
 
+#include "Enum/SubscribeType.h"
 #include <map>
 #include <memory>
 #include <set>
+#include <vector>
 
 template <typename T>
 class IObserver;
@@ -13,8 +15,8 @@ class IObservable
 {
 public:
 	virtual ~IObservable() = default;
-	virtual void RegisterObserver(const std::weak_ptr<IObserver<T>>& observer, int priority = 0) = 0;
-	virtual void RemoveObserver(const std::weak_ptr<IObserver<T>>& observer) = 0;
+	virtual void Subscribe(SubscribeType type, const std::weak_ptr<IObserver<T>>& observer, int priority = 0) = 0;
+	virtual void Unsubscribe(SubscribeType type, const std::weak_ptr<IObserver<T>>& observer) = 0;
 	virtual T GetData() const = 0;
 };
 
@@ -22,75 +24,106 @@ template <typename T>
 class ISubject : public IObservable<T>
 {
 public:
-	virtual void NotifyObservers() = 0;
+	virtual void Notify(SubscribeType type) = 0;
 };
 
 template <class T>
 class Subject : public ISubject<T>
 {
 public:
-	void RegisterObserver(const std::weak_ptr<IObserver<T>>& observer, int priority = 0) override
+	void Subscribe(SubscribeType type, const std::weak_ptr<IObserver<T>>& observer, int priority = 0) override
 	{
-		if (m_observers.find(observer) != m_observers.end())
+		auto& observers = m_observersByType[type];
+
+		if (observers.observerSet.find(observer) != observers.observerSet.end())
 		{
 			return;
 		}
 
-		int finalPriority = GetFinalPriority(priority);
+		int finalPriority = GetFinalPriority(observers, priority);
 
-		TryInsertObserver(observer, finalPriority);
+		TryInsertObserver(observers, observer, finalPriority);
 	}
 
-	void NotifyObservers() override
+	void Notify(SubscribeType type) override
 	{
-		for (auto it = m_priorityMap.begin(); it != m_priorityMap.end();)
+		auto it = m_observersByType.find(type);
+		if (it == m_observersByType.end())
 		{
-			auto current = it++;
+			return;
+		}
+
+		auto& observers = it->second;
+		for (auto priorityIt = observers.priorityMap.begin(); priorityIt != observers.priorityMap.end();)
+		{
+			auto current = priorityIt++;
 			UpdateObserver(current->second);
 		}
 	}
 
-	void RemoveObserver(const std::weak_ptr<IObserver<T>>& observer) override
+	void Unsubscribe(SubscribeType type, const std::weak_ptr<IObserver<T>>& observer) override
 	{
-		auto priorityIt = m_observerPriority.find(observer);
-		if (priorityIt != m_observerPriority.end())
+		auto typeIt = m_observersByType.find(type);
+		if (typeIt == m_observersByType.end())
 		{
-			m_priorityMap.erase(priorityIt->second);
-			m_observerPriority.erase(priorityIt);
+			return;
 		}
-		m_observers.erase(observer);
+
+		auto& observers = typeIt->second;
+		RemoveObserverFromCollection(observers, observer);
+
+		if (observers.observerSet.empty())
+		{
+			m_observersByType.erase(typeIt);
+		}
 	}
 
 private:
-	std::set<std::weak_ptr<IObserver<T>>, std::owner_less<std::weak_ptr<IObserver<T>>>> m_observers;
-	std::map<int, std::weak_ptr<IObserver<T>>> m_priorityMap;
-	std::map<std::weak_ptr<IObserver<T>>, int, std::owner_less<std::weak_ptr<IObserver<T>>>> m_observerPriority;
-
-	void TryInsertObserver(const std::weak_ptr<IObserver<T>>& observer, int priority)
+	struct ObserverCollection
 	{
-		auto insertedObserver = m_observers.insert(observer);
-		try
-		{
-			m_priorityMap.insert({ priority, observer });
-			m_observerPriority.insert({ observer, priority });
-		}
-		catch (...)
-		{
-			m_observers.erase(insertedObserver.first);
-			m_priorityMap.erase(priority);
-			m_observerPriority.erase(observer);
-			throw;
-		}
-	}
+		std::set<std::weak_ptr<IObserver<T>>, std::owner_less<std::weak_ptr<IObserver<T>>>> observerSet;
+		std::map<int, std::weak_ptr<IObserver<T>>> priorityMap;
+		std::map<std::weak_ptr<IObserver<T>>, int, std::owner_less<std::weak_ptr<IObserver<T>>>> observerPriority;
+	};
 
-	int GetFinalPriority(int priority) const
+	std::map<SubscribeType, ObserverCollection> m_observersByType;
+
+	int GetFinalPriority(const ObserverCollection& observers, int priority) const
 	{
 		int finalPriority = priority;
-		while (m_priorityMap.find(finalPriority) != m_priorityMap.end())
+		while (observers.priorityMap.find(finalPriority) != observers.priorityMap.end())
 		{
 			++finalPriority;
 		}
 		return finalPriority;
+	}
+
+	void TryInsertObserver(ObserverCollection& observers, const std::weak_ptr<IObserver<T>>& observer, int priority)
+	{
+		auto insertedObserver = observers.observerSet.insert(observer);
+		try
+		{
+			observers.priorityMap.insert({ priority, observer });
+			observers.observerPriority.insert({ observer, priority });
+		}
+		catch (...)
+		{
+			observers.observerSet.erase(insertedObserver.first);
+			observers.priorityMap.erase(priority);
+			observers.observerPriority.erase(observer);
+			throw;
+		}
+	}
+
+	void RemoveObserverFromCollection(ObserverCollection& observers, const std::weak_ptr<IObserver<T>>& observer)
+	{
+		auto priorityIt = observers.observerPriority.find(observer);
+		if (priorityIt != observers.observerPriority.end())
+		{
+			observers.priorityMap.erase(priorityIt->second);
+			observers.observerPriority.erase(priorityIt);
+		}
+		observers.observerSet.erase(observer);
 	}
 
 	void UpdateObserver(const std::weak_ptr<IObserver<T>>& observer)
@@ -101,7 +134,26 @@ private:
 		}
 		else
 		{
-			RemoveObserver(observer);
+			UnsubscribeObserver(observer);
+		}
+	}
+
+	void UnsubscribeObserver(const std::weak_ptr<IObserver<T>>& observer)
+	{
+		std::vector<SubscribeType> typesToRemove;
+
+		for (auto& [type, observers] : m_observersByType)
+		{
+			RemoveObserverFromCollection(observers, observer);
+
+			if (observers.observerSet.empty())
+			{
+				typesToRemove.push_back(type);
+			}
+		}
+		for (auto type : typesToRemove)
+		{
+			m_observersByType.erase(type);
 		}
 	}
 };

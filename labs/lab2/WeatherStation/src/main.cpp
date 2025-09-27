@@ -1,4 +1,5 @@
 #include "./WeatherData.h"
+#include "Enum/SubscribeType.h"
 #include <memory>
 
 int main()
@@ -14,31 +15,31 @@ int main()
 	auto pulseStats = std::make_shared<PulseStatsDisplay>(*hospitalData);
 	auto duoDisplay = std::make_shared<DuoTemperatureDisplay>(*hospitalData, *insideData);
 
-	// outsideData->RegisterObserver(display);
-	// outsideData->RegisterObserver(pressureStats);
-	// outsideData->RegisterObserver(humStats);
-	// outsideData->RegisterObserver(tempStats);
-	hospitalData->RegisterObserver(pulseStats);
-	hospitalData->RegisterObserver(windStats);
-	hospitalData->RegisterObserver(duoDisplay);
+	// outsideData->Subscribe(SubscribeType::TEMPERATURE_CHANGE, display);
+	// outsideData->Subscribe(SubscribeType::TEMPERATURE_CHANGE, pressureStats);
+	// outsideData->Subscribe(SubscribeType::TEMPERATURE_CHANGE, humStats);
+	// outsideData->Subscribe(SubscribeType::TEMPERATURE_CHANGE, tempStats);
+	hospitalData->Subscribe(SubscribeType::TEMPERATURE_CHANGE, pulseStats);
+	hospitalData->Subscribe(SubscribeType::TEMPERATURE_CHANGE, windStats);
+	hospitalData->Subscribe(SubscribeType::TEMPERATURE_CHANGE, duoDisplay);
 
-	insideData->RegisterObserver(duoDisplay);
+	insideData->Subscribe(SubscribeType::TEMPERATURE_CHANGE, duoDisplay);
 
 	std::cout << "=== First measurement ===\n";
 	hospitalData->SetMeasurements(25.5, 65.0, 755.0, 5.0, 45.0, 70);
-	insideData->SetMeasurements(22.0);
+	insideData->UpdateTemperature(22.0);
 
 	std::cout << "\n=== Second measurement ===\n";
 	hospitalData->SetMeasurements(28.0, 60.0, 750.0, 8.5, 90.0, 80);
-	insideData->SetMeasurements(23.5);
+	insideData->UpdateTemperature(23.5);
 
 	std::cout << "\n=== Third measurement ===\n";
 	hospitalData->SetMeasurements(22.0, 70.0, 760.0, 3.2, 180.0, 90);
-	insideData->SetMeasurements(21.0);
+	insideData->UpdateTemperature(21.0);
 
 	std::cout << "\n=== Fourth measurement ===\n";
 	hospitalData->SetMeasurements(18.0, 75.0, 765.0, 12.1, 270.0, 100);
-	insideData->SetMeasurements(20.0);
+	insideData->UpdateTemperature(20.0);
 
 	return 0;
 }
