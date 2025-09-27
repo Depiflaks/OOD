@@ -7,6 +7,9 @@
 
 using ::testing::_;
 
+namespace subjectTests
+{
+
 class MockObserver : public IObserver<int>
 {
 public:
@@ -219,5 +222,4 @@ TEST(SubjectTest, NegativePriority)
 	subject.RegisterObserver(observer1, -5);
 	subject.NotifyObservers();
 }
-
-
+} // namespace subjectTests

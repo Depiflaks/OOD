@@ -43,11 +43,9 @@ public:
 
 	void NotifyObservers() override
 	{
-		auto it = m_priorityMap.begin();
-		while (it != m_priorityMap.end())
+		for (auto it = m_priorityMap.begin(); it != m_priorityMap.end();)
 		{
-			auto current = it;
-			++it;
+			auto current = it++;
 			UpdateObserver(current->second);
 		}
 	}
