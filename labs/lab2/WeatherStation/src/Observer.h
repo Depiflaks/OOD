@@ -6,7 +6,6 @@
 #include <limits>
 #include <string_view>
 #include <sys/stat.h>
-#include <vector>
 
 template <typename T>
 class IObserver

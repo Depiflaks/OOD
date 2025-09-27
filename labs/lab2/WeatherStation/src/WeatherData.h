@@ -1,136 +1,172 @@
 ﻿#pragma once
 #include "Observer.h"
+#include "Subject.h"
 #include <climits>
 #include <iostream>
-#include <memory>
 
-// struct WeatherInfo
-// {
-// 	double m_temperature = 0;
-// 	double m_humidity = 0;
-// 	double m_pressure = 0;
-// };
+struct OutsideWeatherInfo
+{
+	double m_temperature = 0;
+	double m_humidity = 0;
+	double m_pressure = 0;
+};
 
-// class WeatherData;
+struct InsideTemperatureInfo
+{
+	double m_temperature = 0;
+};
 
-// class Display : public AbstractObserver<WeatherInfo>
-// {
-// public:
-//     Display(std::weak_ptr<WeatherData> weatherData)
-//         : AbstractObserver<WeatherInfo>(std::static_pointer_cast<ISubject<WeatherInfo>>(weatherData.lock()))
-//     {
-//     }
+class OutsideWeatherData;
 
-// private:
-//     void Update() override
-//     {
-//         auto subject = GetSubject();
-//         auto data = subject.lock()->GetData();
+class Display : public MonoAbstractObserver<OutsideWeatherInfo>
+{
+public:
+	Display(const IObservable<OutsideWeatherInfo>& weatherData)
+		: MonoAbstractObserver<OutsideWeatherInfo>(weatherData)
+	{
+	}
 
-//         std::cout << "Current Temp " << data.m_temperature << std::endl;
-//         std::cout << "Current Hum " << data.m_humidity << std::endl;
-//         std::cout << "Current Pressure " << data.m_pressure << std::endl;
-//         std::cout << "----------------" << std::endl;
-//     }
-// };
+protected:
+	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	{
+		auto data = observable.GetData();
+		std::cout << "Current Temp " << data.m_temperature << "\n";
+		std::cout << "Current Hum " << data.m_humidity << "\n";
+		std::cout << "Current Pressure " << data.m_pressure << "\n";
+		std::cout << "----------------\n";
+	}
+};
 
-// class PressureStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
-// {
-// public:
-//     PressureStatsDisplay(std::weak_ptr<WeatherData> weatherData)
-//         : AbstractStatsObserver<WeatherInfo, double>(std::static_pointer_cast<ISubject<WeatherInfo>>(weatherData.lock()))
-//     {
-//     }
+class PressureStatsDisplay : public MonoAbstractStatsObserver<OutsideWeatherInfo, double>
+{
+public:
+	PressureStatsDisplay(const IObservable<OutsideWeatherInfo>& weatherData)
+		: MonoAbstractStatsObserver<OutsideWeatherInfo, double>(weatherData)
+	{
+	}
 
-// private:
-//     void Update() override
-//     {
-//         auto subject = GetSubject();
-//         auto data = subject.lock()->GetData();
-//         UpdateStatistics(data.m_pressure);
-//         PrintValues("Pressure");
-//     }
-// };
+protected:
+	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	{
+		auto data = observable.GetData();
+		UpdateStatistics(data.m_pressure);
+		PrintValues("Pressure");
+	}
+};
 
-// class HumStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
-// {
-// public:
-//     HumStatsDisplay(std::weak_ptr<WeatherData> weatherData)
-//         : AbstractStatsObserver<WeatherInfo, double>(std::static_pointer_cast<ISubject<WeatherInfo>>(weatherData.lock()))
-//     {
-//     }
+class HumStatsDisplay : public MonoAbstractStatsObserver<OutsideWeatherInfo, double>
+{
+public:
+	HumStatsDisplay(const IObservable<OutsideWeatherInfo>& weatherData)
+		: MonoAbstractStatsObserver<OutsideWeatherInfo, double>(weatherData)
+	{
+	}
 
-// private:
-//     void Update() override
-//     {
-//         auto subject = GetSubject();
-//         auto data = subject.lock()->GetData();
-//         UpdateStatistics(data.m_humidity);
-//         PrintValues("Hum");
-//     }
-// };
+protected:
+	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	{
+		auto data = observable.GetData();
+		UpdateStatistics(data.m_humidity);
+		PrintValues("Hum");
+	}
+};
 
-// class TemperatureStatsDisplay : public AbstractStatsObserver<WeatherInfo, double>
-// {
-// public:
-//     TemperatureStatsDisplay(std::weak_ptr<WeatherData> weatherData)
-//         : AbstractStatsObserver<WeatherInfo, double>(std::static_pointer_cast<ISubject<WeatherInfo>>(weatherData.lock()))
-//     {
-//     }
+class TemperatureStatsDisplay : public MonoAbstractStatsObserver<OutsideWeatherInfo, double>
+{
+public:
+	TemperatureStatsDisplay(const IObservable<OutsideWeatherInfo>& weatherData)
+		: MonoAbstractStatsObserver<OutsideWeatherInfo, double>(weatherData)
+	{
+	}
 
-// private:
-//     void Update() override
-//     {
-//         auto subject = GetSubject();
-//         auto data = subject.lock()->GetData();
-//         UpdateStatistics(data.m_temperature);
-//         PrintValues("Temp");
-//     }
-// };
+protected:
+	void UpdateObserver(const IObservable<OutsideWeatherInfo>& observable) override
+	{
+		auto data = observable.GetData();
+		UpdateStatistics(data.m_temperature);
+		PrintValues("Temp");
+	}
+};
 
-// class WeatherData : public Subject<WeatherInfo>
-// {
-// public:
-// 	double GetTemperature() const
-// 	{
-// 		return m_temperature;
-// 	}
+class DuoTemperatureDisplay : public DuoAbstractObserver<OutsideWeatherInfo, InsideTemperatureInfo>
+{
+public:
+	DuoTemperatureDisplay(const IObservable<OutsideWeatherInfo>& inside, const IObservable<InsideTemperatureInfo>& outside)
+		: DuoAbstractObserver<OutsideWeatherInfo, InsideTemperatureInfo>(inside, outside)
+	{
+	}
 
-// 	double GetHumidity() const
-// 	{
-// 		return m_humidity;
-// 	}
+protected:
+	void UpdateFirst(const IObservable<OutsideWeatherInfo>& observable) override
+	{
+		auto data = observable.GetData();
+		std::cout << "Outside Temp: " << data.m_temperature << "\n";
+	}
 
-// 	double GetPressure() const
-// 	{
-// 		return m_pressure;
-// 	}
+	void UpdateSecond(const IObservable<InsideTemperatureInfo>& observable) override
+	{
+		auto data = observable.GetData();
+		std::cout << "Inside Temp: " << data.m_temperature << "\n";
+	}
+};
 
-// 	void MeasurementsChanged()
-// 	{
-// 		NotifyObservers();
-// 	}
+class InsideTemperatureData : public Subject<InsideTemperatureInfo>
+{
+public:
+	InsideTemperatureInfo GetData() const override
+	{
+		InsideTemperatureInfo info;
+		info.m_temperature = m_temperature;
+		return info;
+	}
 
-// 	void SetMeasurements(double temp, double humidity, double pressure)
-// 	{
-// 		m_humidity = humidity;
-// 		m_temperature = temp;
-// 		m_pressure = pressure;
+private:
+	double m_temperature = 0.0;
+};
 
-// 		MeasurementsChanged();
-// 	}
+class OutsideWeatherData : public Subject<OutsideWeatherInfo>
+{
+public:
+	double GetTemperature() const
+	{
+		return m_temperature;
+	}
 
-// 	WeatherInfo GetData() const override
-// 	{
-// 		WeatherInfo info;
-// 		info.m_temperature = GetTemperature();
-// 		info.m_humidity = GetHumidity();
-// 		info.m_pressure = GetPressure();
-// 		return info;
-// 	}
+	double GetHumidity() const
+	{
+		return m_humidity;
+	}
 
-// private:
-// 	double m_temperature = 0.0;
-// 	double m_humidity = 0.0;
-// 	double m_pressure = 760.0;
-// };
+	double GetPressure() const
+	{
+		return m_pressure;
+	}
+
+	void MeasurementsChanged()
+	{
+		NotifyObservers();
+	}
+
+	void SetMeasurements(double temp, double humidity, double pressure)
+	{
+		m_humidity = humidity;
+		m_temperature = temp;
+		m_pressure = pressure;
+
+		MeasurementsChanged();
+	}
+
+	OutsideWeatherInfo GetData() const override
+	{
+		OutsideWeatherInfo info;
+		info.m_temperature = GetTemperature();
+		info.m_humidity = GetHumidity();
+		info.m_pressure = GetPressure();
+		return info;
+	}
+
+private:
+	double m_temperature = 0.0;
+	double m_humidity = 0.0;
+	double m_pressure = 760.0;
+};

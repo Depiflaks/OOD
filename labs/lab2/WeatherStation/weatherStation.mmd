@@ -10,7 +10,7 @@ classDiagram
 
   class IObserver~T~ {
     <<interface>>
-    +Update(const IObservable~T~& observables) void = 0
+    +Update(const IObservable~T~& observable) void = 0
   }
 
   class AbstractObserver~T~ {
@@ -37,12 +37,12 @@ classDiagram
     -Update(const IObservable~T~& observable) void
   }
 
-  class DuoObserver~T1, T2~ {
+  class DuoTemperatureObserver~T1, T2~ {
     -UpdateFirst(const IObservable~T1~& observable) void
     -UpdateSecond(const IObservable~T2~& observable) void
   }
 
-  class AbstractStatsObserver~ContextType, ValueType~ {
+  class MonoAbstractStatsObserver~ContextType, ValueType~ {
     #UpdateStatistics(ValueType value) void
     #PrintValues(std::string name) void
     -ValueType m_minValue
@@ -69,9 +69,9 @@ classDiagram
   AbstractObserver --|> MonoAbstractObserver
   AbstractObserver --|> DuoAbstractObserver : T1
   AbstractObserver --|> DuoAbstractObserver : T2
-  MonoAbstractObserver --|> AbstractStatsObserver
+  MonoAbstractObserver --|> MonoAbstractStatsObserver
   MonoAbstractObserver --|> Display
-  DuoAbstractObserver --|> DuoObserver
+  DuoAbstractObserver --|> DuoTemperatureObserver
   AbstractStatsObserver --|> PressureStatsDisplay
   AbstractStatsObserver --|> HumStatsDisplay
   AbstractStatsObserver --|> TemperatureStatsDisplay
