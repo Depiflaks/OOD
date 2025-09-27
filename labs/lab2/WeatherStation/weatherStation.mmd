@@ -1,11 +1,6 @@
 classDiagram
   direction TB
 
-  class WindInfo {
-    +double m_speed
-    +double m_direction
-  }
-
   class SubscribeType {
     <<enum>>
     +TEMPERAURE_CHANGE
@@ -122,16 +117,37 @@ classDiagram
     -int m_patientPulse;
   }
 
+  class InsideTemperatureData {
+    +GetData() InsideTemperatureInfo
+    void SetMeasurements(double temperature)
+    -double m_temperature
+  }
+
   IObservable ..|> ISubject
   ISubject ..|> Subject
   Subject ..|> SubscribeType : use
   Subject --|> HospitalSensorsData
 
   Subject o--> IObserver
-  HospitalSensorsData --> WeatherInfo : creates
+  HospitalSensorsData --> OutsideWeatherInfo : creates
+  InsideTemperatureData --> InsideWeatherInfo : creates
 
-  class WeatherInfo {
-    +temperature double 
-    +humidity double 
-    +pressure double 
+  class InsideTemperatureInfo {
+    +double m_temperature
   }
+
+  class OutsideWeatherInfo
+  {
+    +double m_temperature = 0;
+    +double m_humidity = 0;
+    +double m_pressure = 0;
+    +WindInfo m_wind{};
+  };
+
+  class WindInfo {
+    +double m_speed
+    +double m_direction
+  }
+
+  OutsideWeatherInfo *--> WindInfo
+
