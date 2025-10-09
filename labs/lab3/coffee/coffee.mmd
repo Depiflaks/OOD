@@ -1,0 +1,109 @@
+classDiagram
+  direction TB
+
+  class IBeverage {
+    <<interface>>
+    +GetDescription() std::string = 0
+    +GetCost() double = 0
+  }
+
+  class Beverage {
+    +Beverage(std::string& description)
+    +GetDescription() void
+
+    -std::string m_description
+  }
+
+  class Coffee {
+    +GetCost() double
+  }
+
+  class Cappuccino {
+    +GetCost() double
+  }
+
+  class Latte {
+    +GetCost() double
+  }
+
+  class Tea {
+    +GetCost() double
+  }
+
+  class Milkshake {
+    +GetCost() double
+  }
+
+  IBeverage <|.. Beverage
+  Beverage <|-- Coffee
+  Coffee <|-- Cappuccino
+  Coffee <|-- Latte
+  Coffee <|-- Tea
+  Coffee <|-- Milkshake
+
+  class CondimentDecorator {
+    +GetDescription() std::string
+    +GetCost() double
+    +GetCondimentDescription() std::string = 0
+    +GetCondimentCost() double = 0
+
+    -IBeveragePtr m_beverage
+  }
+
+  class Cinnamon {
+	  +Cinnamon(IBeveragePtr&& beverage)
+
+    #GetCondimentDescription() std::string
+    #GetCondimentCost() double
+  }
+
+  class Lemon {
+    +Lemon(IBeveragePtr&& beverage, unsigned quantity = 1)
+    -unsigned m_quantity
+  }
+
+  class IceCubeType {
+    <<enum>>
+    +Dry
+    +Water
+  }
+
+  class IceCubes {
+    +IceCubes(IBeveragePtr&& beverage, unsigned quantity, IceCubeType type)
+    -unsigned m_quantity
+	  -IceCubeType m_type
+  }
+
+  class SyrupType {
+    <<enum>>
+    Chocolate
+    Maple
+  }
+
+  class Syrup {
+    +Syrup(IBeveragePtr&& beverage, SyrupType syrupType)
+
+    -SyrupType m_syrupType
+  }
+
+  class ChocolateCrumbs {
+	  +ChocolateCrumbs(IBeveragePtr&& beverage, unsigned mass)
+
+	  -unsigned m_mass
+  }
+
+  class CoconutFlakes {
+  	+CoconutFlakes(IBeveragePtr&& beverage, unsigned mass)
+	  -unsigned m_mass
+  }
+
+  IceCubes --> IceCubeType : use
+  Syrup --> SyrupType : use
+
+  IBeverage <|.. CondimentDecorator
+  CondimentDecorator <|-- Cinnamon
+  CondimentDecorator <|-- Lemon
+  CondimentDecorator <|-- IceCubes
+  CondimentDecorator <|-- Syrup
+  CondimentDecorator <|-- ChocolateCrumbs
+  CondimentDecorator <|-- CoconutFlakes

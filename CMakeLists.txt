@@ -22,3 +22,4 @@ add_subdirectory(labs/lab1/object_ducks ${CMAKE_BINARY_DIR}/labs/lab1/object_duc
 add_subdirectory(labs/lab1/functional_ducks ${CMAKE_BINARY_DIR}/labs/lab1/functional_ducks)
 add_subdirectory(labs/lab1/shapes ${CMAKE_BINARY_DIR}/labs/lab1/shapes)
 add_subdirectory(labs/lab2/WeatherStation ${CMAKE_BINARY_DIR}/labs/lab2/WeatherStation)
+add_subdirectory(labs/lab3/coffee ${CMAKE_BINARY_DIR}/labs/lab3/coffee)
