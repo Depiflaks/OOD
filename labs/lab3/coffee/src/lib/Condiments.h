@@ -198,82 +198,86 @@ private:
 
 enum class LiquorType
 {
-    Nut,
-    Chocolate
+	Nut,
+	Chocolate
 };
 
 class Cream : public CondimentDecorator
 {
 public:
-    Cream(IBeveragePtr&& beverage)
-        : CondimentDecorator(std::move(beverage))
-    {
-    }
+	Cream(IBeveragePtr&& beverage)
+		: CondimentDecorator(std::move(beverage))
+	{
+	}
 
 protected:
-    std::string GetCondimentDescription() const override
-    {
-        return "Cream";
-    }
+	std::string GetCondimentDescription() const override
+	{
+		return "Cream";
+	}
 
-    double GetCondimentCost() const override
-    {
-        return 25.0;
-    }
+	double GetCondimentCost() const override
+	{
+		return 25.0;
+	}
 };
 
 class Chocolate : public CondimentDecorator
 {
 public:
-    Chocolate(IBeveragePtr&& beverage, unsigned quantity)
-        : CondimentDecorator(std::move(beverage))
-        , m_quantity(quantity)
-    {
-    }
+	Chocolate(IBeveragePtr&& beverage, unsigned quantity)
+		: CondimentDecorator(std::move(beverage))
+		, m_quantity(quantity)
+	{
+		if (m_quantity >= 5)
+		{
+			m_quantity = 5;
+		}
+	}
 
 protected:
-    std::string GetCondimentDescription() const override
-    {
-        return "Chocolate x " + std::to_string(m_quantity);
-    }
+	std::string GetCondimentDescription() const override
+	{
+		return "Chocolate x " + std::to_string(m_quantity);
+	}
 
-    double GetCondimentCost() const override
-    {
-        return 10.0 * m_quantity;
-    }
+	double GetCondimentCost() const override
+	{
+		return 10.0 * m_quantity;
+	}
 
 private:
-    unsigned m_quantity;
+	unsigned m_quantity;
 };
 
 class Liquor : public CondimentDecorator
 {
 public:
-    Liquor(IBeveragePtr&& beverage, LiquorType type)
-        : CondimentDecorator(std::move(beverage))
-        , m_type(type)
-    {
-    }
+	Liquor(IBeveragePtr&& beverage, LiquorType type)
+		: CondimentDecorator(std::move(beverage))
+		, m_type(type)
+	{
+	}
 
 protected:
-    std::string GetCondimentDescription() const override
-    {
-        switch (m_type)
-        {
-        case LiquorType::Nut:
-            return "Nut Liquor";
-        case LiquorType::Chocolate:
-            return "Chocolate Liquor";
-        default:
-            return "Liquor";
-        }
-    }
+	std::string GetCondimentDescription() const override
+	{
+		switch (m_type)
+		{
+		case LiquorType::Nut:
+			return "Nut Liquor";
+		case LiquorType::Chocolate:
+			return "Chocolate Liquor";
+		default:
+			return "Liquor";
+		}
+	}
 
-    double GetCondimentCost() const override
-    {
-        return 50.0;
-    }
+	double GetCondimentCost() const override
+	{
+		return 50.0;
+	}
 
 private:
-    LiquorType m_type;
+	LiquorType m_type;
 };

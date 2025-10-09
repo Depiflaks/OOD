@@ -1,0 +1,62 @@
+classDiagram
+  direction TB
+
+  class TransformCommandLine {
+    + Start()
+    - ExecuteCommand()
+  }
+
+  class Argument() {
+
+  }
+
+  class FileArgument() {
+  }
+
+
+
+  class  {
+    + Start()
+    - ExecuteCommand()
+  }
+
+  class InputStream {
+    <<interface>>
+    + IsEOF()
+    + ReadByte()
+    + ReadBlock(dstData, dataSize)
+  }
+
+  class FileInputStream {
+    + IsEOF()
+    + ReadByte()
+    + ReadBlock(dstData, dataSize)
+  }
+
+  class MemoryInputStream {
+    + IsEOF()
+    + ReadByte()
+    + ReadBlock(dstData, dataSize)
+  }
+
+  InputStream <|.. FileInputStream
+  InputStream <|.. MemoryInputStream
+
+  class IOutputStream {
+    <<interface>>
+    + WriteByte(data)
+    + WriteBlock(srcData, dataSize)
+  }
+
+  class FileOutputStream {
+    + WriteByte(data)
+    + WriteBlock(srcData, dataSize)
+  }
+
+  class MemoryOutputStream {
+    + WriteByte(data)
+    + WriteBlock(srcData, dataSize)
+  }
+
+  IOutputStream <|.. FileOutputStream
+  IOutputStream <|.. MemoryOutputStream
