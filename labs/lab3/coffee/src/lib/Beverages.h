@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <string>
+#include "IBeverage.h"
 
 enum class CoffeePortion
 {
@@ -20,14 +21,6 @@ enum class MilkshakeSize
 	Small,
 	Medium,
 	Large
-};
-
-class IBeverage
-{
-public:
-	virtual ~IBeverage() = default;
-	virtual std::string GetDescription() const = 0;
-	virtual double GetCost() const = 0;
 };
 
 class Coffee : public IBeverage

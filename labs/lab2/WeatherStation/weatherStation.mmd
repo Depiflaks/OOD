@@ -92,7 +92,6 @@ classDiagram
   class IObservable {
     <<interface>>
 
-    %% TODO: добавить поддержку типа
     +Subscribe(SubscribeType type, const std::weak_ptr~IObserver~& observer, int priority = 0) void
     +Unsubscribe(SubscribeType type, const std::weak_ptr~IObserver~& observer) void
     +GetData() T

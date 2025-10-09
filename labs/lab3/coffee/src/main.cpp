@@ -1,5 +1,6 @@
-﻿#include "./lib/Beverages.h"
-#include "./lib/Condiments.h"
+﻿#include "./lib/Condiments.h"
+#include "./lib/Beverages.h"
+#include "./lib/MakeCondiment.h"
 
 #include <functional>
 #include <iostream>
@@ -32,26 +33,6 @@ function<IBeveragePtr(IBeveragePtr&&)> MakeCinnamon()
 {
 	return [](IBeveragePtr&& b) {
 		return std::make_unique<Cinnamon>(std::move(b));
-	};
-}
-
-/*
-Возвращает функцию, декорирующую напиток определенной добавкой
-
-Параметры шаблона:
-	Condiment - класс добавки, конструктор которого в качестве первого аргумента
-				принимает IBeveragePtr&& оборачиваемого напитка
-	Args - список типов прочих параметров конструктора (возможно, пустой)
-*/
-template <typename Condiment, typename... Args>
-auto MakeCondiment(const Args&... args)
-{
-	// Возвращаем функцию, декорирующую напиток, переданный ей в качестве аргумента
-	// Дополнительные аргументы декоратора, захваченные лямбда-функцией, передаются
-	// конструктору декоратора через std::make_unique
-	return [=](auto&& b) {
-		// Функции std::make_unique передаем b вместе со списком аргументов внешней функции
-		return std::make_unique<Condiment>(std::forward<decltype(b)>(b), args...);
 	};
 }
 
@@ -102,11 +83,6 @@ unique_ptr<Cinnamon> operator << (IBeveragePtr && lhs, const MakeCinnamon & fact
 	return factory(std::move(lhs));
 }
 */
-template <typename Component, typename Decorator>
-auto operator<<(Component&& component, const Decorator& decorate)
-{
-	return decorate(std::forward<Component>(component));
-}
 
 void DialogWithUser()
 {
