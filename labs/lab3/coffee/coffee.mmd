@@ -7,39 +7,69 @@ classDiagram
     +GetCost() double = 0
   }
 
-  class Beverage {
-    +Beverage(std::string& description)
-    +GetDescription() void
-
-    -std::string m_description
-  }
-
   class Coffee {
     +GetCost() double
+    +GetDescription() std::string
+
+    -CoffeePortion m_portion
   }
 
   class Cappuccino {
+    +Cappuccino(CappuccinoPortion portion)
+    +GetDescription() std::string
     +GetCost() double
   }
 
   class Latte {
+    +Latte(LattePortion portion)
+    +GetDescription() std::string
     +GetCost() double
+  }
+
+  class CoffeePortion {
+    <<enum>>
+    Standard
+    Double
   }
 
   class Tea {
+    +Tea(TeaSort sort)
     +GetCost() double
+    +GetDescription() std::string
+    -TeaSort m_sort
+  }
+
+  class TeaSort {
+    <<enum>>
+    Green
+    Black
+    Herbal
   }
 
   class Milkshake {
+    +Milkshake(MilkshakeSize size)
     +GetCost() double
+    +GetDescription() std::string
+    -MilkshakeSize m_size
+  }
+
+  class MilkshakeSize {
+    <<enum>>
+    Small
+    Medium
+    Large
   }
 
   IBeverage <|.. Beverage
-  Beverage <|-- Coffee
   Coffee <|-- Cappuccino
   Coffee <|-- Latte
-  Coffee <|-- Tea
-  Coffee <|-- Milkshake
+  Beverage <|-- Tea
+  Beverage <|-- Milkshake
+
+  Cappuccino --> CoffeePortion : use
+  Latte --> CoffeePortion : use
+  Tea --> TeaSort : use
+  Milkshake --> MilkshakeSize : use
 
   class CondimentDecorator {
     +GetDescription() std::string
@@ -64,8 +94,8 @@ classDiagram
 
   class IceCubeType {
     <<enum>>
-    +Dry
-    +Water
+    Dry
+    Water
   }
 
   class IceCubes {
@@ -97,13 +127,43 @@ classDiagram
 	  -unsigned m_mass
   }
 
+  class Cream {
+    +Cream(IBeveragePtr&& beverage)
+    #GetCondimentDescription() std::string
+    #GetCondimentCost() double
+  }
+
+  class Chocolate {
+    +Chocolate(IBeveragePtr&& beverage, unsigned quantity)
+    -unsigned m_quantity
+    #GetCondimentDescription() std::string
+    #GetCondimentCost() double
+  }
+
+  class LiquorType {
+    <<enum>>
+    Nut
+    Chocolate
+  }
+
+  class Liquor {
+    +Liquor(IBeveragePtr&& beverage, LiquorType type)
+    -LiquorType m_type
+    #GetCondimentDescription() std::string
+    #GetCondimentCost() double
+  }
+
+  Liquor --> LiquorType : use
   IceCubes --> IceCubeType : use
   Syrup --> SyrupType : use
 
   IBeverage <|.. CondimentDecorator
+  CondimentDecorator <|-- Cream
+  CondimentDecorator <|-- Chocolate
+  CondimentDecorator <|-- Liquor
   CondimentDecorator <|-- Cinnamon
   CondimentDecorator <|-- Lemon
   CondimentDecorator <|-- IceCubes
-  CondimentDecorator <|-- Syrup
-  CondimentDecorator <|-- ChocolateCrumbs
+  CondimentDecorator <|-- Syrup : use
+  CondimentDecorator <|-- ChocolateCrumbs : use
   CondimentDecorator <|-- CoconutFlakes

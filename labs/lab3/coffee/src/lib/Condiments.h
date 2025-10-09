@@ -68,6 +68,7 @@ protected:
 	{
 		return 10.0 * m_quantity;
 	}
+
 	std::string GetCondimentDescription() const override
 	{
 		return "Lemon x " + std::to_string(m_quantity);
@@ -185,6 +186,7 @@ protected:
 	{
 		return 1.0 * m_mass;
 	}
+
 	std::string GetCondimentDescription() const override
 	{
 		return "Coconut flakes " + std::to_string(m_mass) + "g";
@@ -192,4 +194,86 @@ protected:
 
 private:
 	unsigned m_mass;
+};
+
+enum class LiquorType
+{
+    Nut,
+    Chocolate
+};
+
+class Cream : public CondimentDecorator
+{
+public:
+    Cream(IBeveragePtr&& beverage)
+        : CondimentDecorator(std::move(beverage))
+    {
+    }
+
+protected:
+    std::string GetCondimentDescription() const override
+    {
+        return "Cream";
+    }
+
+    double GetCondimentCost() const override
+    {
+        return 25.0;
+    }
+};
+
+class Chocolate : public CondimentDecorator
+{
+public:
+    Chocolate(IBeveragePtr&& beverage, unsigned quantity)
+        : CondimentDecorator(std::move(beverage))
+        , m_quantity(quantity)
+    {
+    }
+
+protected:
+    std::string GetCondimentDescription() const override
+    {
+        return "Chocolate x " + std::to_string(m_quantity);
+    }
+
+    double GetCondimentCost() const override
+    {
+        return 10.0 * m_quantity;
+    }
+
+private:
+    unsigned m_quantity;
+};
+
+class Liquor : public CondimentDecorator
+{
+public:
+    Liquor(IBeveragePtr&& beverage, LiquorType type)
+        : CondimentDecorator(std::move(beverage))
+        , m_type(type)
+    {
+    }
+
+protected:
+    std::string GetCondimentDescription() const override
+    {
+        switch (m_type)
+        {
+        case LiquorType::Nut:
+            return "Nut Liquor";
+        case LiquorType::Chocolate:
+            return "Chocolate Liquor";
+        default:
+            return "Liquor";
+        }
+    }
+
+    double GetCondimentCost() const override
+    {
+        return 50.0;
+    }
+
+private:
+    LiquorType m_type;
 };
