@@ -30,7 +30,7 @@ TEST(SubjectTest, SingleObserver)
 
     EXPECT_CALL(*observer, Update(_)).Times(1);
 
-    subject.Subscribe(DEFAULT_TYPE, observer);
+    subject.Subscribe(DEFAULT_TYPE, observer, 0);
     subject.Notify(DEFAULT_TYPE);
 }
 
@@ -40,11 +40,12 @@ TEST(SubjectTest, TwoObservers)
     auto observer1 = std::make_shared<MockObserver>();
     auto observer2 = std::make_shared<MockObserver>();
 
-    EXPECT_CALL(*observer1, Update(_)).Times(1);
-    EXPECT_CALL(*observer2, Update(_)).Times(1);
+    testing::Sequence seq;
+    EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
+    EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
 
-    subject.Subscribe(DEFAULT_TYPE, observer1);
-    subject.Subscribe(DEFAULT_TYPE, observer2);
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
     subject.Notify(DEFAULT_TYPE);
 }
 
@@ -57,8 +58,8 @@ TEST(SubjectTest, RemoveObserver)
     EXPECT_CALL(*observer1, Update(_)).Times(1);
     EXPECT_CALL(*observer2, Update(_)).Times(0);
 
-    subject.Subscribe(DEFAULT_TYPE, observer1);
-    subject.Subscribe(DEFAULT_TYPE, observer2);
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
     subject.Unsubscribe(DEFAULT_TYPE, observer2);
     subject.Notify(DEFAULT_TYPE);
 }
@@ -70,11 +71,11 @@ TEST(SubjectTest, ObserverLifetime)
 
     EXPECT_CALL(*observer1, Update(_)).Times(1);
 
-    subject.Subscribe(DEFAULT_TYPE, observer1);
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
 
     {
         auto observer2 = std::make_shared<MockObserver>();
-        subject.Subscribe(DEFAULT_TYPE, observer2);
+        subject.Subscribe(DEFAULT_TYPE, observer2, 1);
     }
 
     subject.Notify(DEFAULT_TYPE);
@@ -90,8 +91,8 @@ TEST(SubjectTest, PriorityOrderBasic)
     EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
     EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
 
-    subject.Subscribe(DEFAULT_TYPE, observer1, 1);
-    subject.Subscribe(DEFAULT_TYPE, observer2, 2);
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
     subject.Notify(DEFAULT_TYPE);
 }
 
@@ -105,28 +106,22 @@ TEST(SubjectTest, PriorityOrderReverseRegistration)
     EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
     EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
 
-    subject.Subscribe(DEFAULT_TYPE, observer2, 2);
-    subject.Subscribe(DEFAULT_TYPE, observer1, 1);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
     subject.Notify(DEFAULT_TYPE);
 }
 
-TEST(SubjectTest, SamePrioritySequentialExecution)
+TEST(SubjectTest, SamePriorityThrowsException)
 {
     MockSubject subject;
     auto observer1 = std::make_shared<MockObserver>();
     auto observer2 = std::make_shared<MockObserver>();
-    auto observer3 = std::make_shared<MockObserver>();
 
-    testing::Sequence seq;
-    EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
-    EXPECT_CALL(*observer3, Update(_)).InSequence(seq);
-    EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
-
-    subject.Subscribe(DEFAULT_TYPE, observer1, 1);
-    subject.Subscribe(DEFAULT_TYPE, observer3, 1);
-    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
-    subject.Notify(DEFAULT_TYPE);
-        // TODO: приоритеты перепролдумать
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
+    EXPECT_THROW(
+        subject.Subscribe(DEFAULT_TYPE, observer2, 0),
+        std::runtime_error
+    );
 }
 
 TEST(SubjectTest, ChangePriority)
@@ -136,17 +131,17 @@ TEST(SubjectTest, ChangePriority)
     auto observer2 = std::make_shared<MockObserver>();
     auto observer3 = std::make_shared<MockObserver>();
 
-    subject.Subscribe(DEFAULT_TYPE, observer1, 1);
-    subject.Subscribe(DEFAULT_TYPE, observer2, 2);
-    subject.Subscribe(DEFAULT_TYPE, observer3, 3);
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
+    subject.Subscribe(DEFAULT_TYPE, observer3, 2);
 
     subject.Unsubscribe(DEFAULT_TYPE, observer2);
-    subject.Subscribe(DEFAULT_TYPE, observer2, 0);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 3);
 
     testing::Sequence seq;
-    EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
     EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
     EXPECT_CALL(*observer3, Update(_)).InSequence(seq);
+    EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
 
     subject.Notify(DEFAULT_TYPE);
 }
@@ -158,16 +153,16 @@ TEST(SubjectTest, DublicatedSubscribe)
     auto observer2 = std::make_shared<MockObserver>();
     auto observer3 = std::make_shared<MockObserver>();
 
-    subject.Subscribe(DEFAULT_TYPE, observer1, 1);
-    subject.Subscribe(DEFAULT_TYPE, observer2, 2);
-    subject.Subscribe(DEFAULT_TYPE, observer3, 3);
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
+    subject.Subscribe(DEFAULT_TYPE, observer3, 2);
 
-    subject.Subscribe(DEFAULT_TYPE, observer2, 0);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 3);
 
     testing::Sequence seq;
     EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
-    EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
     EXPECT_CALL(*observer3, Update(_)).InSequence(seq);
+    EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
 
     subject.Notify(DEFAULT_TYPE);
 }
@@ -182,12 +177,12 @@ TEST(SubjectTest, MiddleObserverDestroyed)
     EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
     EXPECT_CALL(*observer3, Update(_)).InSequence(seq);
 
-    subject.Subscribe(DEFAULT_TYPE, observer1, 1);
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
     {
         auto observer2 = std::make_shared<MockObserver>();
-        subject.Subscribe(DEFAULT_TYPE, observer2, 2);
+        subject.Subscribe(DEFAULT_TYPE, observer2, 1);
     }
-    subject.Subscribe(DEFAULT_TYPE, observer3, 3);
+    subject.Subscribe(DEFAULT_TYPE, observer3, 2);
     subject.Notify(DEFAULT_TYPE);
 }
 
@@ -203,10 +198,10 @@ TEST(SubjectTest, FirstObserverDestroyed)
 
     {
         auto observer1 = std::make_shared<MockObserver>();
-        subject.Subscribe(DEFAULT_TYPE, observer1, 1);
+        subject.Subscribe(DEFAULT_TYPE, observer1, 0);
     }
-    subject.Subscribe(DEFAULT_TYPE, observer2, 2);
-    subject.Subscribe(DEFAULT_TYPE, observer3, 3);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
+    subject.Subscribe(DEFAULT_TYPE, observer3, 2);
     subject.Notify(DEFAULT_TYPE);
 }
 
@@ -232,8 +227,8 @@ TEST(SubjectTest, ObserverSubscribedToTwoTypes)
 
     EXPECT_CALL(*observer, Update(_)).Times(2);
 
-    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer);
-    subject.Subscribe(SubscribeType::HUMIDITY_CHANGE, observer);
+    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer, 0);
+    subject.Subscribe(SubscribeType::HUMIDITY_CHANGE, observer, 0);
     
     subject.Notify(SubscribeType::TEMPERATURE_CHANGE);
     subject.Notify(SubscribeType::HUMIDITY_CHANGE);
@@ -246,9 +241,9 @@ TEST(SubjectTest, ResubscribeToDifferentType)
 
     EXPECT_CALL(*observer, Update(_)).Times(1);
 
-    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer);
+    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer, 0);
     subject.Unsubscribe(SubscribeType::TEMPERATURE_CHANGE, observer);
-    subject.Subscribe(SubscribeType::HUMIDITY_CHANGE, observer);
+    subject.Subscribe(SubscribeType::HUMIDITY_CHANGE, observer, 0);
     
     subject.Notify(SubscribeType::TEMPERATURE_CHANGE);
     subject.Notify(SubscribeType::HUMIDITY_CHANGE);
@@ -261,8 +256,8 @@ TEST(SubjectTest, ReprioritizeFails)
 
     EXPECT_CALL(*observer, Update(_)).Times(1);
 
+    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer, 0);
     subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer, 1);
-    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer, 5);
     
     subject.Notify(SubscribeType::TEMPERATURE_CHANGE);
 }
@@ -272,11 +267,11 @@ TEST(SubjectTest, ObserverDestroyedBeforeNotify)
     MockSubject subject;
     
     auto observer1 = std::make_shared<MockObserver>();
-    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer1);
+    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, observer1, 0);
     
     {
         auto observer2 = std::make_shared<MockObserver>();
-        subject.Subscribe(SubscribeType::HUMIDITY_CHANGE, observer2);
+        subject.Subscribe(SubscribeType::HUMIDITY_CHANGE, observer2, 0);
     }
     
     EXPECT_CALL(*observer1, Update(_)).Times(1);
@@ -296,12 +291,11 @@ TEST(SubjectTest, AllSubscriptionTypes)
     EXPECT_CALL(*humidityObserver, Update(_)).Times(1);
     EXPECT_CALL(*pressureObserver, Update(_)).Times(1);
 
-    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, tempObserver);
-    subject.Subscribe(SubscribeType::HUMIDITY_CHANGE, humidityObserver);
-    subject.Subscribe(SubscribeType::PRESSURE_CHANGE, pressureObserver);
+    subject.Subscribe(SubscribeType::TEMPERATURE_CHANGE, tempObserver, 0);
+    subject.Subscribe(SubscribeType::HUMIDITY_CHANGE, humidityObserver, 0);
+    subject.Subscribe(SubscribeType::PRESSURE_CHANGE, pressureObserver, 0);
     
     subject.Notify(SubscribeType::TEMPERATURE_CHANGE);
     subject.Notify(SubscribeType::HUMIDITY_CHANGE);
     subject.Notify(SubscribeType::PRESSURE_CHANGE);
-}
-} // namespace subjectTests
+}} // namespace subjectTests

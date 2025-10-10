@@ -5,6 +5,8 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <stdexcept>
+#include <format>
 #include <vector>
 
 template <typename T>
@@ -40,9 +42,9 @@ public:
 			return;
 		}
 
-		int finalPriority = GetFinalPriority(observers, priority);
+		CheckPriorityIsFree(observers, priority);
 
-		TryInsertObserver(observers, observer, finalPriority);
+		TryInsertObserver(observers, observer, priority);
 	}
 
 	void Notify(SubscribeType type) override
@@ -88,14 +90,12 @@ private:
 
 	std::map<SubscribeType, ObserverCollection> m_observersByType;
 
-	int GetFinalPriority(const ObserverCollection& observers, int priority) const
+	void CheckPriorityIsFree(const ObserverCollection& observers, int priority) const
 	{
-		int finalPriority = priority;
-		while (observers.priorityMap.find(finalPriority) != observers.priorityMap.end())
+		if (observers.priorityMap.find(priority) == observers.priorityMap.end())
 		{
-			++finalPriority;
+			throw std::runtime_error{std::format("Observer with priority: {} already exists", priority)};
 		}
-		return finalPriority;
 	}
 
 	void TryInsertObserver(ObserverCollection& observers, const std::weak_ptr<IObserver<T>>& observer, int priority)
