@@ -55,7 +55,7 @@ public:
 
 	std::string GetDescription() const override final
 	{
-		return "Double Cappuccino";
+		return (m_portion == CoffeePortion::Double) ? "Double Cappuccino" : "Cappuccino";
 	}
 
 	double GetCost() const override

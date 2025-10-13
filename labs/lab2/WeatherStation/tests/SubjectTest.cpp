@@ -111,17 +111,35 @@ TEST(SubjectTest, PriorityOrderReverseRegistration)
     subject.Notify(DEFAULT_TYPE);
 }
 
-TEST(SubjectTest, SamePriorityThrowsException)
+TEST(SubjectTest, SamePriority)
 {
     MockSubject subject;
     auto observer1 = std::make_shared<MockObserver>();
     auto observer2 = std::make_shared<MockObserver>();
 
+    testing::Sequence seq;
+    EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
+    EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
+
     subject.Subscribe(DEFAULT_TYPE, observer1, 0);
-    EXPECT_THROW(
-        subject.Subscribe(DEFAULT_TYPE, observer2, 0),
-        std::runtime_error
-    );
+    subject.Subscribe(DEFAULT_TYPE, observer2, 0);
+}
+
+TEST(SubjectTest, DublicatesPriority)
+{
+    MockSubject subject;
+    auto observer1 = std::make_shared<MockObserver>();
+    auto observer2 = std::make_shared<MockObserver>();
+    auto observer3 = std::make_shared<MockObserver>();
+
+    testing::Sequence seq;
+    EXPECT_CALL(*observer1, Update(_)).InSequence(seq);
+    EXPECT_CALL(*observer3, Update(_)).InSequence(seq);
+    EXPECT_CALL(*observer2, Update(_)).InSequence(seq);
+
+    subject.Subscribe(DEFAULT_TYPE, observer1, 0);
+    subject.Subscribe(DEFAULT_TYPE, observer2, 1);
+    subject.Subscribe(DEFAULT_TYPE, observer3, 0);
 }
 
 TEST(SubjectTest, ChangePriority)

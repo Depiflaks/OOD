@@ -60,11 +60,10 @@ classDiagram
     Large
   }
 
-  IBeverage <|.. Beverage
   Coffee <|-- Cappuccino
   Coffee <|-- Latte
-  Beverage <|-- Tea
-  Beverage <|-- Milkshake
+  IBeverage <|-- Tea
+  IBeverage <|-- Milkshake
 
   Cappuccino --> CoffeePortion : use
   Latte --> CoffeePortion : use

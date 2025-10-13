@@ -2,11 +2,11 @@
 #define SUBJECT_H
 
 #include "Enum/SubscribeType.h"
+#include <format>
 #include <map>
 #include <memory>
 #include <set>
 #include <stdexcept>
-#include <format>
 #include <vector>
 
 template <typename T>
@@ -42,8 +42,6 @@ public:
 			return;
 		}
 
-		CheckPriorityIsFree(observers, priority);
-
 		TryInsertObserver(observers, observer, priority);
 	}
 
@@ -56,10 +54,14 @@ public:
 		}
 
 		auto& observers = it->second;
-		for (auto priorityIt = observers.priorityMap.begin(); priorityIt != observers.priorityMap.end();)
+		for (auto priorityIt = observers.priorityMap.rbegin(); priorityIt != observers.priorityMap.rend(); ++priorityIt)
 		{
-			auto current = priorityIt++;
-			UpdateObserver(current->second);
+			auto& observerVector = priorityIt->second;
+			for (auto observerIt = observerVector.begin(); observerIt != observerVector.end();)
+			{
+				auto current = observerIt++;
+				UpdateObserver(*current);
+			}
 		}
 	}
 
@@ -84,19 +86,11 @@ private:
 	struct ObserverCollection
 	{
 		std::set<std::weak_ptr<IObserver<T>>, std::owner_less<std::weak_ptr<IObserver<T>>>> observerSet;
-		std::map<int, std::weak_ptr<IObserver<T>>> priorityMap;
+		std::map<int, std::vector<std::weak_ptr<IObserver<T>>>> priorityMap;
 		std::map<std::weak_ptr<IObserver<T>>, int, std::owner_less<std::weak_ptr<IObserver<T>>>> observerPriority;
 	};
 
 	std::map<SubscribeType, ObserverCollection> m_observersByType;
-
-	void CheckPriorityIsFree(const ObserverCollection& observers, int priority) const
-	{
-		if (observers.priorityMap.find(priority) == observers.priorityMap.end())
-		{
-			throw std::runtime_error{std::format("Observer with priority: {} already exists", priority)};
-		}
-	}
 
 	void TryInsertObserver(ObserverCollection& observers, const std::weak_ptr<IObserver<T>>& observer, int priority)
 	{
@@ -104,6 +98,11 @@ private:
 		try
 		{
 			observers.priorityMap.insert({ priority, observer });
+			if (!observers.priorityMap.contains(priority))
+			{
+				observers.priorityMap[priority] = {};
+			}
+			observers.priorityMap[priority].push_back(observer);
 			observers.observerPriority.insert({ observer, priority });
 		}
 		catch (...)
@@ -120,7 +119,20 @@ private:
 		auto priorityIt = observers.observerPriority.find(observer);
 		if (priorityIt != observers.observerPriority.end())
 		{
-			observers.priorityMap.erase(priorityIt->second);
+			auto priorityMapIt = observers.priorityMap.find(priorityIt->first);
+			if (priorityMapIt != observers.priorityMap.end())
+			{
+				auto& vector = priorityMapIt->second;
+				auto vectorIt = std::find(vector.begin(), vector.end(), observer);
+				if (vectorIt != vector.end())
+				{
+					vector.erase(vectorIt);
+				}
+				if (vector.empty())
+				{
+					observers.priorityMap.erase(priorityMapIt);
+				}
+			}
 			observers.observerPriority.erase(priorityIt);
 		}
 		observers.observerSet.erase(observer);
