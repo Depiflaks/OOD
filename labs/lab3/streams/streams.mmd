@@ -1,62 +1,55 @@
 classDiagram
-  direction TB
+  class InputStream {
+    <<interface>>
+    +Read(char* buffer, std::streamsize size) std::streamsize = 0
+    +Eof() bool = 0
+  }
 
-  class TransformCommandLine {
-    + Start()
-    - ExecuteCommand()
-  }
+  class FileInputStream {
+    -std::unique_ptr~std::ifstream~ m_file
+    -std::string m_filename
 
-  class Argument() {
+    +FileInputStream(std::unique_ptr~std::ifstream~ file)
+    +Read(char* buffer, std::streamsize size) std::streamsize
+    +Eof() bool
+  }
 
-  }
+  class MemoryInputStream {
+    -char* m_data
+    -std::streamsize m_size
+    -std::streamsize m_position
 
-  class FileArgument() {
-  }
+    +MemoryInputStream(const char* data, std::streamsize size)
+    +Read(char* buffer, std::streamsize size) std::streamsize
+    +Eof() bool
+  }
 
+  class OutputStream {
+    <<interface>>
+    +Write(const char* buffer, std::streamsize size) void = 0
+    +Flush() void = 0
+  }
 
+  class FileOutputStream {
+    -std::unique_ptr~std::ofstream~ m_file
+    -std::string m_filename
+    +FileOutputStream(std::unique_ptr~std::ofstream~ file)
 
-  class  {
-    + Start()
-    - ExecuteCommand()
-  }
+    +Write(const char* buffer, std::streamsize size) void
+    +Flush() void
+  }
 
-  class InputStream {
-    <<interface>>
-    + IsEOF()
-    + ReadByte()
-    + ReadBlock(dstData, dataSize)
-  }
+  class MemoryOutputStream {
+    -std::vector<char> m_buffer
 
-  class FileInputStream {
-    + IsEOF()
-    + ReadByte()
-    + ReadBlock(dstData, dataSize)
-  }
+    +MemoryOutputStream()
+    +Write(const char* buffer, std::streamsize size) void
+    +Flush() void
+    +Data() char*
+    +Size() std::streamsize
+  }
 
-  class MemoryInputStream {
-    + IsEOF()
-    + ReadByte()
-    + ReadBlock(dstData, dataSize)
-  }
-
-  InputStream <|.. FileInputStream
-  InputStream <|.. MemoryInputStream
-
-  class IOutputStream {
-    <<interface>>
-    + WriteByte(data)
-    + WriteBlock(srcData, dataSize)
-  }
-
-  class FileOutputStream {
-    + WriteByte(data)
-    + WriteBlock(srcData, dataSize)
-  }
-
-  class MemoryOutputStream {
-    + WriteByte(data)
-    + WriteBlock(srcData, dataSize)
-  }
-
-  IOutputStream <|.. FileOutputStream
-  IOutputStream <|.. MemoryOutputStream
+  InputStream <|.. FileInputStream
+  InputStream <|.. MemoryInputStream
+  OutputStream <|.. FileOutputStream
+  OutputStream <|.. MemoryOutputStream
