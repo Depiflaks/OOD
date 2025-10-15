@@ -1,55 +1,163 @@
 classDiagram
-  class InputStream {
-    <<interface>>
-    +Read(char* buffer, std::streamsize size) std::streamsize = 0
-    +Eof() bool = 0
-  }
+  class IOutputStream {
+    <<interface>>
+    +WriteByte(data: uint8_t) void = 0
+    +WriteBlock(srcData: void\*, size: std::streamsize) void = 0
+    +Close() void = 0
+  }
 
-  class FileInputStream {
-    -std::unique_ptr~std::ifstream~ m_file
-    -std::string m_filename
+  class IInputStream {
+    <<interface>>
+    +IsEOF() bool = 0
+    +ReadByte() uint8_t = 0
+    +ReadBlock(dstBuffer: void\*, size: std::streamsize) std::streamsize = 0
+  }
 
-    +FileInputStream(std::unique_ptr~std::ifstream~ file)
-    +Read(char* buffer, std::streamsize size) std::streamsize
-    +Eof() bool
-  }
+  class FileInputStream {
+    -m_file: std::unique_ptr~~std::ifstream~~
 
-  class MemoryInputStream {
-    -char* m_data
-    -std::streamsize m_size
-    -std::streamsize m_position
+    +FileInputStream(file: std::unique_ptr~~std::ifstream~~)
+    +IsEOF() bool
+    +ReadByte() uint8_t
+    +ReadBlock(dstBuffer: void\*, size: std::streamsize) std::streamsize
+    +Close() void
+  }
 
-    +MemoryInputStream(const char* data, std::streamsize size)
-    +Read(char* buffer, std::streamsize size) std::streamsize
-    +Eof() bool
-  }
+  class MemoryInputStream {
+    -m_data: const uint8_t#42;
+    -m_size: std::streamsize
+    -m_position: std::streamsize
 
-  class OutputStream {
-    <<interface>>
-    +Write(const char* buffer, std::streamsize size) void = 0
-    +Flush() void = 0
-  }
+    +MemoryInputStream(data: uint8_t\*, size: std::streamsize)
+    +IsEOF() bool
+    +ReadByte() uint8_t
+    +ReadBlock(dstBuffer: void\*, size: std::streamsize) std::streamsize
+  }
 
-  class FileOutputStream {
-    -std::unique_ptr~std::ofstream~ m_file
-    -std::string m_filename
-    +FileOutputStream(std::unique_ptr~std::ofstream~ file)
+  class FileOutputStream {
+    -m_file: std::unique_ptr~~std::ofstream~~
 
-    +Write(const char* buffer, std::streamsize size) void
-    +Flush() void
-  }
+    +FileOutputStream(file: std::unique_ptr~~std::ofstream~~)
+    +WriteByte(data: uint8_t) void
+    +WriteBlock(srcData: void\*, size: std::streamsize) void
+    +Close() void
+  }
 
-  class MemoryOutputStream {
-    -std::vector<char> m_buffer
+  class MemoryOutputStream {
+    -m_buffer: std::vector~uint8_t~
+    -m_isClosed: bool
 
-    +MemoryOutputStream()
-    +Write(const char* buffer, std::streamsize size) void
-    +Flush() void
-    +Data() char*
-    +Size() std::streamsize
-  }
+    +WriteByte(data: uint8_t) void
+    +WriteBlock(srcData: void\*, size: std::streamsize) void
+    +Close() void
+  }
 
-  InputStream <|.. FileInputStream
-  InputStream <|.. MemoryInputStream
-  OutputStream <|.. FileOutputStream
-  OutputStream <|.. MemoryOutputStream
+  class InputStreamDecorator {
+    -m_inputStream IInputStreamPtr
+    -m_dataProcessor: IDataProcessorPtr
+
+    +IsEOF() bool
+    +ReadByte() uint8_t
+    +ReadBlock(dstBuffer: void\*, size: std::streamsize) std::streamsize
+
+    #InputStreamDecorator(IInputStreamPtr inputStream, IDataProcessorPtr dataProcessor)
+  }
+
+  class OutputStreamDecorator {
+    -m_outputStream: IOutputStreamPtr
+    -m_dataProcessor: IDataProcessorPtr
+
+    +WriteByte(data: uint8_t) void
+    +WriteBlock(srcData: void\*, size: std::streamsize) void
+    +Close() void
+
+    #OutputStreamDecorator(IOutputStreamPtr outputStream, IDataProcessorPtr dataProcessor)
+  }
+
+  class DecodingInputStreamDecorator {
+  }
+
+  class UnpackingInputStreamDecorator {
+  }
+
+  class EncodingOutputStreamDecorator {
+  }
+
+  class PackingOutputStreamDecorator {
+  }
+
+
+
+  class IDataProcessor {
+    +ProcessByte(data: uint8_t) uint8_t = 0
+    +ProcessDataBlock(buffer: void\*, size: std::streamsize) std::streamsize = 0
+  }
+
+  class DecodingDataProcessor {
+    +DecodingDataProcessor(key: int)
+    -m_key: int
+    -ProcessByte(data: uint8_t) uint8_t
+    -ProcessDataBlock(buffer: void\*, size: std::streamsize) std::streamsize
+  }
+
+  class EncodingDataProcessor {
+    +EncodingDataProcessor(key: int)
+    -m_key: int
+    -ProcessByte(data: uint8_t) uint8_t
+    -ProcessDataBlock(buffer: void\*, size: std::streamsize) std::streamsize
+  }
+
+  class UnpackingDataProcessor {
+    -ProcessByte(data: uint8_t) uint8_t
+    -ProcessDataBlock(buffer: void\*, size: std::streamsize) std::streamsize
+  }
+
+  class PackingDataProcessor {
+    -ProcessByte(data: uint8_t) uint8_t
+    -ProcessDataBlock(buffer: void\*, size: std::streamsize) std::streamsize
+  }
+
+  IInputStream <|.. FileInputStream
+  IInputStream <|.. MemoryInputStream
+  IOutputStream <|.. FileOutputStream
+  IOutputStream <|.. MemoryOutputStream
+
+  OutputStreamDecorator ..|> IOutputStream
+  InputStreamDecorator ..|> IInputStream
+
+  InputStreamDecorator <|-- DecodingInputStreamDecorator
+  InputStreamDecorator <|-- UnpackingInputStreamDecorator
+
+  OutputStreamDecorator <|-- EncodingOutputStreamDecorator
+  OutputStreamDecorator <|-- PackingOutputStreamDecorator
+
+  IDataProcessor --o InputStreamDecorator
+  IDataProcessor --o OutputStreamDecorator
+
+  DecodingDataProcessor ..|> IDataProcessor
+  EncodingDataProcessor ..|> IDataProcessor
+  UnpackingDataProcessor ..|> IDataProcessor
+  PackingDataProcessor ..|> IDataProcessor
+
+  class StreamsData {
+    +m_inputStream: IInputStreamPtr
+    +m_outputStream: IOutputStreamPtr
+  }
+
+  class FileTransformer {
+    +Transform(args: char\*\*) void
+
+    -ExtractFileNames(args: char\*\*) std::pair~std::string, std::string~
+    -CreateStreams(inputFileName: std::string, outputFileName: std::string) StreamsData
+
+    -ExtractArguments(args: char\*\*) std::vector~std::string~
+    -DecorateStreams(streams: &StreamsData, args: std::vector~std::string~)
+
+    -TransferData(streams: &StreamsData) void
+  }
+
+  FileTransformer --> StreamsData : use
+  StreamsData *--> IInputStream
+  StreamsData *--> IOutputStream
+
+
