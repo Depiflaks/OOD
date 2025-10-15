@@ -76,15 +76,19 @@ classDiagram
   }
 
   class DecodingInputStreamDecorator {
+    +DecodingInputStreamDecorator(IInputStreamPtr inputStream, int key)
   }
 
   class UnpackingInputStreamDecorator {
+    +UnpackingInputStreamDecorator(IInputStreamPtr inputStream)
   }
 
   class EncodingOutputStreamDecorator {
+    +EncodingOutputStreamDecorator(IOutputStreamPtr outputStream, int key)
   }
 
   class PackingOutputStreamDecorator {
+    +PackingOutputStreamDecorator(IOutputStreamPtr outputStream)
   }
 
 

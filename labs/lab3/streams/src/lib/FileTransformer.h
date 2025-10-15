@@ -1,0 +1,162 @@
+#ifndef FILETRANSFORMER_H
+#define FILETRANSFORMER_H
+
+#include "./InputStream.h"
+#include "./OutputStream.h"
+#include "lib/StreamDecorator.h"
+#include <cstddef>
+#include <string>
+#include <vector>
+
+class StreamsData
+{
+public:
+	IInputStreamPtr m_inputStream;
+	IOutputStreamPtr m_outputStream;
+};
+
+class FileTransformer
+{
+public:
+	void Transform(int argc, char* args[])
+	{
+		ValidateArguments(argc, args);
+		auto fileNames = ExtractFileNames(argc, args);
+		auto arguments = ExtractArguments(args);
+
+		StreamsData streams = CreateStreams(fileNames.first, fileNames.second);
+		DecorateStreams(streams, arguments);
+		TransferData(streams);
+	}
+
+private:
+	const std::string k_encryptArg{ "--encrypt" };
+	const std::string k_decryptArg{ "--decrypt" };
+	const std::string k_compressArg{ "--compress" };
+	const std::string k_decompressArg{ "--decompress" };
+
+	void ValidateArguments(int argc, char* args[]) const
+	{
+		CheckArgumentCount(argc);
+		CheckArgumentTypes(argc, args);
+	}
+
+	void CheckArgumentCount(int argc) const
+	{
+		if (argc < 3)
+		{
+			throw std::runtime_error("Invalid number of arguments. Usage: transform [options] <input-file> <output-file>");
+		}
+	}
+
+	void CheckArgumentTypes(int argc, char* args[]) const
+	{
+		std::vector<std::string> arguments = ExtractArguments(argc, args);
+
+		for (size_t i = 0; i < arguments.size(); ++i)
+		{
+			const std::string& arg = arguments[i];
+			CheckParameterIsExpected(arg);
+
+			if (arg == k_encryptArg || arg == k_decryptArg)
+			{
+				if (i + 1 >= arguments.size())
+				{
+					throw std::runtime_error("Missing key for argument " + arg);
+				}
+				CheckArgumentWithIntParameter(arg, arguments[i + 1]);
+				i++;
+			}
+		}
+	}
+
+	void CheckParameterIsExpected(const std::string& arg) const
+	{
+		if (
+			arg != k_encryptArg
+			&& arg != k_decryptArg
+			&& arg != k_compressArg
+			&& arg != k_decryptArg)
+		{
+
+			throw std::runtime_error("Unknown argument: " + arg);
+		}
+	}
+
+	void CheckArgumentWithIntParameter(const std::string& arg, const std::string& next) const
+	{
+		try
+		{
+			std::stoi(next);
+		}
+		catch (const std::invalid_argument&)
+		{
+			throw std::runtime_error("Invalid key for argument " + arg + ". Key must be an integer.");
+		}
+	}
+
+	std::pair<std::string, std::string> ExtractFileNames(int argc, char* args[]) const
+	{
+		return { args[argc - 2], args[argc - 1] };
+	}
+
+	std::vector<std::string> ExtractArguments(int argc, char* args[]) const
+	{
+		std::vector<std::string> arguments;
+
+		for (int i = 1; i < argc - 2; ++i)
+		{
+			arguments.push_back(args[i]);
+		}
+		return arguments;
+	}
+
+	StreamsData CreateStreams(const std::string& inputFileName, const std::string& outputFileName)
+	{
+		StreamsData streams{
+			std::make_shared<FileInputStream>(inputFileName),
+			std::make_shared<FileOutputStream>(outputFileName)
+		};
+		return std::move(streams);
+	}
+
+	void DecorateStreams(StreamsData& streams, const std::vector<std::string>& args)
+	{
+		for (size_t i = 0; i < args.size(); ++i)
+		{
+			const std::string& arg = args[i];
+			if (arg == k_encryptArg)
+			{
+				int key = std::stoi(args[++i]);
+				streams.m_outputStream = std::make_shared<EncodingOutputStreamDecorator>(streams.m_outputStream, key);
+			}
+			else if (arg == k_decryptArg)
+			{
+				int key = std::stoi(args[++i]);
+				streams.m_inputStream = std::make_shared<DecodingInputStreamDecorator>(streams.m_inputStream, key);
+			}
+			else if (arg == k_compressArg)
+			{
+				streams.m_outputStream = std::make_shared<PackingOutputStreamDecorator>(streams.m_outputStream);
+			}
+			else if (arg == k_decryptArg)
+			{
+				streams.m_inputStream = std::make_shared<UnpackingInputStreamDecorator>(streams.m_inputStream);
+			}
+		}
+	}
+
+	void TransferData(StreamsData& streams)
+	{
+		std::vector<uint8_t> buffer(4096);
+		while (!streams.m_inputStream->IsEOF())
+		{
+			std::streamsize bytesRead = streams.m_inputStream->ReadBlock(buffer.data(), buffer.size());
+			if (bytesRead > 0)
+			{
+				streams.m_outputStream->WriteBlock(buffer.data(), bytesRead);
+			}
+		}
+	}
+};
+#endif /* FILETRANSFORMER_H */
