@@ -3,11 +3,9 @@
 #include <cstdint>
 #include <memory>
 
-class IInputStream;
-class IOutputStream;
 class IDataProcessor;
 
-using IDataProcessorPtr = std::unique_ptr<IDataProcessor>;
+using IDataProcessorPtr = std::shared_ptr<IDataProcessor>;
 
 class IDataProcessor
 {

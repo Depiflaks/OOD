@@ -5,6 +5,7 @@
 #include "InputStream.h"
 #include "OutputStream.h"
 
+
 using IInputStreamPtr = std::unique_ptr<IInputStream>;
 using IOutputStreamPtr = std::unique_ptr<IOutputStream>;
 

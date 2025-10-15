@@ -5,6 +5,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+namespace stream_decorator_tests
+{
+
 class MockInputStream : public IInputStream
 {
 public:
@@ -118,11 +121,12 @@ TEST(OutputStreamDecoratorTest, MultipleDecoration)
 	auto mockProcessor2 = std::make_unique<MockDataProcessor>();
 
 	EXPECT_CALL(*mockProcessor1, ProcessByte(0x88)).Times(1).WillOnce(testing::Return(0x99));
-    EXPECT_CALL(*mockProcessor2, ProcessByte(0x77)).Times(1).WillOnce(testing::Return(0x88));
+	EXPECT_CALL(*mockProcessor2, ProcessByte(0x77)).Times(1).WillOnce(testing::Return(0x88));
 	EXPECT_CALL(*mockOutputStream, WriteByte(0x99)).Times(1);
 
 	auto firstDecorator = std::make_unique<OutputStreamDecorator>(std::move(mockOutputStream), std::move(mockProcessor1));
 	auto secondDecorator = std::make_unique<OutputStreamDecorator>(std::move(firstDecorator), std::move(mockProcessor2));
 
 	secondDecorator->WriteByte(0x77);
+}
 }
