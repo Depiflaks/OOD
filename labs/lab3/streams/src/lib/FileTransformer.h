@@ -1,8 +1,7 @@
 #ifndef FILETRANSFORMER_H
 #define FILETRANSFORMER_H
 
-#include "./InputStream.h"
-#include "./OutputStream.h"
+#include "lib/MakeDecorator.h"
 #include "lib/StreamDecorator.h"
 #include <cstddef>
 #include <string>
@@ -22,7 +21,7 @@ public:
 	{
 		ValidateArguments(argc, args);
 		auto fileNames = ExtractFileNames(argc, args);
-		auto arguments = ExtractArguments(args);
+		auto arguments = ExtractArguments(argc, args);
 
 		StreamsData streams = CreateStreams(fileNames.first, fileNames.second);
 		DecorateStreams(streams, arguments);
@@ -74,7 +73,7 @@ private:
 	{
 		if (
 			arg != k_encryptArg
-			&& arg != k_decryptArg
+			&& arg != k_decompressArg
 			&& arg != k_compressArg
 			&& arg != k_decryptArg)
 		{
@@ -113,11 +112,14 @@ private:
 
 	StreamsData CreateStreams(const std::string& inputFileName, const std::string& outputFileName)
 	{
-		StreamsData streams{
-			std::make_shared<FileInputStream>(inputFileName),
-			std::make_shared<FileOutputStream>(outputFileName)
-		};
-		return std::move(streams);
+		auto inputFile = std::make_unique<std::ifstream>(inputFileName, std::ios::binary);
+		auto outputFile = std::make_unique<std::ofstream>(outputFileName, std::ios::binary);
+
+		StreamsData streams;
+		streams.m_inputStream = std::make_shared<FileInputStream>(std::move(inputFile));
+		streams.m_outputStream = std::make_shared<FileOutputStream>(std::move(outputFile));
+
+		return streams;
 	}
 
 	void DecorateStreams(StreamsData& streams, const std::vector<std::string>& args)
@@ -128,20 +130,20 @@ private:
 			if (arg == k_encryptArg)
 			{
 				int key = std::stoi(args[++i]);
-				streams.m_outputStream = std::make_shared<EncodingOutputStreamDecorator>(streams.m_outputStream, key);
+				streams.m_outputStream = streams.m_outputStream << MakeDecorator<EncodingOutputStreamDecorator>(key);
 			}
 			else if (arg == k_decryptArg)
 			{
 				int key = std::stoi(args[++i]);
-				streams.m_inputStream = std::make_shared<DecodingInputStreamDecorator>(streams.m_inputStream, key);
+				streams.m_inputStream = streams.m_inputStream << MakeDecorator<DecodingInputStreamDecorator>(key);
 			}
 			else if (arg == k_compressArg)
 			{
-				streams.m_outputStream = std::make_shared<PackingOutputStreamDecorator>(streams.m_outputStream);
+				streams.m_outputStream = streams.m_outputStream << MakeDecorator<PackingOutputStreamDecorator>();
 			}
-			else if (arg == k_decryptArg)
+			else if (arg == k_decompressArg)
 			{
-				streams.m_inputStream = std::make_shared<UnpackingInputStreamDecorator>(streams.m_inputStream);
+				streams.m_inputStream = streams.m_inputStream << MakeDecorator<UnpackingInputStreamDecorator>();
 			}
 		}
 	}

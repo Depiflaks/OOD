@@ -4,9 +4,10 @@
 #include "DataProcessor.h"
 #include "InputStream.h"
 #include "OutputStream.h"
+#include <memory>
 
-using IInputStreamPtr = std::unique_ptr<IInputStream>;
-using IOutputStreamPtr = std::unique_ptr<IOutputStream>;
+using IInputStreamPtr = std::shared_ptr<IInputStream>;
+using IOutputStreamPtr = std::shared_ptr<IOutputStream>;
 
 class InputStreamDecorator : public IInputStream
 {
