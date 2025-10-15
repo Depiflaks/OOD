@@ -36,6 +36,7 @@ classDiagram
 
   class FileOutputStream {
     -m_file: std::unique_ptr~~std::ofstream~~
+    -m_eof: bool = false
 
     +FileOutputStream(file: std::unique_ptr~~std::ofstream~~)
     +WriteByte(data: uint8_t) void
