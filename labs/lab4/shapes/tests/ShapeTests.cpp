@@ -1,21 +1,13 @@
 #include "../src/lib/Canvas.h"
 #include "../src/lib/Geometry.h"
 #include "../src/lib/Shape.h"
+#include "MockCanvas.h"
 
 #include <gmock/gmock.h>
 
 #include <gtest/gtest.h>
+#include <utility>
 
-class MockCanvas : public ICanvas
-{
-public:
-	MOCK_METHOD(void, MoveTo, (double x, double y), (override));
-	MOCK_METHOD(void, SetColor, (const Color& color), (override));
-	MOCK_METHOD(void, LineTo, (double x, double y), (override));
-	MOCK_METHOD(void, DrawEllipse, (double cx, double cy, double rx, double ry), (override));
-	MOCK_METHOD(void, DrawText, (double left, double top, double fontSize, const std::string& text), (override));
-	MOCK_METHOD(void, Render, (), (override));
-};
 
 TEST(ShapeTest, RectangleDrawing)
 {
@@ -31,13 +23,8 @@ TEST(ShapeTest, RectangleDrawing)
 	EXPECT_EQ(rect.GetRightBottom().y, 0);
 	EXPECT_EQ(rect.GetColor().ToHexString(), "#ff0000ff");
 
-	testing::InSequence seq;
 	EXPECT_CALL(canvas, SetColor(color));
-	EXPECT_CALL(canvas, MoveTo(0, 10));
-	EXPECT_CALL(canvas, LineTo(20, 10));
-	EXPECT_CALL(canvas, LineTo(20, 0));
-	EXPECT_CALL(canvas, LineTo(0, 0));
-	EXPECT_CALL(canvas, LineTo(0, 10));
+	EXPECT_CALL(canvas, DrawFilledRectangle(0, 10, 20, 0));
 
 	rect.Draw(canvas);
 }
@@ -59,12 +46,8 @@ TEST(ShapeTest, TriangleDrawing)
 	EXPECT_EQ(triangle.GetVertex3().y, 0);
 	EXPECT_EQ(triangle.GetColor().ToHexString(), "#00ff00ff");
 
-	testing::InSequence seq;
 	EXPECT_CALL(canvas, SetColor(color));
-	EXPECT_CALL(canvas, MoveTo(0, 0));
-	EXPECT_CALL(canvas, LineTo(10, 20));
-	EXPECT_CALL(canvas, LineTo(20, 0));
-	EXPECT_CALL(canvas, LineTo(0, 0));
+	EXPECT_CALL(canvas, DrawFilledTriangle(0, 0, 10, 20, 20, 0));
 
 	triangle.Draw(canvas);
 }
@@ -82,7 +65,6 @@ TEST(ShapeTest, EllipseDrawing)
 	EXPECT_EQ(ellipse.GetVerticalRadius(), 3.0);
 	EXPECT_EQ(ellipse.GetColor().ToHexString(), "#0000ffff");
 
-	testing::InSequence seq;
 	EXPECT_CALL(canvas, SetColor(color));
 	EXPECT_CALL(canvas, DrawEllipse(10, 10, 5.0, 3.0));
 
@@ -103,8 +85,7 @@ TEST(ShapeTest, RegularPolygonDrawing)
 	EXPECT_EQ(polygon.GetColor().ToHexString(), "#ffff00ff");
 
 	EXPECT_CALL(canvas, SetColor(color));
-	EXPECT_CALL(canvas, MoveTo(testing::_, testing::_)).Times(1);
-	EXPECT_CALL(canvas, LineTo(testing::_, testing::_)).Times(5);
+	EXPECT_CALL(canvas, DrawFilledRegularPolygon(testing::_));
 
 	polygon.Draw(canvas);
 }
@@ -130,8 +111,7 @@ TEST(PictureDraftTest, SingleShapeDraft)
 
 	MockCanvas canvas;
 	EXPECT_CALL(canvas, SetColor(testing::_)).Times(1);
-	EXPECT_CALL(canvas, MoveTo(testing::_, testing::_)).Times(1);
-	EXPECT_CALL(canvas, LineTo(testing::_, testing::_)).Times(4);
+	EXPECT_CALL(canvas, DrawFilledRectangle(testing::_, testing::_, testing::_, testing::_)).Times(1);
 
 	shape.Draw(canvas);
 }
@@ -194,9 +174,10 @@ TEST(PictureDraftTest, MultipleShapesDraft)
 	MockCanvas canvas;
 
 	EXPECT_CALL(canvas, SetColor(testing::_)).Times(4);
-	EXPECT_CALL(canvas, MoveTo(testing::_, testing::_)).Times(3);
-	EXPECT_CALL(canvas, LineTo(testing::_, testing::_)).Times(testing::AtLeast(1));
+	EXPECT_CALL(canvas, DrawFilledRectangle(testing::_, testing::_, testing::_, testing::_)).Times(1);
+	EXPECT_CALL(canvas, DrawFilledTriangle(testing::_, testing::_, testing::_, testing::_, testing::_, testing::_)).Times(1);
 	EXPECT_CALL(canvas, DrawEllipse(testing::_, testing::_, testing::_, testing::_)).Times(1);
+	EXPECT_CALL(canvas, DrawFilledRegularPolygon(testing::_)).Times(1);
 
 	for (size_t i = 0; i < draft.GetShapeCount(); ++i)
 	{

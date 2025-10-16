@@ -1,20 +1,20 @@
 classDiagram
 
     namespace performer {
-        class IDesigner {
+        class Painter {
+            + DrawPicture(PictureDraft draft, ICanvas canvas) void
+        }
+
+        class IDesigner:::tested {
             <<interface>>
             + CreateDraft(std::istream& strm) PictureDraft
         }
 
-        class Designer {
+        class Designer:::tested {
             + CreateDraft(std::istream& strm) PictureDraft
         }
 
         class Client
-
-        class Painter {
-            + DrawPicture(PictureDraft draft, ICanvas canvas) void
-        }
     }
 
     namespace shapes {
@@ -136,8 +136,8 @@ classDiagram
     Designer *--> IShapeFactory
 
     IDesigner <|.. Designer
-    Client ..> IDesigner
     Client ..> Painter
+    Client ..> IDesigner
 
     classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;
 

@@ -6,6 +6,7 @@
 #include "Geometry.h"
 #include <cmath>
 #include <memory>
+#include <utility>
 #include <vector>
 
 class Shape
@@ -29,11 +30,7 @@ public:
 	void Draw(ICanvas& canvas) const override
 	{
 		canvas.SetColor(m_color);
-		canvas.MoveTo(m_leftTop.x, m_leftTop.y);
-		canvas.LineTo(m_rightBottom.x, m_leftTop.y);
-		canvas.LineTo(m_rightBottom.x, m_rightBottom.y);
-		canvas.LineTo(m_leftTop.x, m_rightBottom.y);
-		canvas.LineTo(m_leftTop.x, m_leftTop.y);
+		canvas.DrawFilledRectangle(m_leftTop.x, m_leftTop.y, m_rightBottom.x, m_rightBottom.y);
 	}
 
 	Color GetColor() const override
@@ -71,10 +68,7 @@ public:
 	void Draw(ICanvas& canvas) const override
 	{
 		canvas.SetColor(m_color);
-		canvas.MoveTo(m_vertex1.x, m_vertex1.y);
-		canvas.LineTo(m_vertex2.x, m_vertex2.y);
-		canvas.LineTo(m_vertex3.x, m_vertex3.y);
-		canvas.LineTo(m_vertex1.x, m_vertex1.y);
+		canvas.DrawFilledTriangle(m_vertex1.x, m_vertex1.y, m_vertex2.x, m_vertex2.y, m_vertex3.x, m_vertex3.y);
 	}
 
 	Color GetColor() const override
@@ -163,24 +157,16 @@ public:
 	{
 		canvas.SetColor(m_color);
 
-		std::vector<Point> vertices;
+		std::vector<std::pair<double, double>> points;
 		for (int i = 0; i < m_vertexCount; ++i)
 		{
 			double angle = 2 * M_PI * i / m_vertexCount;
 			double x = m_center.x + m_radius * cos(angle);
 			double y = m_center.y + m_radius * sin(angle);
-			vertices.push_back({ x, y });
+			points.push_back({x, y});
 		}
 
-		if (!vertices.empty())
-		{
-			canvas.MoveTo(vertices[0].x, vertices[0].y);
-			for (size_t i = 1; i < vertices.size(); ++i)
-			{
-				canvas.LineTo(vertices[i].x, vertices[i].y);
-			}
-			canvas.LineTo(vertices[0].x, vertices[0].y);
-		}
+		canvas.DrawFilledRegularPolygon(points);
 	}
 
 	Color GetColor() const override
