@@ -1,0 +1,38 @@
+# Небо (фон)
+rectangle -1.0 -1.0 2.0 2.0 87CEFAFF 87CEFAFF
+rectangle -1.0 -1.0 2.0 2.0 000000ff 000000ff
+
+
+# Трава
+rectangle -1.0 -1.0 2.0 0.5 228B22FF 228B22FF
+
+# Дом (основание)
+rectangle -0.5 -0.5 0.7 0.7 A0522DFF A0522DFF
+
+# Крыша
+triangle -0.5 0.2 -0.15 0.6 0.2 0.2 8B0000FF 8B0000FF
+
+# Дверь
+rectangle -0.3 -0.5 0.2 0.4 000000FF 000000FF
+
+# Окно
+rectangle 0.05 -0.2 0.15 0.15 ADD8E6FF ADD8E6FF
+
+# Солнце
+circle 0.75 0.75 0.15 FFFF00FF FFFF00FF
+
+# Облако
+circle -0.9 0.9 0.1 FFFFFFFF FFFFFFFF
+circle -0.8 0.9 0.1 FFFFFFFF FFFFFFFF
+circle -0.85 0.8 0.1 FFFFFFFF FFFFFFFF
+
+# Дерево (ствол)
+rectangle 0.6 -0.5 0.05 0.7 8B4513FF 8B4513FF
+
+# Дерево (крона)
+circle 0.625 0.3 0.15 006400FF 006400FF
+circle 0.55 0.2 0.1 006400FF 006400FF
+circle 0.7 0.2 0.1 006400FF 006400FF
+
+# Линия горизонта
+line -1 -0.5 1 -0.5 000000FF
