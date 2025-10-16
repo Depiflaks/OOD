@@ -4,8 +4,9 @@
 
 #ifndef SHAPEREADER_H
 #define SHAPEREADER_H
+#include "../Shape.h"
 #include <memory>
-#include <shape/Shape.h>
+#include <vector>
 
 class ShapeReadException final : public std::runtime_error
 {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(lab3_streams)
+project(lab4_shapes)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -32,3 +32,5 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 include(GoogleTest)
 
 gtest_discover_tests(${PROJECT_NAME}_tests)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE sfml-system sfml-window sfml-graphics sfml-audio sfml-network)

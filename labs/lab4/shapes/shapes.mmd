@@ -3,84 +3,85 @@ classDiagram
     namespace performer {
         class IDesigner {
             <<interface>>
-            + CreateDraft(strm):PictureDraft
+            + CreateDraft(std::istream& strm) PictureDraft
         }
 
         class Designer {
-            + CreateDraft(strm)
+            + CreateDraft(std::istream& strm) PictureDraft
         }
 
         class Client
 
         class Painter {
-            + DrawPicture(draft, canvas)
+            + DrawPicture(PictureDraft draft, ICanvas canvas) void
         }
     }
 
     namespace shapes {
 
         class PictureDraft {
-            + GetShapeCount()
-            + GetShape(index):Shape
+            + GetShapeCount() int
+            + GetShape(index) Shape
+            + AppendShape(Shape shape) void
+            - std::map~int, Shape~ m_shapes
         }
 
         class Shape {
-            + Draw(canvas:ICanvas)
-            + GetColor()
+            + Draw(ICanvas canvas) void
+            + GetColor() Color
         }
 
         class Rectangle {
-            + Draw(canvas)
-            + GetLeftTop()
-            + GetRightBottom()
+            + Draw(ICanvas canvas) void
+            + GetLeftTop() Point
+            + GetRightBottom() Point
         }
 
         class Triangle {
-            + Draw(canvas)
-            + GetVertex(1)
-            + GetVertex(2)
-            + GetVertex(3)
+            + Draw(canvas) void
+            + GetVertex(1) Point
+            + GetVertex(2) Point
+            + GetVertex(3) Point
         }
 
         class Ellipse {
-            + Draw(canvas)
-            + GetCenter()
-            + GetHorizontalRadius()
-            + GetVerticalRadius()
+            + Draw(canvas) void
+            + GetCenter() Point
+            + GetHorizontalRadius() int
+            + GetVerticalRadius() int
         }
 
         class RegularPolygon {
-            + Draw(canvas)
-            + GetVertexCount()
-            + GetCenter()
-            + GetRadius()
+            + Draw(ICanvas canvas) void
+            + GetVertexCount() int
+            + GetCenter() Point
+            + GetRadius() Point
+        }
+
+        class Point {
+            + double x
+            + double y
         }
     }
 
-
-
     namespace gfx {
         class Color {
-            <<enumeration>>
-            + Green
-            + Red
-            + Blue
-            + Yellow
-            + Pink
-            + Black
+            +Value() uint32t
+            +ToString() std::string
+
+            -color uint32t
         }
 
-        class Canvas {
-            + SetColor(color)
-            + DrawLine(from, to)
-            + DrawEllipse(l, t, w, h)
-        }
+        class SFMLCanvas
+        class MockCanvas
 
         class ICanvas {
             <<interface>>
-            + SetColor(color)
-            + DrawLine(from, to)
-            + DrawEllipse(l, t, w, h)
+            + MoveTo(double x, double y)
+            + SetColor(color Color)
+            + LineTo(double x, double y)
+            + DrawEpilse(double cx, double cy, double rx, double ry)
+            + DrawText(double left, double top, double fontSize, text string)
         }
     }
 
@@ -89,11 +90,10 @@ classDiagram
     namespace factory {
         class IShapeFactory {
             <<interface>>
-            + CreateShape(descr:string):Shape
+            + CreateShape(std::string descr) Shape
         }
 
         class ShapeFactory {
-            + createShape(descr):Shape
         }
     }
 
@@ -106,13 +106,14 @@ classDiagram
     Designer ..> PictureDraft
     Painter ..> PictureDraft
 
-    ICanvas <|.. Canvas
+    ICanvas <|.. SFMLCanvas
+    ICanvas <|.. MockCanvas
 
     Painter ..> ICanvas
     Shape ..> ICanvas
 
     Client *--> ICanvas
-    ICanvas ..> Color
+    ICanvas ..> Color : use
 
     IShapeFactory <|.. ShapeFactory 
     IShapeFactory ..> Shape

@@ -2,7 +2,7 @@
 // Created by smmm on 11.05.2025.
 //
 
-#include "ShapeReader.h"
+#include "./ShapeReader.h"
 
 #include <cassert>
 #include <iostream>
