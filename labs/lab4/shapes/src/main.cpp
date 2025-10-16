@@ -1,49 +1,49 @@
 #include <SFML/Graphics.hpp>
-
 #include <iostream>
+
+#include "lib/Designer.h"
+#include "lib/Painter.h"
+#include <fstream>
+#include <memory>
 
 int main()
 {
-	// sf::RenderWindow window(sf::VideoMode(800, 600), "Shapes");
-	// SFMLCanvas canvas{ window };
-	// Picture picture(canvas);
-	// commands::StdCommandListener listener;
-	// shapes::ShapesCommandLine app;
+	try
+	{
+		std::ifstream inputFile("input.txt");
+		if (!inputFile.is_open())
+		{
+			throw std::runtime_error("Cannot open input.txt");
+		}
 
-	// std::cout << "Enter commands (Ctrl+D/Ctrl+Z to finish input):" << std::endl;
-	// try
-	// {
-	// 	while (true)
-	// 	{
-	// 		if (std::cin.eof())
-	// 		{
-	// 			break;
-	// 		}
-	// 		app.ExecuteCommand(picture, listener);
-	// 	}
-	// }
-	// catch (const std::exception& e)
-	// {
-	// 	std::cerr << "Error during command execution: " << e.what() << std::endl;
-	// }
+		auto factory = std::make_unique<ShapeFactory>();
+		Designer designer(std::move(factory));
+		PictureDraft draft = designer.CreateDraft(inputFile);
+		inputFile.close();
 
-	// while (window.isOpen())
-	// {
-	// 	sf::Event event;
-	// 	while (window.pollEvent(event))
-	// 	{
-	// 		if (event.type == sf::Event::Closed)
-	// 		{
-	// 			window.close();
-	// 		}
-	// 	}
+		sf::RenderWindow window(sf::VideoMode(800, 600), "Shapes Drawing");
+		SFMLCanvas canvas(window);
 
-	// 	window.clear(sf::Color::White);
-	// 	picture.DrawPicture();
-	// 	window.display();
+		window.clear(sf::Color::White);
 
-	// 	sf::sleep(sf::milliseconds(16));
-	// }
+		Painter painter;
+		painter.DrawPicture(draft, canvas);
 
-	// return 0;
+		while (window.isOpen())
+		{
+			sf::Event event;
+			while (window.pollEvent(event))
+			{
+				if (event.type == sf::Event::Closed)
+					window.close();
+			}
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Error: " << e.what() << std::endl;
+		return 1;
+	}
+
+	return 0;
 }
