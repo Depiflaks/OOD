@@ -19,7 +19,7 @@ classDiagram
 
     namespace shapes {
 
-        class PictureDraft {
+        class PictureDraft:::tested {
             + PictureDraft(std::vector~Shape~&& shapes)
             + GetShapeCount() int
             + GetShape(index) Shape
@@ -89,12 +89,26 @@ classDiagram
 
 
     namespace factory {
-        class IShapeFactory {
+        class IShapeFactory:::tested {
             <<interface>>
             + CreateShape(std::string descr) Shape
         }
 
-        class ShapeFactory {
+        class ShapeFactory:::tested {
+            - ExtractShapeType(std::string descr) ShapeType
+            - CreateTriangle(std::string descr) Triangle
+            - CreateRectangle(std::string descr) Rectangle
+            - CreateEllipse(std::string descr) Ellipse
+            - CreateRegularPolygon(std::string descr) RegularPolygon
+        }
+
+        class ShapeType {
+            <<enumeration>>
+            Triangle
+            Rectangle
+            Ellipse
+            RegularPolygon
+            Unknown
         }
     }
 
@@ -118,6 +132,7 @@ classDiagram
 
     IShapeFactory <|.. ShapeFactory 
     IShapeFactory ..> Shape
+    ShapeFactory ..> ShapeType : use
     Designer *--> IShapeFactory
 
     IDesigner <|.. Designer
