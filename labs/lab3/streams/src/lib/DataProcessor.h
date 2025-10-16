@@ -109,85 +109,106 @@ private:
 	}
 };
 
-class UnpackingDataProcessor : public IDataProcessor
-{
-public:
-	uint8_t ProcessByte(uint8_t data) override
-	{
-		return data;
-	}
-
-	std::streamsize ProcessDataBlock(void* buffer, std::streamsize size) override
-	{
-		if (size == 0)
-		{
-			return 0;
-		}
-
-		uint8_t* data = static_cast<uint8_t*>(buffer);
-		std::vector<uint8_t> decompressedData;
-
-		for (std::streamsize i = 0; i < size; i += 2)
-		{
-			if (i + 1 >= size)
-			{
-				break;
-			}
-			uint8_t count = data[i];
-			uint8_t value = data[i + 1];
-			decompressedData.insert(decompressedData.end(), count, value);
-		}
-
-		if (decompressedData.empty())
-		{
-			return 0;
-		}
-
-		std::copy(decompressedData.begin(), decompressedData.end(), data);
-		return decompressedData.size();
-	}
-};
-
 class PackingDataProcessor : public IDataProcessor
 {
 public:
-	uint8_t ProcessByte(uint8_t data) override
-	{
-		return data;
-	}
+    uint8_t ProcessByte(uint8_t data) override
+    {
+        return data;
+    }
 
-	std::streamsize ProcessDataBlock(void* buffer, std::streamsize size) override
-	{
-		if (size == 0)
-		{
-			return 0;
-		}
+    std::streamsize ProcessDataBlock(void* buffer, std::streamsize size) override
+    {
+        if (size == 0)
+        {
+            return 0;
+        }
 
-		uint8_t* data = static_cast<uint8_t*>(buffer);
-		std::vector<uint8_t> compressedData;
+        uint8_t* data = static_cast<uint8_t*>(buffer);
+        std::vector<uint8_t> compressedData;
 
-		for (std::streamsize i = 0; i < size;)
-		{
-			uint8_t value = data[i];
-			uint8_t count = 0;
-			std::streamsize lookahead = i;
-			while (lookahead < size && data[lookahead] == value && count < 255)
-			{
-				count++;
-				lookahead++;
-			}
-			compressedData.push_back(count);
-			compressedData.push_back(value);
-			i = lookahead;
-		}
+        for (std::streamsize i = 0; i < size;)
+        {
+            uint8_t value = data[i];
+            uint8_t count = 1;
+            
+            while (i + count < size && data[i + count] == value && count < 255)
+            {
+                count++;
+            }
 
-		if (compressedData.empty())
-		{
-			return 0;
-		}
+            if (count > 3 || value == 0xFF)
+            {
+                compressedData.push_back(0xFF);
+                compressedData.push_back(value);
+                compressedData.push_back(count);
+            }
+            else
+            {
+                for (int j = 0; j < count; j++)
+                {
+                    compressedData.push_back(value);
+                }
+            }
+            
+            i += count;
+        }
 
-		std::copy(compressedData.begin(), compressedData.end(), data);
-		return compressedData.size();
-	}
+        if (compressedData.size() <= static_cast<size_t>(size))
+        {
+            std::memcpy(buffer, compressedData.data(), compressedData.size());
+            return compressedData.size();
+        }
+        else
+        {
+            return size;
+        }
+    }
 };
+
+class UnpackingDataProcessor : public IDataProcessor
+{
+public:
+    uint8_t ProcessByte(uint8_t data) override
+    {
+        return data;
+    }
+
+    std::streamsize ProcessDataBlock(void* buffer, std::streamsize size) override
+    {
+        uint8_t* input = static_cast<uint8_t*>(buffer);
+        std::vector<uint8_t> decompressed;
+
+        std::streamsize i = 0;
+        while (i < size)
+        {
+            if (input[i] == 0xFF && i + 2 < size)
+            {
+                uint8_t value = input[i + 1];
+                uint8_t count = input[i + 2];
+                for (int j = 0; j < count; j++)
+                {
+                    decompressed.push_back(value);
+                }
+                i += 3;
+            }
+            else
+            {
+                decompressed.push_back(input[i]);
+                i++;
+            }
+        }
+
+        if (decompressed.size() <= static_cast<size_t>(size))
+        {
+            std::memcpy(buffer, decompressed.data(), decompressed.size());
+            return decompressed.size();
+        }
+        else
+        {
+            return size;
+        }
+    }
+};
+
 #endif /* DATAPROCESSOR_H */

@@ -102,34 +102,50 @@ TEST(CompressionTest, CompressThenDecompress)
 	UnpackingDataProcessor unpacker;
 
 	std::vector<uint8_t> original = { 0x11, 0x11, 0x11, 0x22, 0x22, 0x33, 0x33, 0x33, 0x33 };
-	std::vector<uint8_t> buffer(1024);
-	std::copy(original.begin(), original.end(), buffer.begin());
 
-	std::streamsize compressedSize = packer.ProcessDataBlock(buffer.data(), original.size());
-	std::streamsize decompressedSize = unpacker.ProcessDataBlock(buffer.data(), compressedSize);
+	std::vector<uint8_t> compressedBuffer(original.size() * 2);
+	std::copy(original.begin(), original.end(), compressedBuffer.begin());
+	std::streamsize compressedSize = packer.ProcessDataBlock(compressedBuffer.data(), original.size());
+	compressedBuffer.resize(compressedSize);
 
-	buffer.resize(decompressedSize);
+	std::vector<uint8_t> decompressedBuffer(original.size() * 2);
+	std::copy(compressedBuffer.begin(), compressedBuffer.end(), decompressedBuffer.begin());
+	std::streamsize decompressedSize = unpacker.ProcessDataBlock(decompressedBuffer.data(), compressedSize);
+	decompressedBuffer.resize(decompressedSize);
 
 	EXPECT_EQ(original.size(), decompressedSize);
-	EXPECT_EQ(original, buffer);
+	EXPECT_EQ(original, decompressedBuffer);
 }
 
 TEST(CompressionTest, DoubleCompressDoubleDecompress)
 {
-	PackingDataProcessor packer;
-	UnpackingDataProcessor unpacker;
+	PackingDataProcessor packer1;
+	PackingDataProcessor packer2;
+	UnpackingDataProcessor unpacker2;
+	UnpackingDataProcessor unpacker1;
 
 	std::vector<uint8_t> original = { 0x44, 0x44, 0x44, 0x55, 0x55, 0x66, 0x66, 0x66, 0x66 };
-	std::vector<uint8_t> buffer(1024);
-	std::copy(original.begin(), original.end(), buffer.begin());
 
-	std::streamsize size1 = packer.ProcessDataBlock(buffer.data(), original.size());
-	std::streamsize size2 = packer.ProcessDataBlock(buffer.data(), size1);
-	std::streamsize size3 = unpacker.ProcessDataBlock(buffer.data(), size2);
-	std::streamsize size4 = unpacker.ProcessDataBlock(buffer.data(), size3);
+	std::vector<uint8_t> buffer1(original.size() * 2);
+	std::copy(original.begin(), original.end(), buffer1.begin());
+	std::streamsize size1 = packer1.ProcessDataBlock(buffer1.data(), original.size());
+	buffer1.resize(size1);
 
-	buffer.resize(size4);
+	std::vector<uint8_t> buffer2(buffer1.size() * 2);
+	std::copy(buffer1.begin(), buffer1.end(), buffer2.begin());
+	std::streamsize size2 = packer2.ProcessDataBlock(buffer2.data(), size1);
+	buffer2.resize(size2);
+
+	std::vector<uint8_t> buffer3(buffer2.size() * 2);
+	std::copy(buffer2.begin(), buffer2.end(), buffer3.begin());
+	std::streamsize size3 = unpacker2.ProcessDataBlock(buffer3.data(), size2);
+	buffer3.resize(size3);
+
+	std::vector<uint8_t> buffer4(buffer3.size() * 2);
+	std::copy(buffer3.begin(), buffer3.end(), buffer4.begin());
+	std::streamsize size4 = unpacker1.ProcessDataBlock(buffer4.data(), size3);
+	buffer4.resize(size4);
 
 	EXPECT_EQ(original.size(), size4);
-	EXPECT_EQ(original, buffer);
+	EXPECT_EQ(original, buffer4);
 }

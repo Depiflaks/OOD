@@ -129,4 +129,6 @@ TEST(OutputStreamDecoratorTest, MultipleDecoration)
 
 	secondDecorator->WriteByte(0x77);
 }
+
+
 }
