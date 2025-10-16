@@ -10,7 +10,6 @@ class ICanvasDrawable
 {
 public:
 	virtual ~ICanvasDrawable() = default;
-	virtual void Draw(ICanvas& canvas) = 0;
 };
 
 #endif // I_CANVAS_DRAWABLE_H
