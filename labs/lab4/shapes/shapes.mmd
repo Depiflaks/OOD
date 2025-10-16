@@ -20,38 +20,39 @@ classDiagram
     namespace shapes {
 
         class PictureDraft {
+            + PictureDraft(std::vector~Shape~&& shapes)
             + GetShapeCount() int
             + GetShape(index) Shape
             + AppendShape(Shape shape) void
             - std::map~int, Shape~ m_shapes
         }
 
-        class Shape {
+        class Shape:::tested {
             + Draw(ICanvas canvas) void
             + GetColor() Color
         }
 
-        class Rectangle {
+        class Rectangle:::tested {
             + Draw(ICanvas canvas) void
             + GetLeftTop() Point
             + GetRightBottom() Point
         }
 
-        class Triangle {
+        class Triangle:::tested {
             + Draw(canvas) void
             + GetVertex(1) Point
             + GetVertex(2) Point
             + GetVertex(3) Point
         }
 
-        class Ellipse {
+        class Ellipse:::tested {
             + Draw(canvas) void
             + GetCenter() Point
             + GetHorizontalRadius() int
             + GetVerticalRadius() int
         }
 
-        class RegularPolygon {
+        class RegularPolygon:::tested {
             + Draw(ICanvas canvas) void
             + GetVertexCount() int
             + GetCenter() Point
@@ -73,7 +74,7 @@ classDiagram
         }
 
         class SFMLCanvas
-        class MockCanvas
+        class MockCanvas:::tested
 
         class ICanvas {
             <<interface>>
@@ -122,4 +123,6 @@ classDiagram
     IDesigner <|.. Designer
     Client ..> IDesigner
     Client ..> Painter
+
+    classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;
 

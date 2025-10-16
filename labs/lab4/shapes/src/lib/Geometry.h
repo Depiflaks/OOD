@@ -11,6 +11,11 @@ struct Point
 		, y(y)
 	{
 	}
+
+	bool operator==(const Point& other) const
+	{
+		return x == other.x && y == other.y;
+	}
 };
 
 struct Size
@@ -44,4 +49,3 @@ struct Bounds
 };
 
 #endif /* GEOMETRY_H */
-

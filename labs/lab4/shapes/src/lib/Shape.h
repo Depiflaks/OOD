@@ -5,6 +5,7 @@
 #include "Color.h"
 #include "Geometry.h"
 #include <cmath>
+#include <memory>
 #include <vector>
 
 class Shape
@@ -207,6 +208,42 @@ private:
 	double m_radius;
 	int m_vertexCount;
 	Color m_color;
+};
+
+class PictureDraft
+{
+public:
+	PictureDraft() = default;
+
+	PictureDraft(std::vector<std::unique_ptr<Shape>>&& shapes)
+	{
+		for (auto& shape : shapes)
+		{
+			m_shapes.push_back(std::move(shape));
+		}
+	}
+
+	size_t GetShapeCount() const
+	{
+		return m_shapes.size();
+	}
+
+	Shape& GetShape(size_t index)
+	{
+		if (index >= m_shapes.size())
+		{
+			throw std::out_of_range("Index out of range");
+		}
+		return *m_shapes[index];
+	}
+
+	void AppendShape(std::unique_ptr<Shape> shape)
+	{
+		m_shapes.push_back(std::move(shape));
+	}
+
+private:
+	std::vector<std::unique_ptr<Shape>> m_shapes;
 };
 
 #endif /* SHAPE_H */
