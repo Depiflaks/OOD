@@ -210,4 +210,29 @@ TEST_F(FileTransformerTest, OutputWithTripleProcessingWorks)
 	EXPECT_NO_THROW(tripleProcessedStream->WriteBlock(testData.data(), testData.size()));
 	tripleProcessedStream->Close();
 }
+
+TEST_F(FileTransformerTest, CompressionDecompressionRestoresOriginalData)
+{
+	std::vector<uint8_t> originalData = { 0x41, 0x41, 0x41, 0x42, 0x42, 0x43 };
+	CreateTestFile("test_files/original.bin", originalData);
+
+	{
+		auto outputFile = std::make_unique<std::ofstream>("test_files/compressed.bin", std::ios::binary);
+		auto outputStream = std::make_unique<FileOutputStream>(std::move(outputFile));
+		auto compressedStream = std::move(outputStream) << MakeDecorator<PackingOutputStreamDecorator>();
+		compressedStream->WriteBlock(originalData.data(), originalData.size());
+		compressedStream->Close();
+	}
+
+	{
+		auto inputFile = std::make_unique<std::ifstream>("test_files/compressed.bin", std::ios::binary);
+		auto inputStream = std::make_unique<FileInputStream>(std::move(inputFile));
+		auto decompressedStream = std::move(inputStream) << MakeDecorator<UnpackingInputStreamDecorator>();
+
+		std::vector<uint8_t> result(originalData.size());
+		std::streamsize bytesRead = decompressedStream->ReadBlock(result.data(), result.size());
+		EXPECT_EQ(bytesRead, originalData.size());
+		EXPECT_EQ(result, originalData);
+	}
+}
 } // namespace functional_tests

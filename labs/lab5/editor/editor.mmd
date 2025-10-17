@@ -1,3 +1,35 @@
 classDiagram
+    class ICommand {
+        + Execute() void
+        + Unexecute() void
+    }
+
+
+    class IDocument {
+        shared_ptr<IParagraph> InsertParagraph(const string& text, optional<size_t> position = none) = 0;
+
+        shared_ptr<IImage> InsertImage(const Path& path, int width, int height, optional<size_t> position = none) = 0;
+        size_t GetItemsCount()const = 0;
+
+        CConstDocumentItem GetItem(size_t index)const = 0;
+        CDocumentItem GetItem(size_t index) = 0;
+
+        void DeleteItem(size_t index) = 0;
+
+        string GetTitle()const = 0;
+        void SetTitle(const string & title) = 0;
+
+        bool CanUndo()const = 0;
+        void Undo() = 0;
+
+        bool CanRedo()const = 0;
+        void Redo() = 0;
+
+        void Save(const Path& path)const = 0;
+
+        ~IDocument() = default;
+    };
+
+
 
     classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;
