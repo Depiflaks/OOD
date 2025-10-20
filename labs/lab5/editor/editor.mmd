@@ -1,35 +1,197 @@
 classDiagram
-    class ICommand {
-        + Execute() void
-        + Unexecute() void
+    direction TB
+
+
+    class client {
     }
 
+    namespace factory {
+        class ICommandFactory {
+            + CreateCommand() ICommand
+        }
 
-    class IDocument {
-        shared_ptr<IParagraph> InsertParagraph(const string& text, optional<size_t> position = none) = 0;
+        class AbstractCommandFactory {
+            + AbstractCommandFactory(editor: IDocumentEditor&&)
 
-        shared_ptr<IImage> InsertImage(const Path& path, int width, int height, optional<size_t> position = none) = 0;
-        size_t GetItemsCount()const = 0;
+            # m_documentEditor: IDocumentEditor
+        }
 
-        CConstDocumentItem GetItem(size_t index)const = 0;
-        CDocumentItem GetItem(size_t index) = 0;
+        class DocumentCommandFactory {
+            + DocumentCommandFactory(stream: std::istream&)
 
-        void DeleteItem(size_t index) = 0;
+            - CreateInsertParagraph(std::string arguments) void
+            - CreateInsertImage(std::string arguments) void
+            - CreateSetTitle(std::string arguments) void
+            - CreateList() void
+            - CreateReplaceText(std::string arguments) void
+            - CreateResizeImage(std::string arguments) void
+            - CreateDeleteItem(std::string arguments) void
+            - CreateHelp() void
+            - CreateUndo() void
+            - CreateRedo() void
+            - CreateSave(std::string arguments) void
 
-        string GetTitle()const = 0;
-        void SetTitle(const string & title) = 0;
+            - m_stream: std::unique_ptr~std::istream~
+        }
+    }
 
-        bool CanUndo()const = 0;
-        void Undo() = 0;
+    namespace command {
+        class ICommand {
+            + Execute() void
+        }
 
-        bool CanRedo()const = 0;
-        void Redo() = 0;
+        class UnexecutableCommand {
+            + *Unexecute()* void
+            <<construct>>
+            + IsExecuted() bool
+            # m_executed: bool
+        }
 
-        void Save(const Path& path)const = 0;
+        class MergableCommand {
+            + *TryReplace(command: MergableCommand&)* void
+        }
 
-        ~IDocument() = default;
-    };
+        class MacroRecordingCommand {
+            + MacroRecordingCommand(commands: std::vector~ICommand~)
 
+        }
 
+        class InsertParagraphCommand {
+            + InsertParagraphCommand(document: IDocument, position: std::optional~size_t~, text: std::string)
+        }
+
+        class InsertImageCommand {
+            + InsertImageCommand(document: IDocument, position: std::optional~size_t~, width: int, height: int)
+        }
+
+        class SetTitleCommand {
+            + SetTitleCommand(document: IDocument, newTitle: std::string)
+        }
+
+        class ListCommand {
+            + List(document: IDocument)
+        }
+
+        class ReplaceTextCommand {
+            + ReplaceText(document: IDocument, position: size_t, newText: string)
+        }
+
+        class ResizeImageCommand {
+            + ResizeImage(document: IDocument, position: size_t, newWidth: int, newHeight: int)
+        }
+
+        class DeleteItemCommand {
+            + DeleteItem(document: IDocument, position: size_t)
+        }
+
+        class HelpCommand {
+            + Help()
+        }
+
+        class UndoCommand {
+            + Undo(document: IDocument)
+        }
+
+        class RedoCommand {
+            + Redo(document: IDocument)
+        }
+
+        class SaveCommand {
+            + Save(document: IDocument)
+        }
+    }
+
+    namespace invoker {
+
+        class ICommandManager {
+            + ExecuteAndAddCommand(command: ICommand&&)
+        }
+
+    }
+
+    namespace history {
+
+        class IHistoryManager {
+            + Undo() void
+            + Redo() void
+            + CanUndo() bool
+            + CanRedo() bool
+        }
+
+        class CommandHistoryManager {
+            - m_commands: std::list~ICommand~
+            - m_currentActionIndex: std::list~ICommand~::iterator
+        }
+
+    }
+
+    namespace resiever {
+
+        class IDocument {
+            + InsertParagraph(text: string, position: optional~size_t~ = none) shared_ptr~IParagraph~
+            + InsertImage(path: Path, width: int, height: int, position: optional~size_t~ = none) shared_ptr~IImage~
+            + GetItemsCount() size_t
+            + GetItem(index: size_t) ConstDocumentItem
+            + GetItem(index: size_t) DocumentItem
+            + DeleteItem(index: size_t) void
+            + GetTitle() string
+            + SetTitle(title: string) void
+            + Save(path: Path) void
+        }
+
+        class HtmlDocument {
+            - items: std::vector~DocumentItem~
+
+            - ReplaceHtmlEntities(result: string) string 
+        }
+
+        class IParagraph {
+            + GetText() const string
+            + SetText(text: const string&) void
+        }
+
+        class IImage {
+            GetPath() const Path
+            GetWidth() const int
+
+            GetHeight() const int
+
+            Resize(int width, int height) void
+        }
+
+        class ConstDocumentItem {
+            GetImage() const shared_ptr~IImage~
+            GetParagraph() const shared_ptr~IParagraph~
+        }
+
+        class DocumentItem {
+            GetImage() shared_ptr~IImage~
+            GetParagraph() shared_ptr~IParagraph~
+        }
+    }
+
+    client ..> IDocument : creates
+    client ..> ICommandExecutor : creates
+    client ..> IDocumentEditor : creates
+
+    IDocument <|.. HtmlDocument
+
+    ICommandExecutor <|.. AbstractCommandExecutor
+    AbstractCommandExecutor <|-- DocumentCommandExecutor
+    DocumentCommandExecutor ..> IDocumentEditor : use
+
+    AbstractCommandExecutor *--> IDocumentEditor
+
+    IDocumentEditor <|.. DocumentEditor
+    DocumentEditor *--> DocumentHistory
+    DocumentEditor ..> ICommand : creates
+    DocumentHistory *--> ICommand
+
+    ICommand <|.. InsertParagraphCommand
+    ICommand <|.. InsertImageCommand
+    ICommand <|.. SetTitleCommand
+    ICommand <|.. ListCommand
+
+    InsertParagraphCommand o--> IDocument
 
     classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;

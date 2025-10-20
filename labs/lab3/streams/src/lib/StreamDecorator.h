@@ -16,7 +16,8 @@ protected:
 	IDataProcessorPtr m_dataProcessor;
 
 public:
-	InputStreamDecorator(IInputStreamPtr inputStream, IDataProcessorPtr dataProcessor)
+	InputStreamDecorator(
+		IInputStreamPtr inputStream, IDataProcessorPtr dataProcessor)
 		: m_inputStream(std::move(inputStream))
 		, m_dataProcessor(std::move(dataProcessor))
 	{
@@ -47,7 +48,8 @@ protected:
 	IDataProcessorPtr m_dataProcessor;
 
 public:
-	OutputStreamDecorator(IOutputStreamPtr outputStream, IDataProcessorPtr dataProcessor)
+	OutputStreamDecorator(
+		IOutputStreamPtr outputStream, IDataProcessorPtr dataProcessor)
 		: m_outputStream(std::move(outputStream))
 		, m_dataProcessor(std::move(dataProcessor))
 	{
@@ -63,7 +65,8 @@ public:
 	{
 		std::vector<uint8_t> buffer(size);
 		std::memcpy(buffer.data(), srcData, size);
-		std::streamsize processedSize = m_dataProcessor->ProcessDataBlock(buffer.data(), size);
+		std::streamsize processedSize
+			= m_dataProcessor->ProcessDataBlock(buffer.data(), size);
 		m_outputStream->WriteBlock(buffer.data(), processedSize);
 	}
 
@@ -77,7 +80,8 @@ class DecodingInputStreamDecorator : public InputStreamDecorator
 {
 public:
 	DecodingInputStreamDecorator(IInputStreamPtr inputStream, int key)
-		: InputStreamDecorator(std::move(inputStream), std::make_shared<DecodingDataProcessor>(key))
+		: InputStreamDecorator(std::move(inputStream),
+			  std::make_shared<DecodingDataProcessor>(key))
 	{
 	}
 };
@@ -86,7 +90,8 @@ class UnpackingInputStreamDecorator : public InputStreamDecorator
 {
 public:
 	UnpackingInputStreamDecorator(IInputStreamPtr inputStream)
-		: InputStreamDecorator(std::move(inputStream), std::make_shared<UnpackingDataProcessor>())
+		: InputStreamDecorator(std::move(inputStream),
+			  std::make_shared<UnpackingDataProcessor>())
 	{
 	}
 };
@@ -95,7 +100,8 @@ class EncodingOutputStreamDecorator : public OutputStreamDecorator
 {
 public:
 	EncodingOutputStreamDecorator(IOutputStreamPtr outputStream, int key)
-		: OutputStreamDecorator(std::move(outputStream), std::make_shared<EncodingDataProcessor>(key))
+		: OutputStreamDecorator(std::move(outputStream),
+			  std::make_shared<EncodingDataProcessor>(key))
 	{
 	}
 };
@@ -104,7 +110,8 @@ class PackingOutputStreamDecorator : public OutputStreamDecorator
 {
 public:
 	PackingOutputStreamDecorator(IOutputStreamPtr outputStream)
-		: OutputStreamDecorator(std::move(outputStream), std::make_shared<PackingDataProcessor>())
+		: OutputStreamDecorator(
+			  std::move(outputStream), std::make_shared<PackingDataProcessor>())
 	{
 	}
 };

@@ -221,7 +221,6 @@ TEST_F(FileTransformerTest, CompressionDecompressionRestoresOriginalData)
 		auto outputStream = std::make_unique<FileOutputStream>(std::move(outputFile));
 		auto compressedStream = std::move(outputStream) << MakeDecorator<PackingOutputStreamDecorator>();
 		compressedStream->WriteBlock(originalData.data(), originalData.size());
-		compressedStream->Close();
 	}
 
 	{

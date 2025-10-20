@@ -8,7 +8,8 @@ template <typename Decorator, typename... Args>
 auto MakeDecorator(const Args&... args)
 {
 	return [&](auto&& object) {
-		return std::make_unique<Decorator>(std::forward<decltype(object)>(object), args...);
+		return std::make_unique<Decorator>(
+			std::forward<decltype(object)>(object), args...);
 	};
 }
 

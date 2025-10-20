@@ -74,7 +74,8 @@ private:
 			throw std::invalid_argument("Invalid triangle format");
 		}
 
-		return std::make_unique<Triangle>(Point{ x1, y1 }, Point{ x2, y2 }, Point{ x3, y3 }, Color{ colorStr });
+		return std::make_unique<Triangle>(Point{ x1, y1 }, Point{ x2, y2 },
+			Point{ x3, y3 }, Color{ colorStr });
 	}
 
 	std::unique_ptr<Shape> CreateRectangle(const std::string& descr)
@@ -90,7 +91,8 @@ private:
 			throw std::invalid_argument("Invalid rectangle format");
 		}
 
-		return std::make_unique<Rectangle>(Point{ x1, y1 }, Point{ x2, y2 }, Color{ colorStr });
+		return std::make_unique<Rectangle>(
+			Point{ x1, y1 }, Point{ x2, y2 }, Color{ colorStr });
 	}
 
 	std::unique_ptr<Shape> CreateEllipse(const std::string& descr)
@@ -106,7 +108,8 @@ private:
 			throw std::invalid_argument("Invalid ellipse format");
 		}
 
-		return std::make_unique<Ellipse>(Point{ cx, cy }, rx, ry, Color{ colorStr });
+		return std::make_unique<Ellipse>(
+			Point{ cx, cy }, rx, ry, Color{ colorStr });
 	}
 
 	std::unique_ptr<Shape> CreateRegularPolygon(const std::string& descr)
@@ -123,7 +126,8 @@ private:
 			throw std::invalid_argument("Invalid polygon format");
 		}
 
-		return std::make_unique<RegularPolygon>(Point{ cx, cy }, radius, vertexCount, Color{ colorStr });
+		return std::make_unique<RegularPolygon>(
+			Point{ cx, cy }, radius, vertexCount, Color{ colorStr });
 	}
 };
 

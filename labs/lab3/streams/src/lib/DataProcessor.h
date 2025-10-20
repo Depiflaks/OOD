@@ -112,103 +112,115 @@ private:
 class PackingDataProcessor : public IDataProcessor
 {
 public:
-    uint8_t ProcessByte(uint8_t data) override
-    {
-        return data;
-    }
+	uint8_t ProcessByte(uint8_t data) override
+	{
+		return data;
+	}
 
-    std::streamsize ProcessDataBlock(void* buffer, std::streamsize size) override
-    {
-        if (size == 0)
-        {
-            return 0;
-        }
+	std::streamsize ProcessDataBlock(void* buffer, std::streamsize size) override
+	{
+		if (size == 0)
+		{
+			return 0;
+		}
 
-        uint8_t* data = static_cast<uint8_t*>(buffer);
-        std::vector<uint8_t> compressedData;
+		auto* data = static_cast<uint8_t*>(buffer);
+		std::vector<uint8_t> compressedData;
+		compressedData.reserve(static_cast<size_t>(size));
 
-        for (std::streamsize i = 0; i < size;)
-        {
-            uint8_t value = data[i];
-            uint8_t count = 1;
-            
-            while (i + count < size && data[i + count] == value && count < 255)
-            {
-                count++;
-            }
+		for (std::streamsize i = 0; i < size;)
+		{
+			uint8_t value = data[i];
+			std::streamsize count = 1;
 
-            if (count > 3 || value == 0xFF)
-            {
-                compressedData.push_back(0xFF);
-                compressedData.push_back(value);
-                compressedData.push_back(count);
-            }
-            else
-            {
-                for (int j = 0; j < count; j++)
-                {
-                    compressedData.push_back(value);
-                }
-            }
-            
-            i += count;
-        }
+			while (i + count < size && data[i + count] == value && count < 255)
+			{
+				++count;
+			}
 
-        if (compressedData.size() <= static_cast<size_t>(size))
-        {
-            std::memcpy(buffer, compressedData.data(), compressedData.size());
-            return compressedData.size();
-        }
-        else
-        {
-            return size;
-        }
-    }
+			// Encode runs longer than 3 or any 0xFF bytes (since 0xFF is our marker)
+			if (count > 3 || value == 0xFF)
+			{
+				compressedData.push_back(0xFF);
+				compressedData.push_back(value);
+				compressedData.push_back(static_cast<uint8_t>(count));
+			}
+			else
+			{
+				for (std::streamsize j = 0; j < count; ++j)
+				{
+					compressedData.push_back(value);
+				}
+			}
+
+			i += count;
+		}
+
+		// Only use compressed form if it's actually smaller than original.
+		if (compressedData.size() < static_cast<size_t>(size))
+		{
+			std::memcpy(buffer, compressedData.data(), compressedData.size());
+			return static_cast<std::streamsize>(compressedData.size());
+		}
+		else
+		{
+			// Keep original uncompressed data in buffer, signal original size.
+			return size;
+		}
+	}
 };
 
 class UnpackingDataProcessor : public IDataProcessor
 {
 public:
-    uint8_t ProcessByte(uint8_t data) override
-    {
-        return data;
-    }
+	uint8_t ProcessByte(uint8_t data) override
+	{
+		return data;
+	}
 
-    std::streamsize ProcessDataBlock(void* buffer, std::streamsize size) override
-    {
-        uint8_t* input = static_cast<uint8_t*>(buffer);
-        std::vector<uint8_t> decompressed;
+	std::streamsize ProcessDataBlock(void* buffer, std::streamsize size) override
+	{
+		if (size == 0)
+		{
+			return 0;
+		}
 
-        std::streamsize i = 0;
-        while (i < size)
-        {
-            if (input[i] == 0xFF && i + 2 < size)
-            {
-                uint8_t value = input[i + 1];
-                uint8_t count = input[i + 2];
-                for (int j = 0; j < count; j++)
-                {
-                    decompressed.push_back(value);
-                }
-                i += 3;
-            }
-            else
-            {
-                decompressed.push_back(input[i]);
-                i++;
-            }
-        }
+		auto* input = static_cast<uint8_t*>(buffer);
+		std::vector<uint8_t> decompressed;
+		decompressed.reserve(static_cast<size_t>(size) * 2);
 
-        if (decompressed.size() <= static_cast<size_t>(size))
-        {
-            std::memcpy(buffer, decompressed.data(), decompressed.size());
-            return decompressed.size();
-        }
-        else
-        {
-            return size;
-        }
-    }
+		std::streamsize i = 0;
+		while (i < size)
+		{
+			if (input[i] == 0xFF)
+			{
+				// If there's not enough bytes for a marker (malformed/truncated),
+				// treat 0xFF as a literal byte.
+				if (i + 2 >= size)
+				{
+					decompressed.push_back(0xFF);
+					++i;
+				}
+				else
+				{
+					uint8_t value = input[i + 1];
+					uint8_t count = input[i + 2];
+					decompressed.insert(decompressed.end(), count, value);
+					i += 3;
+				}
+			}
+			else
+			{
+				decompressed.push_back(input[i]);
+				++i;
+			}
+		}
+
+		// Copy decompressed data back into buffer (caller is expected to provide
+		// sufficient capacity).
+		std::memcpy(buffer, decompressed.data(), decompressed.size());
+		return static_cast<std::streamsize>(decompressed.size());
+	}
 };
 
 #endif /* DATAPROCESSOR_H */

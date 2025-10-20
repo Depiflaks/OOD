@@ -14,7 +14,8 @@ template <typename Decorator, typename... Args>
 auto MakeDecorator(const Args&... args)
 {
 	return [&](auto&& object) {
-		return std::make_unique<Decorator>(std::forward<decltype(object)>(object), args...);
+		return std::make_unique<Decorator>(
+			std::forward<decltype(object)>(object), args...);
 	};
 }
 
@@ -29,7 +30,8 @@ class MockInputStream : public IInputStream
 public:
 	MOCK_METHOD(bool, IsEOF, (), (override));
 	MOCK_METHOD(uint8_t, ReadByte, (), (override));
-	MOCK_METHOD(std::streamsize, ReadBlock, (void*, std::streamsize), (override));
+	MOCK_METHOD(
+		std::streamsize, ReadBlock, (void*, std::streamsize), (override));
 };
 
 class MockOutputStream : public IOutputStream
@@ -44,9 +46,9 @@ class MockDataProcessor : public IDataProcessor
 {
 public:
 	MOCK_METHOD(uint8_t, ProcessByte, (uint8_t), (override));
-	MOCK_METHOD(std::streamsize, ProcessDataBlock, (void*, std::streamsize), (override));
+	MOCK_METHOD(std::streamsize, ProcessDataBlock, (void*, std::streamsize),
+		(override));
 };
-
 
 TEST(OperatorShiftTest, OutputStreamDecoration)
 {
@@ -54,8 +56,12 @@ TEST(OperatorShiftTest, OutputStreamDecoration)
 	auto mockProcessor1 = std::make_shared<MockDataProcessor>();
 	auto mockProcessor2 = std::make_shared<MockDataProcessor>();
 
-	EXPECT_CALL(*mockProcessor1, ProcessByte(0x88)).Times(1).WillOnce(testing::Return(0x99));
-	EXPECT_CALL(*mockProcessor2, ProcessByte(0x77)).Times(1).WillOnce(testing::Return(0x88));
+	EXPECT_CALL(*mockProcessor1, ProcessByte(0x88))
+		.Times(1)
+		.WillOnce(testing::Return(0x99));
+	EXPECT_CALL(*mockProcessor2, ProcessByte(0x77))
+		.Times(1)
+		.WillOnce(testing::Return(0x88));
 	EXPECT_CALL(*mockOutputStream, WriteByte(0x99)).Times(1);
 
 	auto decorator = std::move(mockOutputStream)
@@ -71,9 +77,15 @@ TEST(OperatorShiftTest, InputStreamDecoration)
 	auto mockProcessor1 = std::make_shared<MockDataProcessor>();
 	auto mockProcessor2 = std::make_shared<MockDataProcessor>();
 
-	EXPECT_CALL(*mockInputStream, ReadByte()).Times(1).WillOnce(testing::Return(0x11));
-	EXPECT_CALL(*mockProcessor1, ProcessByte(0x11)).Times(1).WillOnce(testing::Return(0x22));
-	EXPECT_CALL(*mockProcessor2, ProcessByte(0x22)).Times(1).WillOnce(testing::Return(0x33));
+	EXPECT_CALL(*mockInputStream, ReadByte())
+		.Times(1)
+		.WillOnce(testing::Return(0x11));
+	EXPECT_CALL(*mockProcessor1, ProcessByte(0x11))
+		.Times(1)
+		.WillOnce(testing::Return(0x22));
+	EXPECT_CALL(*mockProcessor2, ProcessByte(0x22))
+		.Times(1)
+		.WillOnce(testing::Return(0x33));
 
 	auto decorator = std::move(mockInputStream)
 		<< MakeDecorator<InputStreamDecorator>(std::move(mockProcessor1))
