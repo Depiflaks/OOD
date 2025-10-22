@@ -8,12 +8,13 @@ classDiagram
     namespace factory {
         class ICommandFactory {
             + CreateCommand() ICommand
+            + CanCreateCommand() bool
         }
 
         class AbstractCommandFactory {
-            + AbstractCommandFactory(editor: IDocumentEditor&&)
+            + AbstractCommandFactory(document: IDocument&)
 
-            # m_documentEditor: IDocumentEditor
+            # m_document: std::shared_ptr~IDocument~
         }
 
         class DocumentCommandFactory {
@@ -40,20 +41,22 @@ classDiagram
             + Execute() void
         }
 
+        class AbstractCommand {
+            # m_document: IDocument&
+        }
+
         class UnexecutableCommand {
-            + *Unexecute()* void
-            <<construct>>
+            + Unexecute() void
             + IsExecuted() bool
             # m_executed: bool
         }
 
         class MergableCommand {
-            + *TryReplace(command: MergableCommand&)* void
+            + TryReplace(command: MergableCommand&) void
         }
 
         class MacroRecordingCommand {
             + MacroRecordingCommand(commands: std::vector~ICommand~)
-
         }
 
         class InsertParagraphCommand {
@@ -69,35 +72,35 @@ classDiagram
         }
 
         class ListCommand {
-            + List(document: IDocument)
+            + ListCommand(document: IDocument)
         }
 
         class ReplaceTextCommand {
-            + ReplaceText(document: IDocument, position: size_t, newText: string)
+            + ReplaceTextCommand(document: IDocument, position: size_t, newText: string)
         }
 
         class ResizeImageCommand {
-            + ResizeImage(document: IDocument, position: size_t, newWidth: int, newHeight: int)
+            + ResizeImageCommand(document: IDocument, position: size_t, newWidth: int, newHeight: int)
         }
 
         class DeleteItemCommand {
-            + DeleteItem(document: IDocument, position: size_t)
+            + DeleteItemCommand(document: IDocument, position: size_t)
         }
 
         class HelpCommand {
-            + Help()
+            + HelpCommand()
         }
 
         class UndoCommand {
-            + Undo(document: IDocument)
+            + UndoCommand(document: IDocument)
         }
 
         class RedoCommand {
-            + Redo(document: IDocument)
+            + RedoCommand(document: IDocument)
         }
 
         class SaveCommand {
-            + Save(document: IDocument)
+            + SaveCommand(document: IDocument)
         }
     }
 
@@ -105,6 +108,14 @@ classDiagram
 
         class ICommandManager {
             + ExecuteAndAddCommand(command: ICommand&&)
+        }
+
+        class ConsoleCommandExecutor {
+            + ConsoleCommandExecutor(commandManager: ICommandManager&, factory: ICommandFactory&)
+            + Start() void
+
+            - factory: std::unique_ptr~ICommandFactory~
+            - manager: std::shared_ptr~ICommandManager~
         }
 
     }
@@ -170,28 +181,59 @@ classDiagram
         }
     }
 
-    client ..> IDocument : creates
-    client ..> ICommandExecutor : creates
-    client ..> IDocumentEditor : creates
+    %% Client
+    client ..> CommandHistoryManager : creates
+    client ..> ICommandFactory : creates
+    client ..> HtmlDocument : creates
 
+    client *--> ConsoleCommandExecutor
+
+    %% Factory
+    ICommandFactory <|.. AbstractCommandFactory
+    AbstractCommandFactory <|-- DocumentCommandFactory
+    AbstractCommandFactory o--> IDocument
+    ICommandFactory ..> ICommand : creates
+
+    %% Invoker
+    ConsoleCommandExecutor o--> ICommandManager
+    ConsoleCommandExecutor *--> ICommandFactory
+
+
+    %% History
+    IHistoryManager <|.. CommandHistoryManager
+    ICommandManager <|.. CommandHistoryManager
+
+    CommandHistoryManager *--> ICommand
+
+    %% Document
     IDocument <|.. HtmlDocument
+    HtmlDocument *--> DocumentItem
+    DocumentItem o--> IParagraph
+    DocumentItem o--> IImage
+    DocumentItem ..> ConstDocumentItem
 
-    ICommandExecutor <|.. AbstractCommandExecutor
-    AbstractCommandExecutor <|-- DocumentCommandExecutor
-    DocumentCommandExecutor ..> IDocumentEditor : use
+    HtmlDocument o--> IHistoryManager
 
-    AbstractCommandExecutor *--> IDocumentEditor
+    %% Commands
+    ICommand <|.. AbstractCommand
+    AbstractCommand <|-- UnexecutableCommand
 
-    IDocumentEditor <|.. DocumentEditor
-    DocumentEditor *--> DocumentHistory
-    DocumentEditor ..> ICommand : creates
-    DocumentHistory *--> ICommand
+    AbstractCommand o--> IDocument
 
-    ICommand <|.. InsertParagraphCommand
-    ICommand <|.. InsertImageCommand
-    ICommand <|.. SetTitleCommand
-    ICommand <|.. ListCommand
+    AbstractCommand <|-- ListCommand
+    AbstractCommand <|-- RedoCommand
+    AbstractCommand <|-- UndoCommand
+    AbstractCommand <|-- SaveCommand
+    AbstractCommand <|-- HelpCommand
 
-    InsertParagraphCommand o--> IDocument
+    UnexecutableCommand <|-- InsertParagraphCommand
+    UnexecutableCommand <|-- InsertImageCommand
+    UnexecutableCommand <|-- SetTitleCommand
+    UnexecutableCommand <|-- DeleteItemCommand
+    UnexecutableCommand <|-- ResizeImageCommand
+    UnexecutableCommand <|-- MacroRecordingCommand
+
+    UnexecutableCommand <|-- MergableCommand
+    MergableCommand <|-- ReplaceTextCommand
 
     classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;
