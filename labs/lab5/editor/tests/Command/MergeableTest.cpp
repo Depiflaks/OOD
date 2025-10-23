@@ -69,12 +69,12 @@ TEST_F(MergableCommandTest, ReplaceTextCommandsMergeAndUnexecuteTogether)
 	doc.InsertParagraph("Initial text", 0);
 
 	auto command1
-		= std::make_unique<ReplaceTextCommand>(doc, 0, "First change");
+		= std::make_shared<ReplaceTextCommand>(doc, 0, "First change");
 	auto command2
-		= std::make_unique<ReplaceTextCommand>(doc, 0, "Second change");
+		= std::make_shared<ReplaceTextCommand>(doc, 0, "Second change");
 
 	command1->Execute();
-	bool merged = command1->TryReplace(*command2);
+	bool merged = command1->TryReplace(command2);
 
 	ASSERT_TRUE(merged);
 	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "Second change");
@@ -90,17 +90,17 @@ TEST_F(MergableCommandTest, MultipleReplaceTextCommandsWithDifferentParagraphs)
 	doc.InsertParagraph("Second initial", 1);
 
 	auto command1
-		= std::make_unique<ReplaceTextCommand>(doc, 0, "First changed");
+		= std::make_shared<ReplaceTextCommand>(doc, 0, "First changed");
 	auto command2
-		= std::make_unique<ReplaceTextCommand>(doc, 0, "First changed again");
+		= std::make_shared<ReplaceTextCommand>(doc, 0, "First changed again");
 	auto command3
-		= std::make_unique<ReplaceTextCommand>(doc, 1, "Second changed");
-	auto command4 = std::make_unique<ReplaceTextCommand>(doc, 0, "First final");
+		= std::make_shared<ReplaceTextCommand>(doc, 1, "Second changed");
+	auto command4 = std::make_shared<ReplaceTextCommand>(doc, 0, "First final");
 
 	command1->Execute();
-	command1->TryReplace(*command2);
+	command1->TryReplace(command2);
 	command3->Execute();
-	command1->TryReplace(*command4);
+	command1->TryReplace(command4);
 
 	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "First final");
 	ASSERT_EQ(doc.GetItem(1).GetParagraph()->GetText(), "Second changed");
@@ -132,7 +132,7 @@ public:
 		m_executed = false;
 	}
 
-	bool TryReplace(MergableCommand& command) override
+	bool TryReplace(std::shared_ptr<MergableCommand> command) override
 	{
 		return false;
 	}
@@ -144,11 +144,11 @@ TEST_F(MergableCommandTest, DifferentMergableCommandsDoNotMerge)
 	doc.InsertParagraph("Initial text", 0);
 
 	auto command1
-		= std::make_unique<ReplaceTextCommand>(doc, 0, "First change");
-	auto command2 = std::make_unique<TestMergableCommand>(doc);
+		= std::make_shared<ReplaceTextCommand>(doc, 0, "First change");
+	auto command2 = std::make_shared<TestMergableCommand>(doc);
 
 	command1->Execute();
-	bool merged = command1->TryReplace(*command2);
+	bool merged = command1->TryReplace(command2);
 
 	ASSERT_FALSE(merged);
 	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "First change");

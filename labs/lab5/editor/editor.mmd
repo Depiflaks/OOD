@@ -53,7 +53,7 @@ classDiagram
             # m_executed: bool
         }
 
-        class MergableCommand {
+        class MergableCommand:::tested {
             + TryReplace(command: MergableCommand&) bool
         }
 
@@ -85,7 +85,7 @@ classDiagram
             + ListCommand(document: IDocument)
         }
 
-        class ReplaceTextCommand {
+        class ReplaceTextCommand:::tested {
             + ReplaceTextCommand(document: IDocument, position: size_t, newText: string)
         }
 
@@ -140,8 +140,8 @@ classDiagram
         }
 
         class CommandHistoryManager {
-            - m_commands: std::list~ICommand~
-            - m_currentActionIndex: std::list~ICommand~::iterator
+            - m_commands: std::list~std::shared_ptr~ICommand~~
+            - m_currentActionIndex: std::list~std::shared_ptr~ICommand~~::iterator
         }
 
     }

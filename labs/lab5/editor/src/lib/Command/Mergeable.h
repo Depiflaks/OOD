@@ -13,7 +13,7 @@ protected:
 	}
 
 public:
-	virtual bool TryReplace(MergableCommand& command) = 0;
+	virtual bool TryReplace(std::shared_ptr<MergableCommand> command) = 0;
 };
 
 class ReplaceTextCommand : public MergableCommand
@@ -58,9 +58,9 @@ public:
 		}
 	}
 
-	bool TryReplace(MergableCommand& command) override
+	bool TryReplace(std::shared_ptr<MergableCommand> command) override
 	{
-		auto other = dynamic_cast<ReplaceTextCommand*>(&command);
+		auto other = std::dynamic_pointer_cast<ReplaceTextCommand>(command);
 		if (!other)
 		{
 			return false;
