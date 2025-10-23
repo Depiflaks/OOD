@@ -35,7 +35,7 @@ public:
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		if (!m_executed)
 		{
 			m_oldTitle = document.GetTitle();
@@ -48,7 +48,7 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
+			auto& document = TryGetDocument();
 			document.SetTitle(m_oldTitle);
 		}
 	}
@@ -72,7 +72,7 @@ public:
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		auto& item = document.GetItem(m_position);
 		auto image = item.GetImage();
 		if (!image)
@@ -94,7 +94,7 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
+			auto& document = TryGetDocument();
 			auto& item = document.GetItem(m_position);
 			auto image = item.GetImage();
 			if (image)
@@ -127,19 +127,22 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
-			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
-			auto& item = document.GetItem(pos);
-			if (item.IsDeleted())
+			auto document = GetDocument().lock();
+			if (document)
 			{
-				document.DeleteItem(pos);
+				size_t pos = m_position.value_or(document->GetItemsCount() - 1);
+				auto& item = document->GetItem(pos);
+				if (item.IsDeleted())
+				{
+					document->DeleteItem(pos);
+				}
 			}
 		}
 	}
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		if (!m_executed)
 		{
 			document.InsertParagraph(m_text, m_position);
@@ -157,7 +160,7 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
+			auto& document = TryGetDocument();
 			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
 			auto& item = document.GetItem(pos);
 			item.SetIsDeleted(true);
@@ -187,19 +190,22 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
-			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
-			auto& item = document.GetItem(pos);
-			if (item.IsDeleted())
+			auto document = GetDocument().lock();
+			if (document)
 			{
-				document.DeleteItem(pos);
+				size_t pos = m_position.value_or(document->GetItemsCount() - 1);
+				auto& item = document->GetItem(pos);
+				if (item.IsDeleted())
+				{
+					document->DeleteItem(pos);
+				}
 			}
 		}
 	}
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		if (!m_executed)
 		{
 			document.InsertImage(m_path, m_width, m_height, m_position);
@@ -217,7 +223,7 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
+			auto& document = TryGetDocument();
 			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
 			auto& item = document.GetItem(pos);
 			item.SetIsDeleted(true);
@@ -244,18 +250,21 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
-			auto& item = document.GetItem(m_position);
-			if (item.IsDeleted())
+			auto document = GetDocument().lock();
+			if (document)
 			{
-				document.DeleteItem(m_position);
+				auto& item = document->GetItem(m_position);
+				if (item.IsDeleted())
+				{
+					document->DeleteItem(m_position);
+				}
 			}
 		}
 	}
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		if (!m_executed)
 		{
 			auto& item = document.GetItem(m_position);
@@ -270,7 +279,7 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
+			auto& document = TryGetDocument();
 			auto& item = document.GetItem(m_position);
 			item.SetIsDeleted(m_wasDeleted);
 		}

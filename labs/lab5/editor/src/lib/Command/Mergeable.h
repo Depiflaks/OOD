@@ -29,7 +29,7 @@ public:
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		auto& item = document.GetItem(m_position);
 		auto paragraph = item.GetParagraph();
 		if (!paragraph)
@@ -50,7 +50,7 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& document = GetDocument();
+			auto& document = TryGetDocument();
 			auto& item = document.GetItem(m_position);
 			auto paragraph = item.GetParagraph();
 			if (paragraph)
@@ -75,7 +75,7 @@ public:
 
 		m_newText = other->m_newText;
 
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		auto& item = document.GetItem(m_position);
 		auto paragraph = item.GetParagraph();
 		if (paragraph)

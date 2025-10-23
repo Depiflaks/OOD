@@ -21,7 +21,7 @@ protected:
 	{
 	}
 
-	IDocument& GetDocument() const
+	IDocument& TryGetDocument() const
 	{
 		auto document = m_document.lock();
 		if (!document)
@@ -29,6 +29,11 @@ protected:
 			throw std::runtime_error("Document no longer exists");
 		}
 		return *document;
+	}
+
+	std::weak_ptr<IDocument> GetDocument() const
+	{
+		return m_document;
 	}
 
 private:
@@ -67,7 +72,7 @@ public:
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		if (!document.CanUndo())
 		{
 			throw std::runtime_error("Cannot undo");
@@ -86,7 +91,7 @@ public:
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		if (!document.CanRedo())
 		{
 			throw std::runtime_error("Cannot redo");
@@ -106,7 +111,7 @@ public:
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		document.Save(m_path);
 	}
 
@@ -124,7 +129,7 @@ public:
 
 	void Execute() override
 	{
-		auto& document = GetDocument();
+		auto& document = TryGetDocument();
 		std::cout << "Title: " << document.GetTitle() << std::endl;
 
 		for (size_t i = 0; i < document.GetItemsCount(); ++i)
