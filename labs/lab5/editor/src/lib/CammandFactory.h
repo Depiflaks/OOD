@@ -1,0 +1,5 @@
+#ifndef CAMMANDFACTORY_H
+#define CAMMANDFACTORY_H
+
+#endif /* CAMMANDFACTORY_H */
+

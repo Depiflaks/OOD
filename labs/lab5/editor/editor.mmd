@@ -132,7 +132,7 @@ classDiagram
 
     namespace history {
 
-        class IHistoryManager {
+        class IHistoryManager:::created {
             + Undo() void
             + Redo() void
             + CanUndo() bool
@@ -157,6 +157,10 @@ classDiagram
             + DeleteItem(index: size_t) void
             + GetTitle() string
             + SetTitle(title: string) void
+            + CanUndo() bool
+            + Undo() void
+            + CanRedo() bool
+            + Redo() void
             + Save(path: Path) void
         }
 
@@ -235,7 +239,8 @@ classDiagram
     AbstractCommand <|-- UndoCommand
     AbstractCommand <|-- SaveCommand
     AbstractCommand <|-- HelpCommand
-    AbstractCommand <|-- MacroRecordingCommand
+    AbstractCommand <|-- StartMacroRecordingCommand
+    AbstractCommand <|-- EndMacroRecordingCommand
 
     UnexecutableCommand <|-- InsertParagraphCommand
     UnexecutableCommand <|-- InsertImageCommand
@@ -248,3 +253,4 @@ classDiagram
     MergableCommand <|-- ReplaceTextCommand
 
     classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;
+    classDef created fill:#FBE6FF,stroke:#333,stroke-width:2px;
