@@ -132,7 +132,7 @@ classDiagram
 
     namespace history {
 
-        class IHistoryManager:::created {
+        class IHistoryManager {
             + Undo() void
             + Redo() void
             + CanUndo() bool
@@ -166,8 +166,6 @@ classDiagram
 
         class HtmlDocument {
             - items: std::vector~DocumentItem~
-
-            - ReplaceHtmlEntities(result: string) string 
         }
 
         class IParagraph {
@@ -176,22 +174,40 @@ classDiagram
         }
 
         class IImage {
-            GetPath() const Path
-            GetWidth() const int
+            + GetPath() const Path
+            + GetWidth() const int
 
-            GetHeight() const int
+            + GetHeight() const int
 
-            Resize(int width, int height) void
+            + Resize(int width, int height) void
+        }
+
+        class Paragraph {
+        }
+
+        class Image {
         }
 
         class ConstDocumentItem {
-            GetImage() const shared_ptr~IImage~
-            GetParagraph() const shared_ptr~IParagraph~
+            + ConstDocumentItem(paragraph: std::shared_ptr~IParagraph~, isDeleted: bool = false)
+            + ConstDocumentItem(image: std::shared_ptr~IImage~, isDeleted: bool = false)
+            + GetImage() const shared_ptr~IImage~
+            + GetParagraph() const shared_ptr~IParagraph~
+            + IsDeleted() bool
+
+            -m_isDeleted: const bool = false
         }
 
         class DocumentItem {
-            GetImage() shared_ptr~IImage~
-            GetParagraph() shared_ptr~IParagraph~
+            + DocumentItem(paragraph: std::shared_ptr~IParagraph~, isDeleted: bool = false)
+            + DocumentItem(image: std::shared_ptr~IImage~, isDeleted: bool = false)
+
+            + GetImage() shared_ptr~IImage~
+            + GetParagraph() shared_ptr~IParagraph~
+            + IsDeleted() bool
+            + SetIsDeleted(isDeleted: bool) void
+
+            -m_isDeleted: bool = false
         }
     }
 
@@ -224,6 +240,8 @@ classDiagram
     HtmlDocument *--> DocumentItem
     DocumentItem o--> IParagraph
     DocumentItem o--> IImage
+    IParagraph <|.. Paragraph
+    IImage <|.. Image
     DocumentItem ..> ConstDocumentItem
 
     HtmlDocument o--> IHistoryManager
