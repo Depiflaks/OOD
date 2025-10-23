@@ -1,0 +1,5 @@
+#ifndef COMMANDFACTORY_H
+#define COMMANDFACTORY_H
+
+#endif /* COMMANDFACTORY_H */
+
