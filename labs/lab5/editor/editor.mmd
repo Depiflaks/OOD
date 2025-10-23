@@ -168,12 +168,12 @@ classDiagram
             - items: std::vector~DocumentItem~
         }
 
-        class IParagraph {
+        class IParagraph:::tested {
             + GetText() const string
             + SetText(text: const string&) void
         }
 
-        class IImage {
+        class IImage:::tested {
             + GetPath() const Path
             + GetWidth() const int
 
@@ -182,13 +182,13 @@ classDiagram
             + Resize(int width, int height) void
         }
 
-        class Paragraph {
+        class Paragraph:::tested {
         }
 
-        class Image {
+        class Image:::tested {
         }
 
-        class ConstDocumentItem {
+        class ConstDocumentItem:::tested {
             + ConstDocumentItem(paragraph: std::shared_ptr~IParagraph~, isDeleted: bool = false)
             + ConstDocumentItem(image: std::shared_ptr~IImage~, isDeleted: bool = false)
             + GetImage() const shared_ptr~IImage~
@@ -198,7 +198,7 @@ classDiagram
             -m_isDeleted: const bool = false
         }
 
-        class DocumentItem {
+        class DocumentItem:::tested {
             + DocumentItem(paragraph: std::shared_ptr~IParagraph~, isDeleted: bool = false)
             + DocumentItem(image: std::shared_ptr~IImage~, isDeleted: bool = false)
 
