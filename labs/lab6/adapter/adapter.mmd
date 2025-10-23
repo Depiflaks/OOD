@@ -1,0 +1,103 @@
+classDiagram
+    direction TB
+
+
+    namespace modern_graphics_lib {
+        class ModernPoint {
+            + x: int
+            + y: int
+        }
+
+        class RGBAColor {
+            + r, g, b, a: float
+        }
+
+        class ModernGraphicsRenderer {
+            + ModernGraphicsRenderer(strm: ostream)
+            + BeginDraw() void
+            + DrawLine(start: ModernPoint, end: ModernPoint, color: RGBAColor) void
+            + EndDraw() void
+
+            - m_out: std::unique_ptr~ostream~
+            - m_drawing: bool
+        }
+    }
+
+    namespace graphics_lib {
+        class ICanvas {
+            <<interfase>>
+            + MoveTo(x: int, y: int) void
+            + LineTo(x: int, y: int) void
+            + SetColor(rgbColor: uint32_t)
+        }
+
+        class Canvas {
+        }
+    }
+
+    namespace shape_drawing_lib {
+        class Point {
+            + x: int
+            + y: int
+        }
+
+        class ICanvasDrawable {
+            <<interface>>
+            + Draw(canvas: ICanvas) void
+        }
+
+        class Triangle {
+            + Triangle(p1: Point, p2: Point, p3: Point, color: uint32_t)
+            + Draw(canvas: ICanvas) void
+            - p1: Point
+            - p2: Point
+            - p3: Point
+        }
+
+        class Rectangle {
+            + Rectangle(leftTop: Point, width: int, height: int, color: uint32_t)
+            + Draw(canvas: ICanvas) void
+            - leftTop: Point
+            - width: int
+            - height: int
+        }
+
+        class CanvasPainter {
+            + CanvasPainter(canvas: ICanvas)
+            + Draw(drawable: ICanvasDrawable) void
+
+            - m_canvas: ICanvas&
+        }
+    }
+
+    namespace app {
+        class App {
+            + PaintPicture(painter: CanvasPainter) void
+            + PaintPictureOnCanvas() void
+            + PaintPictureOnModernGraphicsRenderer() void
+        }
+
+        class ModernCanvasAdapter {
+            - m_currentPoint: ModernPoint
+        }
+    }
+
+    %% modern_graphics_lib
+    ModernGraphicsRenderer ..> ModernPoint
+
+    %% app
+    App *--> CanvasPainter
+    ICanvas <|.. ModernCanvasAdapter
+    ModernCanvasAdapter o--> ModernGraphicsRenderer
+
+    %% shape_drawing_lib
+    ICanvasDrawable <|.. Triangle
+    ICanvasDrawable <|.. Rectangle
+    CanvasPainter ..> ICanvasDrawable : use
+    CanvasPainter o--> ICanvas
+    Rectangle ..> Point : use
+
+    %% graphics_lib
+    ICanvas <|.. Canvas
+
+    classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;

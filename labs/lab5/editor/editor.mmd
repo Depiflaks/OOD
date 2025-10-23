@@ -9,6 +9,7 @@ classDiagram
         class ICommandFactory {
             + CreateCommand() ICommand
             + CanCreateCommand() bool
+            + AppendCommand(name: string, command: ICommand)
         }
 
         class AbstractCommandFactory {
@@ -33,6 +34,7 @@ classDiagram
             - CreateSave(std::string arguments) void
 
             - m_stream: std::unique_ptr~std::istream~
+            - m_macroCommands: std::map~std::string, std::vector~ICommand~~
         }
     }
 
@@ -55,8 +57,16 @@ classDiagram
             + TryReplace(command: MergableCommand&) void
         }
 
-        class MacroRecordingCommand {
-            + MacroRecordingCommand(commands: std::vector~ICommand~)
+        class StartMacroRecordingCommand {
+            + StartMacroRecordingCommand(factory: ICommandFactory)
+        }
+
+        class EndMacroRecordingCommand {
+            + EndMacroRecordingCommand(factory: ICommandFactory)
+        }
+
+        class MacroExecutionCommand {
+            + MacroExecutionCommand(document: IDocument)
         }
 
         class InsertParagraphCommand {
@@ -225,13 +235,14 @@ classDiagram
     AbstractCommand <|-- UndoCommand
     AbstractCommand <|-- SaveCommand
     AbstractCommand <|-- HelpCommand
+    AbstractCommand <|-- MacroRecordingCommand
 
     UnexecutableCommand <|-- InsertParagraphCommand
     UnexecutableCommand <|-- InsertImageCommand
     UnexecutableCommand <|-- SetTitleCommand
     UnexecutableCommand <|-- DeleteItemCommand
     UnexecutableCommand <|-- ResizeImageCommand
-    UnexecutableCommand <|-- MacroRecordingCommand
+    UnexecutableCommand <|-- MacroExecutionCommand
 
     UnexecutableCommand <|-- MergableCommand
     MergableCommand <|-- ReplaceTextCommand
