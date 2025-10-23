@@ -47,14 +47,14 @@ classDiagram
             # m_document: IDocument&
         }
 
-        class UnexecutableCommand {
+        class UnexecutableCommand:::tested {
             + Unexecute() void
             + IsExecuted() bool
             # m_executed: bool
         }
 
         class MergableCommand {
-            + TryReplace(command: MergableCommand&) void
+            + TryReplace(command: MergableCommand&) bool
         }
 
         class StartMacroRecordingCommand {
@@ -69,15 +69,15 @@ classDiagram
             + MacroExecutionCommand(document: IDocument)
         }
 
-        class InsertParagraphCommand {
+        class InsertParagraphCommand:::tested {
             + InsertParagraphCommand(document: IDocument, position: std::optional~size_t~, text: std::string)
         }
 
-        class InsertImageCommand {
+        class InsertImageCommand:::tested {
             + InsertImageCommand(document: IDocument, position: std::optional~size_t~, width: int, height: int)
         }
 
-        class SetTitleCommand {
+        class SetTitleCommand:::tested {
             + SetTitleCommand(document: IDocument, newTitle: std::string)
         }
 
@@ -89,11 +89,11 @@ classDiagram
             + ReplaceTextCommand(document: IDocument, position: size_t, newText: string)
         }
 
-        class ResizeImageCommand {
+        class ResizeImageCommand:::tested {
             + ResizeImageCommand(document: IDocument, position: size_t, newWidth: int, newHeight: int)
         }
 
-        class DeleteItemCommand {
+        class DeleteItemCommand:::tested {
             + DeleteItemCommand(document: IDocument, position: size_t)
         }
 
