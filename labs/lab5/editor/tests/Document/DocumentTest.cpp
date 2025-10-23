@@ -1,7 +1,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../../src/lib/Document/Document.h"
+#include "../../src/lib/Document/HtmlDocument.h"
+#include "../../src/lib/History.h"
 
 class MockHistoryManager : public IHistoryManager
 {

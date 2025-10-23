@@ -3,6 +3,7 @@
 
 #include "../../src/lib/Command/Mergeable.h"
 #include "../../src/lib/History.h"
+#include "../../src/lib/Document/HtmlDocument.h"
 
 namespace mergable_tests
 {

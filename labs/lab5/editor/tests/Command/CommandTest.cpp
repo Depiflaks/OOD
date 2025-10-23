@@ -2,6 +2,8 @@
 #include <gtest/gtest.h>
 
 #include "../../src/lib/Command/Command.h"
+#include "../../src/lib/Document/HtmlDocument.h"
+#include "../../src/lib/History.h"
 
 namespace command_tests
 {

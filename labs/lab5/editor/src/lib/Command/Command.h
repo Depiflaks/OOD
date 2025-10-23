@@ -1,5 +1,6 @@
 #ifndef COMMAND_H
 #define COMMAND_H
+
 #include "../Document/Document.h"
 #include <iostream>
 #include <memory>
