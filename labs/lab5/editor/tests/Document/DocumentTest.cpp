@@ -258,7 +258,32 @@ TEST_F(HtmlDocumentTest, SaveDocumentWithHtmlEntitiesEncoding)
 					"&lt;Title&gt; &amp; &quot;Special&quot; &apos;Chars&apos;")
 		!= std::string::npos);
 	ASSERT_TRUE(
-		content.find("&lt;ht12ml&gt; &amp; &quot;entities&quot; &apos;here&apos;")
+		content.find(
+			"&lt;ht12ml&gt; &amp; &quot;entities&quot; &apos;here&apos;")
 		!= std::string::npos);
 	ASSERT_TRUE(content.find("&amp;") != std::string::npos);
+}
+
+TEST_F(HtmlDocumentTest, SaveSkipsDeletedItems)
+{
+	MockHistoryManager mockManager;
+	HtmlDocument doc(mockManager);
+
+	doc.SetTitle("Test Document");
+	doc.InsertParagraph("First paragraph");
+	doc.InsertParagraph("Second paragraph");
+
+	auto& deletedItem = doc.GetItem(0);
+	deletedItem.SetIsDeleted(true);
+
+	doc.Save("test_save.html");
+
+	ASSERT_TRUE(fs::exists("test_save.html"));
+
+	std::ifstream file("test_save.html");
+	std::string content((std::istreambuf_iterator<char>(file)),
+		std::istreambuf_iterator<char>());
+
+	ASSERT_TRUE(content.find("Second paragraph") != std::string::npos);
+	ASSERT_TRUE(content.find("First paragraph") == std::string::npos);
 }

@@ -39,11 +39,11 @@ classDiagram
     }
 
     namespace command {
-        class ICommand {
+        class ICommand:::tested {
             + Execute() void
         }
 
-        class AbstractCommand {
+        class AbstractCommand:::tested {
             # m_document: IDocument&
         }
 
@@ -81,7 +81,7 @@ classDiagram
             + SetTitleCommand(document: IDocument, newTitle: std::string)
         }
 
-        class ListCommand {
+        class ListCommand:::tested {
             + ListCommand(document: IDocument)
         }
 
@@ -97,19 +97,19 @@ classDiagram
             + DeleteItemCommand(document: IDocument, position: size_t)
         }
 
-        class HelpCommand {
+        class HelpCommand:::tested {
             + HelpCommand()
         }
 
-        class UndoCommand {
+        class UndoCommand:::tested {
             + UndoCommand(document: IDocument)
         }
 
-        class RedoCommand {
+        class RedoCommand:::tested {
             + RedoCommand(document: IDocument)
         }
 
-        class SaveCommand {
+        class SaveCommand:::tested {
             + SaveCommand(document: IDocument, path: string)
         }
     }

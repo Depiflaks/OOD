@@ -160,14 +160,18 @@ public:
 		for (size_t i = 0; i < m_items.size(); ++i)
 		{
 			auto item = m_items[i];
+			if (item->IsDeleted())
+			{
+				continue;
+			}
 			if (auto paragraph = item->GetParagraph())
 			{
 				file << "<p>" << HtmlEncode(paragraph->GetText()) << "</p>\n";
 			}
 			else if (auto image = item->GetImage())
 			{
-				file << "<img src=\"tmp/" << image->GetPath()
-					 << "\" width=\"" << image->GetWidth() << "\" height=\""
+				file << "<img src=\"tmp/" << image->GetPath() << "\" width=\""
+					 << image->GetWidth() << "\" height=\""
 					 << image->GetHeight() << "\" />\n";
 			}
 		}
