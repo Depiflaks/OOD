@@ -5,18 +5,19 @@
 
 class UnexecutableCommand : public AbstractCommand
 {
+public:
+	bool IsExecuted() const
+	{
+		return m_executed;
+	}
+
+	virtual void Unexecute() = 0;
+
 protected:
 	UnexecutableCommand(IDocument& document)
 		: AbstractCommand(document)
 		, m_executed(false)
 	{
-	}
-
-	virtual void Unexecute() = 0;
-
-	bool IsExecuted() const
-	{
-		return m_executed;
 	}
 
 	bool m_executed;
@@ -113,6 +114,7 @@ public:
 		const std::string& text)
 		: UnexecutableCommand(document)
 		, m_position(position)
+		, m_text(text)
 	{
 	}
 
