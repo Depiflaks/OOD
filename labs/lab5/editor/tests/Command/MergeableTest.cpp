@@ -26,6 +26,17 @@ protected:
 	void TearDown() override
 	{
 		fs::remove_all("tmp");
+		if (fs::exists("test_image.png"))
+		{
+			fs::remove("test_image.png");
+		}
+	}
+
+	void CreateTestImage()
+	{
+		std::ofstream file("test_image.png");
+		file << "fake image content";
+		file.close();
 	}
 
 	MockHistoryManager mockManager;
@@ -144,5 +155,17 @@ TEST_F(MergableCommandTest, DifferentMergableCommandsDoNotMerge)
 
 	command1->Unexecute();
 	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "Initial text");
+}
+
+TEST_F(MergableCommandTest, ReplaceTextCommandThrowsWhenPositionIsImage)
+{
+	HtmlDocument doc(mockManager);
+	CreateTestImage();
+	doc.InsertImage("test_image.png", 100, 200, 0);
+
+	ReplaceTextCommand command(doc, 0, "New text");
+
+	ASSERT_THROW(command.Execute(), std::runtime_error);
+	ASSERT_FALSE(command.IsExecuted());
 }
 } // namespace mergable_tests

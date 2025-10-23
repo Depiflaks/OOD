@@ -1,6 +1,8 @@
 #ifndef MERGEABLE_H
 #define MERGEABLE_H
 #include "Unexecutable.h"
+#include <execution>
+#include <memory>
 
 class MergableCommand : public UnexecutableCommand
 {
@@ -70,6 +72,13 @@ public:
 		}
 
 		m_newText = other->m_newText;
+
+		auto& item = m_document.GetItem(m_position);
+		auto paragraph = item.GetParagraph();
+		if (paragraph)
+		{
+			paragraph->SetText(m_newText);
+		}
 		return true;
 	}
 
