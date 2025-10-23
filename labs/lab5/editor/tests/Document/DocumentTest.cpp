@@ -237,3 +237,28 @@ TEST_F(HtmlDocumentTest, SaveDocumentWithParagraphAndImage)
 	ASSERT_TRUE(content.find("width=\"100\"") != std::string::npos);
 	ASSERT_TRUE(content.find("height=\"200\"") != std::string::npos);
 }
+
+TEST_F(HtmlDocumentTest, SaveDocumentWithHtmlEntitiesEncoding)
+{
+	MockHistoryManager mockManager;
+	HtmlDocument doc(mockManager);
+
+	doc.SetTitle("Test <Title> & \"Special\" 'Chars'");
+	doc.InsertParagraph("Text with <ht12ml> & \"entities\" 'here'");
+
+	doc.Save("test_save.html");
+
+	ASSERT_TRUE(fs::exists("test_save.html"));
+
+	std::ifstream file("test_save.html");
+	std::string content((std::istreambuf_iterator<char>(file)),
+		std::istreambuf_iterator<char>());
+
+	ASSERT_TRUE(content.find(
+					"&lt;Title&gt; &amp; &quot;Special&quot; &apos;Chars&apos;")
+		!= std::string::npos);
+	ASSERT_TRUE(
+		content.find("&lt;ht12ml&gt; &amp; &quot;entities&quot; &apos;here&apos;")
+		!= std::string::npos);
+	ASSERT_TRUE(content.find("&amp;") != std::string::npos);
+}

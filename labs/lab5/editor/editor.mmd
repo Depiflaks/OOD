@@ -110,7 +110,7 @@ classDiagram
         }
 
         class SaveCommand {
-            + SaveCommand(document: IDocument)
+            + SaveCommand(document: IDocument, path: string)
         }
     }
 
@@ -148,7 +148,7 @@ classDiagram
 
     namespace resiever {
 
-        class IDocument {
+        class IDocument:::tested {
             + InsertParagraph(text: string, position: optional~size_t~ = none) shared_ptr~IParagraph~
             + InsertImage(path: Path, width: int, height: int, position: optional~size_t~ = none) shared_ptr~IImage~
             + GetItemsCount() size_t
@@ -164,8 +164,8 @@ classDiagram
             + Save(path: Path) void
         }
 
-        class HtmlDocument {
-            - items: std::vector~DocumentItem~
+        class HtmlDocument:::tested {
+            - m_items: std::vector~DocumentItem~
         }
 
         class IParagraph:::tested {
@@ -248,6 +248,7 @@ classDiagram
 
     %% Commands
     ICommand <|.. AbstractCommand
+    ICommand <|.. HelpCommand
     AbstractCommand <|-- UnexecutableCommand
 
     AbstractCommand o--> IDocument
@@ -256,7 +257,6 @@ classDiagram
     AbstractCommand <|-- RedoCommand
     AbstractCommand <|-- UndoCommand
     AbstractCommand <|-- SaveCommand
-    AbstractCommand <|-- HelpCommand
     AbstractCommand <|-- StartMacroRecordingCommand
     AbstractCommand <|-- EndMacroRecordingCommand
 
