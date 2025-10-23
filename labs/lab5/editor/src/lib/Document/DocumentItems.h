@@ -25,6 +25,11 @@ public:
 class Paragraph : public IParagraph
 {
 public:
+	Paragraph(std::string text)
+		: m_text(text)
+	{
+	}
+
 	std::string GetText() const override
 	{
 		return m_text;
@@ -42,6 +47,13 @@ private:
 class Image : public IImage
 {
 public:
+	Image(std::string path, int width, int height)
+		: m_path(path)
+		, m_width(width)
+		, m_height(height)
+	{
+	}
+
 	std::string GetPath() const override
 	{
 		return m_path;
@@ -72,15 +84,10 @@ private:
 class ConstDocumentItem
 {
 public:
-	ConstDocumentItem(
+	ConstDocumentItem(std::shared_ptr<IImage> image,
 		std::shared_ptr<IParagraph> paragraph, bool isDeleted = false)
-		: m_paragraph(paragraph)
-		, m_isDeleted(isDeleted)
-	{
-	}
-
-	ConstDocumentItem(std::shared_ptr<IImage> image, bool isDeleted = false)
 		: m_image(image)
+		, m_paragraph(paragraph)
 		, m_isDeleted(isDeleted)
 	{
 	}

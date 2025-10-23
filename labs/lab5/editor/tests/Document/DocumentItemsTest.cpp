@@ -6,8 +6,7 @@
 
 TEST(ParagraphTest, TextOperations)
 {
-	auto paragraph = std::make_shared<Paragraph>();
-	paragraph->SetText("Test text");
+	auto paragraph = std::make_shared<Paragraph>("Test text");
 	ASSERT_EQ(paragraph->GetText(), "Test text");
 
 	paragraph->SetText("New text");
@@ -16,8 +15,7 @@ TEST(ParagraphTest, TextOperations)
 
 TEST(ImageTest, ImageOperations)
 {
-	auto image = std::make_shared<Image>();
-	image->Resize(100, 200);
+	auto image = std::make_shared<Image>("path.png", 100, 200);
 	ASSERT_EQ(image->GetWidth(), 100);
 	ASSERT_EQ(image->GetHeight(), 200);
 
@@ -28,9 +26,8 @@ TEST(ImageTest, ImageOperations)
 
 TEST(ConstDocumentItemTest, ParagraphItem)
 {
-	auto paragraph = std::make_shared<Paragraph>();
-	paragraph->SetText("Const paragraph");
-	ConstDocumentItem item(paragraph, true);
+	auto paragraph = std::make_shared<Paragraph>("Const paragraph");
+	ConstDocumentItem item(nullptr, paragraph, true);
 
 	ASSERT_EQ(item.GetParagraph()->GetText(), "Const paragraph");
 	ASSERT_TRUE(item.IsDeleted());
@@ -39,9 +36,8 @@ TEST(ConstDocumentItemTest, ParagraphItem)
 
 TEST(ConstDocumentItemTest, ImageItem)
 {
-	auto image = std::make_shared<Image>();
-	image->Resize(150, 250);
-	ConstDocumentItem item(image, false);
+	auto image = std::make_shared<Image>("image.png", 150, 250);
+	ConstDocumentItem item(image, nullptr, false);
 
 	ASSERT_EQ(item.GetImage()->GetWidth(), 150);
 	ASSERT_EQ(item.GetImage()->GetHeight(), 250);
@@ -51,8 +47,7 @@ TEST(ConstDocumentItemTest, ImageItem)
 
 TEST(DocumentItemTest, ParagraphItemModification)
 {
-	auto paragraph = std::make_shared<Paragraph>();
-	paragraph->SetText("Original");
+	auto paragraph = std::make_shared<Paragraph>("Original");
 	DocumentItem item(paragraph);
 
 	item.GetParagraph()->SetText("Modified");
@@ -65,8 +60,7 @@ TEST(DocumentItemTest, ParagraphItemModification)
 
 TEST(DocumentItemTest, ImageItemModification)
 {
-	auto image = std::make_shared<Image>();
-	image->Resize(100, 100);
+	auto image = std::make_shared<Image>("img.png", 100, 100);
 	DocumentItem item(image);
 
 	item.GetImage()->Resize(200, 300);
