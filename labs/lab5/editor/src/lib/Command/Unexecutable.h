@@ -14,7 +14,7 @@ public:
 	virtual void Unexecute() = 0;
 
 protected:
-	UnexecutableCommand(IDocument& document)
+	UnexecutableCommand(std::weak_ptr<IDocument> document)
 		: AbstractCommand(document)
 		, m_executed(false)
 	{
@@ -26,7 +26,8 @@ protected:
 class SetTitleCommand : public UnexecutableCommand
 {
 public:
-	SetTitleCommand(IDocument& document, const std::string& newTitle)
+	SetTitleCommand(
+		std::weak_ptr<IDocument> document, const std::string& newTitle)
 		: UnexecutableCommand(document)
 		, m_newTitle(newTitle)
 	{
@@ -34,11 +35,12 @@ public:
 
 	void Execute() override
 	{
+		auto& document = GetDocument();
 		if (!m_executed)
 		{
-			m_oldTitle = m_document.GetTitle();
+			m_oldTitle = document.GetTitle();
 		}
-		m_document.SetTitle(m_newTitle);
+		document.SetTitle(m_newTitle);
 		m_executed = true;
 	}
 
@@ -46,7 +48,8 @@ public:
 	{
 		if (m_executed)
 		{
-			m_document.SetTitle(m_oldTitle);
+			auto& document = GetDocument();
+			document.SetTitle(m_oldTitle);
 		}
 	}
 
@@ -58,8 +61,8 @@ private:
 class ResizeImageCommand : public UnexecutableCommand
 {
 public:
-	ResizeImageCommand(
-		IDocument& document, size_t position, int newWidth, int newHeight)
+	ResizeImageCommand(std::weak_ptr<IDocument> document, size_t position,
+		int newWidth, int newHeight)
 		: UnexecutableCommand(document)
 		, m_position(position)
 		, m_newWidth(newWidth)
@@ -69,7 +72,8 @@ public:
 
 	void Execute() override
 	{
-		auto& item = m_document.GetItem(m_position);
+		auto& document = GetDocument();
+		auto& item = document.GetItem(m_position);
 		auto image = item.GetImage();
 		if (!image)
 		{
@@ -90,7 +94,8 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& item = m_document.GetItem(m_position);
+			auto& document = GetDocument();
+			auto& item = document.GetItem(m_position);
 			auto image = item.GetImage();
 			if (image)
 			{
@@ -110,8 +115,8 @@ private:
 class InsertParagraphCommand : public UnexecutableCommand
 {
 public:
-	InsertParagraphCommand(IDocument& document, std::optional<size_t> position,
-		const std::string& text)
+	InsertParagraphCommand(std::weak_ptr<IDocument> document,
+		std::optional<size_t> position, const std::string& text)
 		: UnexecutableCommand(document)
 		, m_position(position)
 		, m_text(text)
@@ -122,26 +127,28 @@ public:
 	{
 		if (m_executed)
 		{
-			size_t pos = m_position.value_or(m_document.GetItemsCount() - 1);
-			auto& item = m_document.GetItem(pos);
+			auto& document = GetDocument();
+			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
+			auto& item = document.GetItem(pos);
 			if (item.IsDeleted())
 			{
-				m_document.DeleteItem(pos);
+				document.DeleteItem(pos);
 			}
 		}
 	}
 
 	void Execute() override
 	{
+		auto& document = GetDocument();
 		if (!m_executed)
 		{
-			m_document.InsertParagraph(m_text, m_position);
+			document.InsertParagraph(m_text, m_position);
 			m_executed = true;
 		}
 		else
 		{
-			size_t pos = m_position.value_or(m_document.GetItemsCount() - 1);
-			auto& item = m_document.GetItem(pos);
+			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
+			auto& item = document.GetItem(pos);
 			item.SetIsDeleted(false);
 		}
 	}
@@ -150,8 +157,9 @@ public:
 	{
 		if (m_executed)
 		{
-			size_t pos = m_position.value_or(m_document.GetItemsCount() - 1);
-			auto& item = m_document.GetItem(pos);
+			auto& document = GetDocument();
+			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
+			auto& item = document.GetItem(pos);
 			item.SetIsDeleted(true);
 		}
 	}
@@ -164,8 +172,9 @@ private:
 class InsertImageCommand : public UnexecutableCommand
 {
 public:
-	InsertImageCommand(IDocument& document, std::optional<size_t> position,
-		const fs::path& path, int width, int height)
+	InsertImageCommand(std::weak_ptr<IDocument> document,
+		std::optional<size_t> position, const fs::path& path, int width,
+		int height)
 		: UnexecutableCommand(document)
 		, m_position(position)
 		, m_path(path)
@@ -178,26 +187,28 @@ public:
 	{
 		if (m_executed)
 		{
-			size_t pos = m_position.value_or(m_document.GetItemsCount() - 1);
-			auto& item = m_document.GetItem(pos);
+			auto& document = GetDocument();
+			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
+			auto& item = document.GetItem(pos);
 			if (item.IsDeleted())
 			{
-				m_document.DeleteItem(pos);
+				document.DeleteItem(pos);
 			}
 		}
 	}
 
 	void Execute() override
 	{
+		auto& document = GetDocument();
 		if (!m_executed)
 		{
-			m_document.InsertImage(m_path, m_width, m_height, m_position);
+			document.InsertImage(m_path, m_width, m_height, m_position);
 			m_executed = true;
 		}
 		else
 		{
-			size_t pos = m_position.value_or(m_document.GetItemsCount() - 1);
-			auto& item = m_document.GetItem(pos);
+			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
+			auto& item = document.GetItem(pos);
 			item.SetIsDeleted(false);
 		}
 	}
@@ -206,8 +217,9 @@ public:
 	{
 		if (m_executed)
 		{
-			size_t pos = m_position.value_or(m_document.GetItemsCount() - 1);
-			auto& item = m_document.GetItem(pos);
+			auto& document = GetDocument();
+			size_t pos = m_position.value_or(document.GetItemsCount() - 1);
+			auto& item = document.GetItem(pos);
 			item.SetIsDeleted(true);
 		}
 	}
@@ -222,7 +234,7 @@ private:
 class DeleteItemCommand : public UnexecutableCommand
 {
 public:
-	DeleteItemCommand(IDocument& document, size_t position)
+	DeleteItemCommand(std::weak_ptr<IDocument> document, size_t position)
 		: UnexecutableCommand(document)
 		, m_position(position)
 	{
@@ -232,22 +244,24 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& item = m_document.GetItem(m_position);
+			auto& document = GetDocument();
+			auto& item = document.GetItem(m_position);
 			if (item.IsDeleted())
 			{
-				m_document.DeleteItem(m_position);
+				document.DeleteItem(m_position);
 			}
 		}
 	}
 
 	void Execute() override
 	{
+		auto& document = GetDocument();
 		if (!m_executed)
 		{
-			auto& item = m_document.GetItem(m_position);
+			auto& item = document.GetItem(m_position);
 			m_wasDeleted = item.IsDeleted();
 		}
-		auto& item = m_document.GetItem(m_position);
+		auto& item = document.GetItem(m_position);
 		item.SetIsDeleted(true);
 		m_executed = true;
 	}
@@ -256,7 +270,8 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& item = m_document.GetItem(m_position);
+			auto& document = GetDocument();
+			auto& item = document.GetItem(m_position);
 			item.SetIsDeleted(m_wasDeleted);
 		}
 	}

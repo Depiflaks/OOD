@@ -1,5 +1,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "../../src/lib/Command/Command.h"
 #include "../../src/lib/Document/HtmlDocument.h"
@@ -37,7 +38,7 @@ protected:
 TEST_F(CommandTest, UndoRedoCommandsCallDocumentMethods)
 {
 	MockHistoryManager mockManager;
-	HtmlDocument doc(mockManager);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
 
 	EXPECT_CALL(mockManager, CanUndo()).WillOnce(testing::Return(true));
 	EXPECT_CALL(mockManager, Undo()).Times(1);
@@ -54,7 +55,7 @@ TEST_F(CommandTest, UndoRedoCommandsCallDocumentMethods)
 TEST_F(CommandTest, UndoCommandThrowsWhenCannotUndo)
 {
 	MockHistoryManager mockManager;
-	HtmlDocument doc(mockManager);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
 
 	EXPECT_CALL(mockManager, CanUndo()).WillOnce(testing::Return(false));
 
@@ -66,7 +67,7 @@ TEST_F(CommandTest, UndoCommandThrowsWhenCannotUndo)
 TEST_F(CommandTest, RedoCommandThrowsWhenCannotRedo)
 {
 	MockHistoryManager mockManager;
-	HtmlDocument doc(mockManager);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
 
 	EXPECT_CALL(mockManager, CanRedo()).WillOnce(testing::Return(false));
 
@@ -78,13 +79,13 @@ TEST_F(CommandTest, RedoCommandThrowsWhenCannotRedo)
 TEST_F(CommandTest, ListCommandOutputsAllItemTypesCorrectly)
 {
 	MockHistoryManager mockManager;
-	HtmlDocument doc(mockManager);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
 
-	doc.SetTitle("Test Document");
-	doc.InsertParagraph("First paragraph");
-	doc.InsertParagraph("Second paragraph");
+	doc->SetTitle("Test Document");
+	doc->InsertParagraph("First paragraph");
+	doc->InsertParagraph("Second paragraph");
 
-	auto& item1 = doc.GetItem(0);
+	auto& item1 = doc->GetItem(0);
 	item1.SetIsDeleted(true);
 
 	ListCommand listCommand(doc);
@@ -118,7 +119,7 @@ TEST_F(CommandTest, HelpCommandOutputsHelpText)
 TEST_F(CommandTest, SaveCommandCallsDocumentSave)
 {
 	MockHistoryManager mockManager;
-	HtmlDocument doc(mockManager);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
 
 	SaveCommand saveCommand(doc, "test.html");
 

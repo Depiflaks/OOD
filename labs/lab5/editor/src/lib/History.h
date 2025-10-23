@@ -3,7 +3,10 @@
 
 #include "Command/Mergeable.h"
 #include "Invoker.h"
+#include <iostream>
 #include <list>
+#include <memory>
+#include <utility>
 
 class IHistoryManager
 {
@@ -23,6 +26,11 @@ public:
 	CommandHistoryManager()
 	{
 		m_currentActionIndex = m_commands.end();
+	}
+
+	~CommandHistoryManager()
+	{
+		std::cout << "CommandHistoryManager died\n";
 	}
 
 	void Undo() override
@@ -58,11 +66,10 @@ public:
 		return m_currentActionIndex != m_commands.end();
 	}
 
-	void ExecuteAndAddCommand(std::unique_ptr<ICommand> command) override
+	void ExecuteAndAddCommand(std::shared_ptr<ICommand> command) override
 	{
 		auto unexecutableCommand
-			= std::dynamic_pointer_cast<UnexecutableCommand>(
-				std::shared_ptr<ICommand>(std::move(command)));
+			= std::dynamic_pointer_cast<UnexecutableCommand>(command);
 
 		if (!unexecutableCommand)
 		{

@@ -7,7 +7,7 @@
 class MergableCommand : public UnexecutableCommand
 {
 protected:
-	MergableCommand(IDocument& document)
+	MergableCommand(std::weak_ptr<IDocument> document)
 		: UnexecutableCommand(document)
 	{
 	}
@@ -19,8 +19,8 @@ public:
 class ReplaceTextCommand : public MergableCommand
 {
 public:
-	ReplaceTextCommand(
-		IDocument& document, size_t position, const std::string& newText)
+	ReplaceTextCommand(std::weak_ptr<IDocument> document, size_t position,
+		const std::string& newText)
 		: MergableCommand(document)
 		, m_position(position)
 		, m_newText(newText)
@@ -29,7 +29,8 @@ public:
 
 	void Execute() override
 	{
-		auto& item = m_document.GetItem(m_position);
+		auto& document = GetDocument();
+		auto& item = document.GetItem(m_position);
 		auto paragraph = item.GetParagraph();
 		if (!paragraph)
 		{
@@ -49,7 +50,8 @@ public:
 	{
 		if (m_executed)
 		{
-			auto& item = m_document.GetItem(m_position);
+			auto& document = GetDocument();
+			auto& item = document.GetItem(m_position);
 			auto paragraph = item.GetParagraph();
 			if (paragraph)
 			{
@@ -73,7 +75,8 @@ public:
 
 		m_newText = other->m_newText;
 
-		auto& item = m_document.GetItem(m_position);
+		auto& document = GetDocument();
+		auto& item = document.GetItem(m_position);
 		auto paragraph = item.GetParagraph();
 		if (paragraph)
 		{

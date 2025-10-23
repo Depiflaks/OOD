@@ -16,12 +16,23 @@ public:
 class AbstractCommand : public ICommand
 {
 protected:
-	AbstractCommand(IDocument& document)
+	AbstractCommand(std::weak_ptr<IDocument> document)
 		: m_document(document)
 	{
 	}
 
-	IDocument& m_document;
+	IDocument& GetDocument() const
+	{
+		auto document = m_document.lock();
+		if (!document)
+		{
+			throw std::runtime_error("Document no longer exists");
+		}
+		return *document;
+	}
+
+private:
+	std::weak_ptr<IDocument> m_document;
 };
 
 class HelpCommand : public ICommand
@@ -49,43 +60,45 @@ public:
 class UndoCommand : public AbstractCommand
 {
 public:
-	UndoCommand(IDocument& document)
+	UndoCommand(std::weak_ptr<IDocument> document)
 		: AbstractCommand(document)
 	{
 	}
 
 	void Execute() override
 	{
-		if (!m_document.CanUndo())
+		auto& document = GetDocument();
+		if (!document.CanUndo())
 		{
 			throw std::runtime_error("Cannot undo");
 		}
-		m_document.Undo();
+		document.Undo();
 	}
 };
 
 class RedoCommand : public AbstractCommand
 {
 public:
-	RedoCommand(IDocument& document)
+	RedoCommand(std::weak_ptr<IDocument> document)
 		: AbstractCommand(document)
 	{
 	}
 
 	void Execute() override
 	{
-		if (!m_document.CanRedo())
+		auto& document = GetDocument();
+		if (!document.CanRedo())
 		{
 			throw std::runtime_error("Cannot redo");
 		}
-		m_document.Redo();
+		document.Redo();
 	}
 };
 
 class SaveCommand : public AbstractCommand
 {
 public:
-	SaveCommand(IDocument& document, const std::string& path)
+	SaveCommand(std::weak_ptr<IDocument> document, const std::string& path)
 		: AbstractCommand(document)
 		, m_path(path)
 	{
@@ -93,7 +106,8 @@ public:
 
 	void Execute() override
 	{
-		m_document.Save(m_path);
+		auto& document = GetDocument();
+		document.Save(m_path);
 	}
 
 private:
@@ -103,18 +117,19 @@ private:
 class ListCommand : public AbstractCommand
 {
 public:
-	ListCommand(IDocument& document)
+	ListCommand(std::weak_ptr<IDocument> document)
 		: AbstractCommand(document)
 	{
 	}
 
 	void Execute() override
 	{
-		std::cout << "Title: " << m_document.GetTitle() << std::endl;
+		auto& document = GetDocument();
+		std::cout << "Title: " << document.GetTitle() << std::endl;
 
-		for (size_t i = 0; i < m_document.GetItemsCount(); ++i)
+		for (size_t i = 0; i < document.GetItemsCount(); ++i)
 		{
-			auto item = m_document.GetItem(i);
+			auto item = document.GetItem(i);
 
 			std::cout << (i + 1) << ". ";
 

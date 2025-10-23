@@ -7,7 +7,7 @@ class ICommandManager
 {
 public:
 	virtual ~ICommandManager() = default;
-	virtual void ExecuteAndAddCommand(std::unique_ptr<ICommand> command) = 0;
+	virtual void ExecuteAndAddCommand(std::shared_ptr<ICommand> command) = 0;
 };
 
 #endif /* INVOKER_H */

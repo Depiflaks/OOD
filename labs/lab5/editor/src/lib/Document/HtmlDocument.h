@@ -2,6 +2,7 @@
 #define HTMLDOCUMENT_H
 #include "../History.h"
 #include "Document.h"
+#include <iostream>
 
 class HtmlDocument : public IDocument
 {
@@ -9,6 +10,11 @@ public:
 	HtmlDocument(IHistoryManager& manager)
 		: m_historyManager(manager)
 	{
+	}
+
+	~HtmlDocument()
+	{
+		std::cout << "HtmlDocument died\n";
 	}
 
 	std::shared_ptr<IParagraph> InsertParagraph(const std::string& text,

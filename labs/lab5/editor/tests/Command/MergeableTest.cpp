@@ -1,9 +1,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "../../src/lib/Command/Mergeable.h"
-#include "../../src/lib/History.h"
 #include "../../src/lib/Document/HtmlDocument.h"
+#include "../../src/lib/History.h"
 
 namespace mergable_tests
 {
@@ -45,29 +46,29 @@ protected:
 
 TEST_F(MergableCommandTest, ReplaceTextCommandExecuteAndUnexecuteMultipleTimes)
 {
-	HtmlDocument doc(mockManager);
-	doc.InsertParagraph("Initial text", 0);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
+	doc->InsertParagraph("Initial text", 0);
 
 	ReplaceTextCommand command(doc, 0, "First change");
 
 	command.Execute();
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "First change");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First change");
 	ASSERT_TRUE(command.IsExecuted());
 
 	command.Unexecute();
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "Initial text");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Initial text");
 
 	command.Execute();
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "First change");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First change");
 
 	command.Unexecute();
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "Initial text");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Initial text");
 }
 
 TEST_F(MergableCommandTest, ReplaceTextCommandsMergeAndUnexecuteTogether)
 {
-	HtmlDocument doc(mockManager);
-	doc.InsertParagraph("Initial text", 0);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
+	doc->InsertParagraph("Initial text", 0);
 
 	auto command1
 		= std::make_shared<ReplaceTextCommand>(doc, 0, "First change");
@@ -78,17 +79,17 @@ TEST_F(MergableCommandTest, ReplaceTextCommandsMergeAndUnexecuteTogether)
 	bool merged = command1->TryReplace(command2);
 
 	ASSERT_TRUE(merged);
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "Second change");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Second change");
 
 	command1->Unexecute();
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "Initial text");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Initial text");
 }
 
 TEST_F(MergableCommandTest, MultipleReplaceTextCommandsWithDifferentParagraphs)
 {
-	HtmlDocument doc(mockManager);
-	doc.InsertParagraph("First initial", 0);
-	doc.InsertParagraph("Second initial", 1);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
+	doc->InsertParagraph("First initial", 0);
+	doc->InsertParagraph("Second initial", 1);
 
 	auto command1
 		= std::make_shared<ReplaceTextCommand>(doc, 0, "First changed");
@@ -103,22 +104,22 @@ TEST_F(MergableCommandTest, MultipleReplaceTextCommandsWithDifferentParagraphs)
 	command3->Execute();
 	command1->TryReplace(command4);
 
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "First final");
-	ASSERT_EQ(doc.GetItem(1).GetParagraph()->GetText(), "Second changed");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First final");
+	ASSERT_EQ(doc->GetItem(1).GetParagraph()->GetText(), "Second changed");
 
 	command1->Unexecute();
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "First initial");
-	ASSERT_EQ(doc.GetItem(1).GetParagraph()->GetText(), "Second changed");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First initial");
+	ASSERT_EQ(doc->GetItem(1).GetParagraph()->GetText(), "Second changed");
 
 	command3->Unexecute();
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "First initial");
-	ASSERT_EQ(doc.GetItem(1).GetParagraph()->GetText(), "Second initial");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First initial");
+	ASSERT_EQ(doc->GetItem(1).GetParagraph()->GetText(), "Second initial");
 }
 
 class TestMergableCommand : public MergableCommand
 {
 public:
-	TestMergableCommand(IDocument& document)
+	TestMergableCommand(std::weak_ptr<IDocument> document)
 		: MergableCommand(document)
 	{
 	}
@@ -141,8 +142,8 @@ public:
 
 TEST_F(MergableCommandTest, DifferentMergableCommandsDoNotMerge)
 {
-	HtmlDocument doc(mockManager);
-	doc.InsertParagraph("Initial text", 0);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
+	doc->InsertParagraph("Initial text", 0);
 
 	auto command1
 		= std::make_shared<ReplaceTextCommand>(doc, 0, "First change");
@@ -152,17 +153,17 @@ TEST_F(MergableCommandTest, DifferentMergableCommandsDoNotMerge)
 	bool merged = command1->TryReplace(command2);
 
 	ASSERT_FALSE(merged);
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "First change");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First change");
 
 	command1->Unexecute();
-	ASSERT_EQ(doc.GetItem(0).GetParagraph()->GetText(), "Initial text");
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Initial text");
 }
 
 TEST_F(MergableCommandTest, ReplaceTextCommandThrowsWhenPositionIsImage)
 {
-	HtmlDocument doc(mockManager);
+	auto doc = std::make_shared<HtmlDocument>(mockManager);
 	CreateTestImage();
-	doc.InsertImage("test_image.png", 100, 200, 0);
+	doc->InsertImage("test_image.png", 100, 200, 0);
 
 	ReplaceTextCommand command(doc, 0, "New text");
 
