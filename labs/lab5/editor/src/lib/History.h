@@ -28,11 +28,6 @@ public:
 		m_currentActionIndex = m_commands.end();
 	}
 
-	~CommandHistoryManager()
-	{
-		std::cout << "CommandHistoryManager died\n";
-	}
-
 	void Undo() override
 	{
 		if (!CanUndo())
@@ -85,14 +80,23 @@ public:
 				*std::prev(m_currentActionIndex));
 			if (lastCommand && lastCommand->TryReplace(mergableCommand))
 			{
-				mergableCommand->Execute();
 				return;
 			}
 		}
 
 		if (m_currentActionIndex != m_commands.end())
 		{
-			m_commands.erase(m_currentActionIndex, m_commands.end());
+			for (auto it = std::prev(m_commands.end());;)
+			{
+				auto toErase = it;
+				if (it == m_currentActionIndex)
+				{
+					m_commands.erase(toErase);
+					break;
+				}
+				--it;
+				m_commands.erase(toErase);
+			}
 		}
 
 		m_commands.push_back(unexecutableCommand);

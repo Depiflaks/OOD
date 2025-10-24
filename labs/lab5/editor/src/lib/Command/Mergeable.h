@@ -2,6 +2,7 @@
 #define MERGEABLE_H
 #include "Unexecutable.h"
 #include <execution>
+#include <iostream>
 #include <memory>
 
 class MergableCommand : public UnexecutableCommand

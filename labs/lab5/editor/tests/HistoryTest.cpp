@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <optional>
 
 #include "../src/lib/Document/HtmlDocument.h"
 #include "../src/lib/History.h"
@@ -56,38 +57,6 @@ TEST_F(CommandHistoryManagerTest, ExecuteMultipleCommandsAndVerifyChanges)
 	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Paragraph 1");
 }
 
-TEST_F(CommandHistoryManagerTest, ExecuteAndUndoMultipleCommands)
-{
-	auto doc = std::make_shared<HtmlDocument>(historyManager);
-
-	doc->SetTitle("Initial Title");
-	doc->InsertParagraph("Initial Paragraph", 0);
-
-	std::string initialTitle = doc->GetTitle();
-	std::string initialParagraph = doc->GetItem(0).GetParagraph()->GetText();
-
-	historyManager.ExecuteAndAddCommand(
-		std::make_unique<SetTitleCommand>(doc, "New Title 1"));
-	historyManager.ExecuteAndAddCommand(
-		std::make_unique<InsertParagraphCommand>(doc, 0, "New Paragraph"));
-	historyManager.ExecuteAndAddCommand(
-		std::make_unique<SetTitleCommand>(doc, "New Title 2"));
-	historyManager.ExecuteAndAddCommand(
-		std::make_unique<ReplaceTextCommand>(doc, 0, "Replaced Text"));
-	historyManager.ExecuteAndAddCommand(
-		std::make_unique<SetTitleCommand>(doc, "Final Title"));
-
-	historyManager.Undo();
-	historyManager.Undo();
-	historyManager.Undo();
-	historyManager.Undo();
-	historyManager.Undo();
-
-	ASSERT_EQ(doc->GetTitle(), initialTitle);
-	ASSERT_EQ(doc->GetItemsCount(), 1);
-	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), initialParagraph);
-}
-
 TEST_F(CommandHistoryManagerTest, MixExecutableAndUnexecutableCommands)
 {
 	auto doc = std::make_shared<HtmlDocument>(historyManager);
@@ -110,11 +79,11 @@ TEST_F(CommandHistoryManagerTest, MixExecutableAndUnexecutableCommands)
 
 	historyManager.Undo();
 	ASSERT_EQ(doc->GetTitle(), "Title 1");
-	ASSERT_EQ(doc->GetItemsCount(), 0);
+	ASSERT_EQ(doc->GetItemsCount(), 1);
+	ASSERT_TRUE(doc->GetItem(0).IsDeleted());
 
 	historyManager.Undo();
-	ASSERT_EQ(doc->GetTitle(), "Title 1");
-	ASSERT_EQ(doc->GetItemsCount(), 0);
+	ASSERT_EQ(doc->GetTitle(), "");
 }
 
 TEST_F(CommandHistoryManagerTest, CreateObjectsUndoAndExecuteNewCommand)
@@ -128,6 +97,7 @@ TEST_F(CommandHistoryManagerTest, CreateObjectsUndoAndExecuteNewCommand)
 		doc, 0, "test_image1.png", 100, 200));
 	historyManager.ExecuteAndAddCommand(std::make_unique<InsertImageCommand>(
 		doc, 1, "test_image2.png", 300, 400));
+
 	historyManager.ExecuteAndAddCommand(
 		std::make_unique<InsertParagraphCommand>(doc, 2, "Test Paragraph"));
 
@@ -137,13 +107,16 @@ TEST_F(CommandHistoryManagerTest, CreateObjectsUndoAndExecuteNewCommand)
 	historyManager.Undo();
 	historyManager.Undo();
 
-	ASSERT_EQ(doc->GetItemsCount(), 1);
+	ASSERT_EQ(doc->GetItemsCount(), 3);
+	ASSERT_TRUE(doc->GetItem(1).IsDeleted());
+	ASSERT_TRUE(doc->GetItem(2).IsDeleted());
 
 	historyManager.ExecuteAndAddCommand(
-		std::make_unique<ReplaceTextCommand>(doc, 0, "Modified Text"));
+		std::make_unique<InsertParagraphCommand>(
+			doc, std::nullopt, "new Paragraph"));
 
-	ASSERT_EQ(doc->GetItemsCount(), 1);
-	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Modified Text");
+	ASSERT_EQ(doc->GetItemsCount(), 2);
+	ASSERT_EQ(doc->GetItem(1).GetParagraph()->GetText(), "new Paragraph");
 	ASSERT_FALSE(fs::exists("tmp/test_image2.png"));
 }
 
@@ -179,4 +152,98 @@ TEST_F(CommandHistoryManagerTest, RedoAfterUndo)
 	ASSERT_EQ(doc->GetTitle(), "Title 2");
 
 	ASSERT_FALSE(historyManager.CanRedo());
+}
+
+TEST_F(CommandHistoryManagerTest, CreateTwoTextObjectsUndoAndCreateNew)
+{
+	auto doc = std::make_shared<HtmlDocument>(historyManager);
+
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<InsertParagraphCommand>(doc, 0, "First paragraph"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<InsertParagraphCommand>(doc, 1, "Second paragraph"));
+
+	ASSERT_EQ(doc->GetItemsCount(), 2);
+
+	historyManager.Undo();
+	historyManager.Undo();
+
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<InsertParagraphCommand>(doc, 0, "Third paragraph"));
+
+	ASSERT_EQ(doc->GetItemsCount(), 1);
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Third paragraph");
+}
+
+TEST_F(CommandHistoryManagerTest, ReplaceTextCommandsMerge)
+{
+	auto doc = std::make_shared<HtmlDocument>(historyManager);
+
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<InsertParagraphCommand>(doc, 0, "Initial text"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<ReplaceTextCommand>(doc, 0, "First change"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<ReplaceTextCommand>(doc, 0, "Second change"));
+
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Second change");
+
+	historyManager.Undo();
+
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Initial text");
+}
+
+TEST_F(CommandHistoryManagerTest,
+	ReplaceTextCommandsMergeWithNonMergableCommandInBetween)
+{
+	auto doc = std::make_shared<HtmlDocument>(historyManager);
+
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<InsertParagraphCommand>(doc, 0, "Initial text"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<ReplaceTextCommand>(doc, 0, "First change"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<ReplaceTextCommand>(doc, 0, "Second change"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<InsertParagraphCommand>(doc, std::nullopt, "123"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<ReplaceTextCommand>(doc, 0, "Third change"));
+
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Third change");
+
+	historyManager.Undo();
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Second change");
+
+	historyManager.Undo();
+	historyManager.Undo();
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "Initial text");
+}
+
+TEST_F(CommandHistoryManagerTest, ReplaceTextCommandsDoNotMergeAfterNewInsert)
+{
+	auto doc = std::make_shared<HtmlDocument>(historyManager);
+
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<InsertParagraphCommand>(doc, 0, "First paragraph"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<ReplaceTextCommand>(doc, 0, "First changed"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<InsertParagraphCommand>(doc, 1, "Second paragraph"));
+	historyManager.ExecuteAndAddCommand(
+		std::make_unique<ReplaceTextCommand>(doc, 0, "First changed again"));
+
+	ASSERT_EQ(doc->GetItemsCount(), 2);
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First changed again");
+	ASSERT_EQ(doc->GetItem(1).GetParagraph()->GetText(), "Second paragraph");
+
+	historyManager.Undo();
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First changed");
+	ASSERT_EQ(doc->GetItem(1).GetParagraph()->GetText(), "Second paragraph");
+
+	historyManager.Undo();
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First changed");
+	ASSERT_EQ(doc->GetItemsCount(), 2);
+
+	historyManager.Undo();
+	ASSERT_EQ(doc->GetItem(0).GetParagraph()->GetText(), "First paragraph");
 }

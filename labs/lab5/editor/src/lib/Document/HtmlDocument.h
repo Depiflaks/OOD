@@ -12,11 +12,6 @@ public:
 	{
 	}
 
-	~HtmlDocument()
-	{
-		std::cout << "HtmlDocument died\n";
-	}
-
 	std::shared_ptr<IParagraph> InsertParagraph(const std::string& text,
 		std::optional<size_t> position = std::nullopt) override
 	{
