@@ -6,19 +6,19 @@ classDiagram
     }
 
     namespace factory {
-        class ICommandFactory {
+        class ICommandFactory:::tested {
             + CreateCommand() ICommand
             + CanCreateCommand() bool
             + AppendCommand(name: string, command: ICommand)
         }
 
-        class AbstractCommandFactory {
+        class AbstractCommandFactory:::tested {
             + AbstractCommandFactory(document: IDocument&)
 
             # m_document: std::shared_ptr~IDocument~
         }
 
-        class DocumentCommandFactory {
+        class DocumentCommandFactory:::tested {
             + DocumentCommandFactory(stream: std::istream&)
 
             - CreateInsertParagraph(std::string arguments) void
@@ -34,7 +34,7 @@ classDiagram
             - CreateSave(std::string arguments) void
 
             - m_stream: std::unique_ptr~std::istream~
-            - m_macroCommands: std::map~std::string, std::vector~ICommand~~
+            - m_macroCommands: map~string, ICommand[]~
         }
     }
 
@@ -116,7 +116,7 @@ classDiagram
 
     namespace invoker {
 
-        class ICommandManager {
+        class ICommandManager:::tested {
             + ExecuteAndAddCommand(command: ICommand&&)
         }
 
@@ -132,14 +132,14 @@ classDiagram
 
     namespace history {
 
-        class IHistoryManager {
+        class IHistoryManager:::tested {
             + Undo() void
             + Redo() void
             + CanUndo() bool
             + CanRedo() bool
         }
 
-        class CommandHistoryManager {
+        class CommandHistoryManager:::tested {
             - m_commands: std::list~std::shared_ptr~ICommand~~
             - m_currentActionIndex: std::list~std::shared_ptr~ICommand~~::iterator
         }
