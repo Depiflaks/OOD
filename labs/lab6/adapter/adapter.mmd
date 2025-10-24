@@ -76,9 +76,14 @@ classDiagram
             + PaintPictureOnModernGraphicsRenderer() void
         }
 
-        class ModernCanvasAdapter {
+        class ObjectModernCanvasAdapter {
             - m_currentPoint: ModernPoint
         }
+
+        class ClassModernCanvasAdapter {
+            - m_currentPoint: ModernPoint
+        }
+
     }
 
     %% modern_graphics_lib
@@ -86,8 +91,11 @@ classDiagram
 
     %% app
     App *--> CanvasPainter
-    ICanvas <|.. ModernCanvasAdapter
-    ModernCanvasAdapter o--> ModernGraphicsRenderer
+    ICanvas <|.. ObjectModernCanvasAdapter : public
+    ICanvas <|.. ClassModernCanvasAdapter
+
+    ObjectModernCanvasAdapter o--> ModernGraphicsRenderer
+    ClassModernCanvasAdapter --|> ModernGraphicsRenderer : private
 
     %% shape_drawing_lib
     ICanvasDrawable <|.. Triangle

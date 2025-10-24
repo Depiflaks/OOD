@@ -82,8 +82,10 @@ public:
 		if (paragraph)
 		{
 			paragraph->SetText(m_newText);
+			return true;
 		}
-		return true;
+		return false;
+		// доработать, чтобы Undo прерывало склеивание
 	}
 
 private:

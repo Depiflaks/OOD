@@ -64,7 +64,7 @@ public:
 	void ExecuteAndAddCommand(std::shared_ptr<ICommand> command) override
 	{
 		auto unexecutableCommand
-			= std::dynamic_pointer_cast<UnexecutableCommand>(command);
+			= std::dynamic_pointer_cast<UnexecutableCommand>(std::move(command));
 
 		if (!unexecutableCommand)
 		{
@@ -73,12 +73,12 @@ public:
 		}
 
 		auto mergableCommand
-			= std::dynamic_pointer_cast<MergableCommand>(unexecutableCommand);
+			= std::dynamic_pointer_cast<MergableCommand>(std::move(unexecutableCommand));
 		if (mergableCommand && CanUndo())
 		{
 			auto lastCommand = std::dynamic_pointer_cast<MergableCommand>(
 				*std::prev(m_currentActionIndex));
-			if (lastCommand && lastCommand->TryReplace(mergableCommand))
+			if (lastCommand && lastCommand->TryReplace(std::move(mergableCommand)))
 			{
 				return;
 			}
