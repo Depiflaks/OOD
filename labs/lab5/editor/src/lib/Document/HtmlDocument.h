@@ -2,13 +2,14 @@
 #define HTMLDOCUMENT_H
 #include "../History.h"
 #include "Document.h"
+#include "lib/Invoker.h"
 #include <iostream>
 
 class HtmlDocument : public IDocument
 {
 public:
-	HtmlDocument(IHistoryManager& manager)
-		: m_historyManager(manager)
+	HtmlDocument(IHistoryManager& historyManager, ICommandManager& commandManager)
+		: m_historyManager(historyManager)
 	{
 	}
 

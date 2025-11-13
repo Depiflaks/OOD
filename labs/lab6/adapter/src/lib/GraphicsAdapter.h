@@ -1,0 +1,5 @@
+#ifndef GRAPHICSADAPTER_H
+#define GRAPHICSADAPTER_H
+
+#endif /* GRAPHICSADAPTER_H */
+

@@ -1,7 +1,6 @@
 classDiagram
     direction TB
 
-
     class client {
     }
 
@@ -39,19 +38,25 @@ classDiagram
     }
 
     namespace command {
-        class ICommand:::tested {
+        class ICommand {
             + Execute() void
         }
+    }
 
-        class AbstractCommand:::tested {
+    namespace editor_command {
+        class IEditorCommand:::tested {
+        }
+
+        class AbstractEditorCommand:::tested {
             # m_document: IDocument&
         }
 
-        class UnexecutableCommand:::tested {
+        class UnexecutableEditorCommand:::tested {
             + Unexecute() void
             + IsExecuted() bool
             # m_executed: bool
         }
+
 
         class MergableCommand:::tested {
             + TryReplace(command: MergableCommand&) bool
@@ -97,20 +102,25 @@ classDiagram
             + DeleteItemCommand(document: IDocument, position: size_t)
         }
 
+        class SaveCommand:::tested {
+            + SaveCommand(document: IDocument, path: string)
+        }
+    }
+
+    namespace menu_command {
+        class IMenuCommand {
+        }
+
         class HelpCommand:::tested {
             + HelpCommand()
         }
 
         class UndoCommand:::tested {
-            + UndoCommand(document: IDocument)
+            + UndoCommand(manager: IHistoryManager&)
         }
 
         class RedoCommand:::tested {
-            + RedoCommand(document: IDocument)
-        }
-
-        class SaveCommand:::tested {
-            + SaveCommand(document: IDocument, path: string)
+            + RedoCommand(manager: IHistoryManager&)
         }
     }
 
@@ -140,15 +150,24 @@ classDiagram
         }
 
         class CommandHistoryManager:::tested {
-            - m_commands: std::list~std::shared_ptr~ICommand~~
-            - m_currentActionIndex: std::list~std::shared_ptr~ICommand~~::iterator
+            - m_commands: std::list~std::shared_ptr~IEditorCommand~~
+            - m_currentActionIndex: std::list~std::shared_ptr~IEditorCommand~~::iterator
         }
-
     }
 
     namespace resiever {
+        class IEditorMenu {
+            + CanUndo() bool
+            + Undo() void
+            + CanRedo() bool
+            + Redo() void
+        }
 
-        class IDocument:::tested {
+        class DocumentEditorMenu {
+            - m_historyManager: IHistoryManager
+        }
+
+        class AbstractDocument:::tested {
             + InsertParagraph(text: string, position: optional~size_t~ = none) shared_ptr~IParagraph~
             + InsertImage(path: Path, width: int, height: int, position: optional~size_t~ = none) shared_ptr~IImage~
             + GetItemsCount() size_t
@@ -157,15 +176,13 @@ classDiagram
             + DeleteItem(index: size_t) void
             + GetTitle() string
             + SetTitle(title: string) void
-            + CanUndo() bool
-            + Undo() void
-            + CanRedo() bool
-            + Redo() void
-            + Save(path: Path) void
+            + Save(path: Path) void = 0
+
+            - m_items: std::vector~DocumentItem~
         }
 
         class HtmlDocument:::tested {
-            - m_items: std::vector~DocumentItem~
+            + Save(path: Path) void
         }
 
         class IParagraph:::tested {
@@ -221,7 +238,7 @@ classDiagram
     %% Factory
     ICommandFactory <|.. AbstractCommandFactory
     AbstractCommandFactory <|-- DocumentCommandFactory
-    AbstractCommandFactory o--> IDocument
+    AbstractCommandFactory o--> AbstractDocument
     ICommandFactory ..> ICommand : creates
 
     %% Invoker
@@ -233,10 +250,12 @@ classDiagram
     IHistoryManager <|.. CommandHistoryManager
     ICommandManager <|.. CommandHistoryManager
 
-    CommandHistoryManager *--> ICommand
+    CommandHistoryManager *--> IEditorCommand
 
     %% Document
-    IDocument <|.. HtmlDocument
+    IEditorMenu <|.. DocumentEditorMenu
+    DocumentEditorMenu <|-- AbstractDocument
+    AbstractDocument <|-- HtmlDocument
     HtmlDocument *--> DocumentItem
     DocumentItem o--> IParagraph
     DocumentItem o--> IImage
@@ -246,29 +265,35 @@ classDiagram
 
     HtmlDocument o--> IHistoryManager
 
-    %% Commands
-    ICommand <|.. AbstractCommand
-    ICommand <|.. HelpCommand
-    AbstractCommand <|-- UnexecutableCommand
+    %% Command
+    ICommand <|.. IEditorCommand
+    ICommand <|.. IMenuCommand
 
-    AbstractCommand o--> IDocument
+    %% Editor Commands
+    IEditorCommand <|.. AbstractEditorCommand
+    AbstractEditorCommand <|-- UnexecutableEditorCommand
 
-    AbstractCommand <|-- ListCommand
-    AbstractCommand <|-- RedoCommand
-    AbstractCommand <|-- UndoCommand
-    AbstractCommand <|-- SaveCommand
-    AbstractCommand <|-- StartMacroRecordingCommand
-    AbstractCommand <|-- EndMacroRecordingCommand
+    AbstractEditorCommand o--> AbstractDocument
 
-    UnexecutableCommand <|-- InsertParagraphCommand
-    UnexecutableCommand <|-- InsertImageCommand
-    UnexecutableCommand <|-- SetTitleCommand
-    UnexecutableCommand <|-- DeleteItemCommand
-    UnexecutableCommand <|-- ResizeImageCommand
-    UnexecutableCommand <|-- MacroExecutionCommand
+    AbstractEditorCommand <|-- ListCommand
+    AbstractEditorCommand <|-- SaveCommand
+    AbstractEditorCommand <|-- StartMacroRecordingCommand
+    AbstractEditorCommand <|-- EndMacroRecordingCommand
 
-    UnexecutableCommand <|-- MergableCommand
+    UnexecutableEditorCommand <|-- InsertParagraphCommand
+    UnexecutableEditorCommand <|-- InsertImageCommand
+    UnexecutableEditorCommand <|-- SetTitleCommand
+    UnexecutableEditorCommand <|-- DeleteItemCommand
+    UnexecutableEditorCommand <|-- ResizeImageCommand
+    UnexecutableEditorCommand <|-- MacroExecutionCommand
+
+    UnexecutableEditorCommand <|-- MergableCommand
     MergableCommand <|-- ReplaceTextCommand
+
+    %% Editor Commands
+    IMenuCommand <|.. HelpCommand
+    IMenuCommand <|.. RedoCommand
+    IMenuCommand <|.. UndoCommand
 
     classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;
     classDef created fill:#FBE6FF,stroke:#333,stroke-width:2px;
