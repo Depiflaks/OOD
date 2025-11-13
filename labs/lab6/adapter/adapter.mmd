@@ -43,6 +43,7 @@ classDiagram
         class ICanvasDrawable {
             <<interface>>
             + Draw(canvas: ICanvas) void
+            + SetColor(color: uint32_t) void
         }
 
         class Triangle {
@@ -51,6 +52,7 @@ classDiagram
             - p1: Point
             - p2: Point
             - p3: Point
+            - color: uint32_t
         }
 
         class Rectangle {
@@ -59,6 +61,7 @@ classDiagram
             - leftTop: Point
             - width: int
             - height: int
+            - color: uint32_t
         }
 
         class CanvasPainter {

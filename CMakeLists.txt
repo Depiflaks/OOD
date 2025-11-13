@@ -25,4 +25,5 @@ add_subdirectory(labs/lab2/WeatherStation ${CMAKE_BINARY_DIR}/labs/lab2/WeatherS
 add_subdirectory(labs/lab3/coffee ${CMAKE_BINARY_DIR}/labs/lab3/coffee)
 add_subdirectory(labs/lab3/streams ${CMAKE_BINARY_DIR}/labs/lab3/streams)
 add_subdirectory(labs/lab4/shapes ${CMAKE_BINARY_DIR}/labs/lab4/shapes)
-add_subdirectory(labs/lab5/editor ${CMAKE_BINARY_DIR}/labs/lab5/editor)
+# add_subdirectory(labs/lab5/editor ${CMAKE_BINARY_DIR}/labs/lab5/editor)
+add_subdirectory(labs/lab6/adapter ${CMAKE_BINARY_DIR}/labs/lab6/adapter)

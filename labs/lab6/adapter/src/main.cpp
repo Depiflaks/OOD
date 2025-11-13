@@ -6,11 +6,13 @@
 
 namespace app
 {
-void PaintPicture(shape_drawing_lib::CanvasPainter& painter);
+void PaintPicture(shape_drawing_lib::CanvasPainter& painter) {
 
+};
 
-void PaintPictureOnCanvas();
+void PaintPictureOnCanvas() {
 
+};
 
 void PaintPictureOnModernGraphicsRenderer()
 {
@@ -22,7 +24,6 @@ void PaintPictureOnModernGraphicsRenderer()
 }
 
 } // namespace app
-
 
 int main()
 {

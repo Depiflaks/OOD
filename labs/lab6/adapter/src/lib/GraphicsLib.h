@@ -2,6 +2,10 @@
 #define GRAPHICSLIB_H
 
 #include <cstdint>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
 namespace graphics_lib
 {
 class ICanvas
@@ -17,20 +21,31 @@ public:
 class Canvas : public ICanvas
 {
 public:
+	explicit Canvas(std::ostream& output)
+		: m_output(output)
+	{
+	}
+
 	void SetColor(uint32_t rgbColor) override
 	{
-		// TODO: вывести в output цвет в виде строки SetColor (#RRGGBB)
+		std::ostringstream colorStream;
+		colorStream << "#" << std::hex << std::uppercase << std::setfill('0')
+					<< std::setw(6) << (rgbColor & 0xFFFFFF);
+		m_output << "SetColor (" << colorStream.str() << ")" << std::endl;
 	}
 
 	void MoveTo(int x, int y) override
 	{
-		// Реализация остается без изменения
+		m_output << "MoveTo (" << x << ", " << y << ")" << std::endl;
 	}
 
 	void LineTo(int x, int y) override
 	{
-		// Реализация остается без изменения
+		m_output << "LineTo (" << x << ", " << y << ")" << std::endl;
 	}
+
+private:
+	std::ostream& m_output;
 };
 } // namespace graphics_lib
 
