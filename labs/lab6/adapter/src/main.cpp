@@ -1,29 +1,42 @@
 #include <iostream>
 #include <string>
 
+#include "lib/GraphicsAdapter.h"
 #include "lib/ModernGraphicsLib.h"
 #include "lib/ShapeDrawingLib.h"
 
 namespace app
 {
-void PaintPicture(shape_drawing_lib::CanvasPainter& painter) {
 
+using namespace shape_drawing_lib;
+
+void PaintPicture(shape_drawing_lib::CanvasPainter& painter)
+{
+	shape_drawing_lib::Triangle triangle(
+		Point(10, 15), Point(100, 200), Point(150, 250), 0x161415);
+	shape_drawing_lib::Rectangle rectangle(Point(30, 40), 18, 24, 0xffaabb);
+
+	painter.Draw(triangle);
+	painter.Draw(rectangle);
 };
 
-void PaintPictureOnCanvas() {
-
+void PaintPictureOnCanvas()
+{
+	graphics_lib::Canvas canvas(std::cout);
+	shape_drawing_lib::CanvasPainter painter(canvas);
+	PaintPicture(painter);
 };
 
 void PaintPictureOnModernGraphicsRenderer()
 {
 	modern_graphics_lib::ModernGraphicsRenderer renderer(std::cout);
-	(void)&renderer; // устраняем предупреждение о неиспользуемой переменной
-	// TODO: при помощи существующей функции PaintPicture() нарисовать
-	// картину на renderer
-	// Подсказка: используйте паттерн "Адаптер"
+	ObjectModernCanvasAdapter adapter(
+		std::make_shared<modern_graphics_lib::ModernGraphicsRenderer>(
+			renderer));
+	shape_drawing_lib::CanvasPainter painter(adapter);
+	PaintPicture(painter);
 }
-
-} // namespace app
+}
 
 int main()
 {
