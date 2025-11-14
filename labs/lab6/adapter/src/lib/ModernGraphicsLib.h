@@ -47,7 +47,8 @@ public:
 	}
 
 	// Выполняет рисование линии
-	void DrawLine(const Point& start, const Point& end)
+	void DrawLine(
+		const Point& start, const Point& end, uint32_t color = 0x000000)
 	{
 		if (!m_drawing)
 		{
@@ -55,7 +56,10 @@ public:
 				"DrawLine is allowed between BeginDraw()/EndDraw() only");
 		}
 		m_out << boost::format(
-			R"(  <line fromX="%1%" fromY="%2" toX="%3%" toY="%4%"/>)")
+					 R"(  <line fromX="%1%" fromY="%2%" toX="%3%" toY="%4%">)")
+				% start.x % start.y % end.x % end.y;
+		m_out << boost::format(R"(<color value="#%1$06X"/></line>)")
+				% (color & 0xFFFFFF)
 			  << "\n";
 	}
 
