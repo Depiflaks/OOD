@@ -36,7 +36,7 @@ void PaintPictureOnModernGraphicsRenderer()
 	shape_drawing_lib::CanvasPainter painter(adapter);
 	PaintPicture(painter);
 }
-}
+} // namespace app
 
 int main()
 {

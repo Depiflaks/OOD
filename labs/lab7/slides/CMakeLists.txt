@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(lab6_adapter)
+project(lab7_slides)
 
 set(CMAKE_CXX_STANDARD 20)
 
