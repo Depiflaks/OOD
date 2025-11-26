@@ -15,7 +15,7 @@ classDiagram
 
     class IShape {
         + GetFrame() RectD
-        + SetFrame(const RectD & rect) void
+        + SetFrame(rect: RectD) void
 
         + GetOutlineStyle() IStyle
         + GetOutlineStyle() IStyle
@@ -35,7 +35,6 @@ classDiagram
     }
 
     class IGroupShape {
-
     }
 
     class ISlide {
@@ -48,14 +47,12 @@ classDiagram
     }
 
     class ICanvas {
-        <<interface>>
-        + DrawLine(x1: double, y1: double, x2: double, y2: double) void
-        + DrawEllipse(x: double, y: double, width: double, height: double) void
-        + FillEllipse(x: double, y: double, width: double, height: double) void
-        + FillPolygon(points: Point[]) void
-        + SetFillColor(color: RGBAColor) void
-        + SetLineColor(color: RGBAColor) void
-        + SetLineThickness(thickness: double) void
+        + SetLineColor(color RGBAColor) void
+        + BeginFill(color RGBAColor) void
+        + EndFill() void
+        + MoveTo(x double, y double) void
+        + LineTo(x double, y double) void
+        + DrawEllipse(left double, top double, width double, height double) void
     }
 
     class SFMLCanvas {
