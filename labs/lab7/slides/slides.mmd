@@ -1,4 +1,74 @@
 classDiagram
     direction TB
 
+    class IDrawable {
+        + Draw(canvas: ICanvas) void
+    }
+
+    class IStyle {
+        + IsEnabled() optional~bool~
+        + Enable(enable: bool) void
+
+        + GetColor() optional~RGBAColor~
+        + SetColor(color: RGBAColor) void
+    }
+
+    class IShape {
+        + GetFrame() RectD
+        + SetFrame(const RectD & rect) void
+
+        + GetOutlineStyle() IStyle
+        + GetOutlineStyle() IStyle
+
+        + GetFillStyle() IStyle
+        + GetFillStyle() IStyle
+
+        + GetGroup() std::shared_ptr~IGroupShape~
+        + GetGroup() std::shared_ptr~const IGroupShape~
+    }
+
+    class IShapes {
+        + GetShapesCount() size_t
+        + InsertShape(shape: std::shared_ptr~IShape~, position: size_t) void
+        + GetShapeAtIndex(index: size_t) std::shared_ptr~IShape~
+        + RemoveShapeAtIndex(index: size_t) void
+    }
+
+    class IGroupShape {
+
+    }
+
+    class ISlide {
+        + GetWidth() double
+        + GetHeight() double
+
+        + GetShapes() IShapes&
+
+        + m_param: int
+    }
+
+    class ICanvas {
+        <<interface>>
+        + DrawLine(x1: double, y1: double, x2: double, y2: double) void
+        + DrawEllipse(x: double, y: double, width: double, height: double) void
+        + FillEllipse(x: double, y: double, width: double, height: double) void
+        + FillPolygon(points: Point[]) void
+        + SetFillColor(color: RGBAColor) void
+        + SetLineColor(color: RGBAColor) void
+        + SetLineThickness(thickness: double) void
+    }
+
+    class SFMLCanvas {
+    }
+
+    %% Связи
+    IDrawable <|.. IShape
+
+    IShape <|.. IGroupShape
+    IShapes <|.. IGroupShape
+
+    %% Canvas
+    ICanvas <|.. SFMLCanvas
+
+
 
