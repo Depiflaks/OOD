@@ -12,6 +12,6 @@ public:
 	virtual void DrawEllipse(double left, double top, double width, double height) = 0;
 	virtual void SetLineWidth(int width) = 0;
 
-	virtual ~ICanvas() = 0;
+	virtual ~ICanvas() = default;
 };
 
