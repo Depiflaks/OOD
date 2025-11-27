@@ -2,13 +2,12 @@ classDiagram
     direction TB
 
     class IDrawable {
-        + Draw(canvas: ICanvas) void
+        + Draw(canvas: ICanvas&) void
     }
 
     class IStyle {
         + IsEnabled() optional~bool~
         + Enable(enable: bool) void
-
         + GetColor() optional~RGBAColor~
         + SetColor(color: RGBAColor) void
     }
@@ -16,55 +15,61 @@ classDiagram
     class IShape {
         + GetFrame() RectD
         + SetFrame(rect: RectD) void
-
-        + GetOutlineStyle() IStyle
-        + GetOutlineStyle() IStyle
-
-        + GetFillStyle() IStyle
-        + GetFillStyle() IStyle
-
-        + GetGroup() std::shared_ptr~IGroupShape~
-        + GetGroup() std::shared_ptr~const IGroupShape~
+        + GetOutlineStyle() IStyle&
+        + GetFillStyle() IStyle&
+        + GetGroup() std:: shared_ptr~IGroupShape~
+        + GetGroup() std:: shared_ptr~IGroupShape~
     }
 
     class IShapes {
         + GetShapesCount() size_t
-        + InsertShape(shape: std::shared_ptr~IShape~, position: size_t) void
-        + GetShapeAtIndex(index: size_t) std::shared_ptr~IShape~
+        + InsertShape(shape: std:: shared_ptr~IShape~, position: size_t) void
+        + GetShapeAtIndex(index: size_t) std:: shared_ptr~IShape~
         + RemoveShapeAtIndex(index: size_t) void
     }
 
     class IGroupShape {
     }
 
+    class SimpleShape {
+        + SimpleShape(drawingStrategy: DrawingStrategy)
+    }
+
+    class GroupShape {
+    }
+
     class ISlide {
         + GetWidth() double
         + GetHeight() double
-
         + GetShapes() IShapes&
-
-        + m_param: int
     }
 
-    class ICanvas {
-        + SetLineColor(color RGBAColor) void
-        + BeginFill(color RGBAColor) void
-        + EndFill() void
-        + MoveTo(x double, y double) void
-        + LineTo(x double, y double) void
-        + DrawEllipse(left double, top double, width double, height double) void
+    class Slide {
     }
 
-    class SFMLCanvas {
+    namespace gfx {
+        class ICanvas {
+            + SetLineColor(color RGBAColor) void
+            + BeginFill(color RGBAColor) void
+            + EndFill() void
+            + MoveTo(x: double, y: double) void
+            + LineTo(x: double, y: double) void
+            + DrawEllipse(left: double, top: double, width: double, height: double) void
+        }
+
+        class SFMLCanvas {
+        }
     }
 
-    %% Связи
+%% Drawable
     IDrawable <|.. IShape
-
-    IShape <|.. IGroupShape
+    IDrawable <|.. ISlide
+    IShape <|.. SimpleShape
+    IShape <|.. GroupShape
     IShapes <|.. IGroupShape
-
-    %% Canvas
+    IGroupShape <|.. GroupShape
+    ISlide <|.. Slide
+%% Canvas
     ICanvas <|.. SFMLCanvas
 
 
