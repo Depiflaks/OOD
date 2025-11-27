@@ -24,6 +24,7 @@ public:
 		(double left, double top, double width, double height), (override));
 	MOCK_METHOD(void, SetLineWidth, (int width), (override));
 };
+
 class SimpleShapeTest : public testing::Test
 {
 protected:
@@ -32,6 +33,7 @@ protected:
 	const RGBAColor FILL_COLOR = 0xFF0000FF;
 	const RGBAColor OUTLINE_COLOR = 0x00FF00FF;
 	const RGBAColor DEFAULT_COLOR = 0x0;
+	const RGBAColor DISABLE_MASK = 0x00FFFFFF;
 
 	std::shared_ptr<IShape> createShape(
 		std::shared_ptr<DrawingStrategy> strategy, bool fillEnabled = true,
@@ -112,7 +114,7 @@ TEST_F(SimpleShapeTest, DrawWithFillDisabledUsesDefaultColor)
 	auto shape = createShape(strategy, false, true);
 
 	testing::InSequence s;
-	EXPECT_CALL(canvas, BeginFill(DEFAULT_COLOR));
+	EXPECT_CALL(canvas, BeginFill(FILL_COLOR & DISABLE_MASK));
 	EXPECT_CALL(canvas, SetLineColor(OUTLINE_COLOR));
 	EXPECT_CALL(canvas,
 		DrawEllipse(DoubleNear(TEST_FRAME.left), DoubleNear(TEST_FRAME.top),
@@ -129,7 +131,7 @@ TEST_F(SimpleShapeTest, DrawWithOutlineDisabledUsesDefaultColor)
 
 	testing::InSequence s;
 	EXPECT_CALL(canvas, BeginFill(FILL_COLOR));
-	EXPECT_CALL(canvas, SetLineColor(DEFAULT_COLOR));
+	EXPECT_CALL(canvas, SetLineColor(OUTLINE_COLOR & DISABLE_MASK));
 	EXPECT_CALL(canvas,
 		DrawEllipse(DoubleNear(TEST_FRAME.left), DoubleNear(TEST_FRAME.top),
 			DoubleNear(TEST_FRAME.width), DoubleNear(TEST_FRAME.height)));
@@ -144,8 +146,8 @@ TEST_F(SimpleShapeTest, DrawWithBothStylesDisabledUsesDefaultColor)
 	auto shape = createShape(strategy, false, false);
 
 	testing::InSequence s;
-	EXPECT_CALL(canvas, BeginFill(DEFAULT_COLOR));
-	EXPECT_CALL(canvas, SetLineColor(DEFAULT_COLOR));
+	EXPECT_CALL(canvas, BeginFill(FILL_COLOR & DISABLE_MASK));
+	EXPECT_CALL(canvas, SetLineColor(OUTLINE_COLOR & DISABLE_MASK));
 	EXPECT_CALL(canvas,
 		DrawEllipse(DoubleNear(TEST_FRAME.left), DoubleNear(TEST_FRAME.top),
 			DoubleNear(TEST_FRAME.width), DoubleNear(TEST_FRAME.height)));

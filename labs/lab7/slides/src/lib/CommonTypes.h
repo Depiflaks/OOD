@@ -5,6 +5,7 @@
 #include <optional>
 
 using RGBAColor = uint32_t;
+constexpr RGBAColor k_black = 0;
 
 template <typename T>
 struct Rect
@@ -52,6 +53,14 @@ public:
 
 	std::optional<RGBAColor> GetColor() const override
 	{
+		if (m_enabled.value_or(false))
+		{
+			return m_color;
+		}
+		if (m_color.has_value())
+		{
+			return m_color.value() & 0x00FFFFFF;
+		}
 		return m_color;
 	}
 
