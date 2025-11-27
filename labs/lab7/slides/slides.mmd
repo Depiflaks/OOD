@@ -12,6 +12,11 @@ classDiagram
         + SetColor(color: RGBAColor) void
     }
 
+    class Style {
+        - m_enabled: bool
+        - m_color: RGBAColor
+    }
+
     class IShape {
         + GetFrame() RectD
         + SetFrame(rect: RectD) void
@@ -43,12 +48,19 @@ classDiagram
     }
 
     class GroupShape {
+        - m_bounds: RectD
+        - m_fillStyle: IStyle
+        - m_outlineStyle: IStyle
+        - m_outlineWidth: int
+        - m_shapes: vector~shared_ptr~IShape~~
+
     }
 
     namespace gfx {
         class ICanvas {
-            + SetLineColor(color RGBAColor) void
-            + BeginFill(color RGBAColor) void
+            + SetLineColor(color: RGBAColor) void
+            + SetLineWidth(width: int) = 0;
+            + BeginFill(color: RGBAColor) void
             + EndFill() void
             + MoveTo(x: double, y: double) void
             + LineTo(x: double, y: double) void
@@ -63,14 +75,16 @@ classDiagram
     IDrawable <|.. IShape
     IDrawable <|.. ISlide
     IShape <|.. SimpleShape
-    IShape <|.. GroupShape
-    IShapes <|.. GroupShape
+    IShape <|.. IGroupShape
+    IShapes <|.. IGroupShape
     IGroupShape <|.. GroupShape
     ISlide <|.. Slide
     Slide *--> IShapes
+    IShape <--o GroupShape
 %% Style
-    GroupShape ..> IStyle: use
-    IStyle *..> RGBAColor
+    GroupShape *--> IStyle
+    IStyle <|.. Style
+    Style *..> RGBAColor
 %% Canvas
     ICanvas <|.. SFMLCanvas
     IDrawable ..> ICanvas: use

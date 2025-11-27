@@ -1,17 +1,15 @@
 //
-// Created by smmm on 27.11.2025.
+// Created by smmm on 28.11.2025.
 //
 
-#ifndef OOD_SHAPES_H
-#define OOD_SHAPES_H
+#ifndef OOD_ISHAPE_H
+#define OOD_ISHAPE_H
 #include <optional>
 
-#include "Canvas.h"
+#include "../Canvas.h"
 
-#include <functional>
 #include <limits>
 #include <memory>
-
 using std::optional;
 
 class IDrawable
@@ -20,18 +18,6 @@ public:
 	virtual void Draw(ICanvas& canvas) const = 0;
 
 	virtual ~IDrawable() = default;
-};
-
-class IStyle
-{
-public:
-	virtual optional<bool> IsEnabled() const = 0;
-	virtual void Enable(bool enable) = 0;
-
-	virtual optional<RGBAColor> GetColor() const = 0;
-	virtual void SetColor(RGBAColor color) = 0;
-
-	virtual ~IStyle() = default;
 };
 
 class IGroupShape;
@@ -71,21 +57,6 @@ class IGroupShape
 {
 };
 
-typedef std::function<void(ICanvas& canvas, const IShape& shape)>
-	DrawingStrategy;
-
-class SimpleShape : public IShape
-{
-public:
-	explicit SimpleShape(const DrawingStrategy& drawingStrategy)
-	{
-		(void)&drawingStrategy;
-	}
-};
-
-class GroupShape : public IGroupShape
-{
-};
 
 class ISlide : public IDrawable
 {
@@ -102,4 +73,4 @@ class Slide : public ISlide
 {
 };
 
-#endif // OOD_SHAPES_H
+#endif // OOD_ISHAPE_H
