@@ -25,7 +25,7 @@ class IGroupShape;
 class IShape : public IDrawable
 {
 public:
-	virtual RectD GetFrame() = 0;
+	virtual RectD GetFrame() const = 0;
 	virtual void SetFrame(const RectD& rect) = 0;
 
 	virtual IStyle& GetOutlineStyle() = 0;
@@ -36,6 +36,8 @@ public:
 
 	virtual std::shared_ptr<IGroupShape> GetGroup() = 0;
 	virtual std::shared_ptr<const IGroupShape> GetGroup() const = 0;
+
+	virtual std::shared_ptr<IShape> Clone() = 0;
 };
 
 class IShapes
