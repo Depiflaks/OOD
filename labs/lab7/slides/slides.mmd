@@ -17,25 +17,15 @@ classDiagram
         + SetFrame(rect: RectD) void
         + GetOutlineStyle() IStyle&
         + GetFillStyle() IStyle&
-        + GetGroup() std:: shared_ptr~IGroupShape~
-        + GetGroup() std:: shared_ptr~IGroupShape~
+        + GetGroup() shared_ptr~IGroupShape~
+        + GetGroup() shared_ptr~IGroupShape~
     }
 
     class IShapes {
         + GetShapesCount() size_t
-        + InsertShape(shape: std:: shared_ptr~IShape~, position: size_t) void
-        + GetShapeAtIndex(index: size_t) std:: shared_ptr~IShape~
+        + InsertShape(shape: shared_ptr~IShape~, position: size_t) void
+        + GetShapeAtIndex(index: size_t) shared_ptr~IShape~
         + RemoveShapeAtIndex(index: size_t) void
-    }
-
-    class IGroupShape {
-    }
-
-    class SimpleShape {
-        + SimpleShape(drawingStrategy: DrawingStrategy)
-    }
-
-    class GroupShape {
     }
 
     class ISlide {
@@ -45,6 +35,14 @@ classDiagram
     }
 
     class Slide {
+        - m_shapes: IShapes
+    }
+
+    class SimpleShape {
+        + SimpleShape(drawingStrategy: DrawingStrategy)
+    }
+
+    class GroupShape {
     }
 
     namespace gfx {
@@ -66,11 +64,16 @@ classDiagram
     IDrawable <|.. ISlide
     IShape <|.. SimpleShape
     IShape <|.. GroupShape
-    IShapes <|.. IGroupShape
+    IShapes <|.. GroupShape
     IGroupShape <|.. GroupShape
     ISlide <|.. Slide
+    Slide *--> IShapes
+%% Style
+    GroupShape ..> IStyle: use
+    IStyle *..> RGBAColor
 %% Canvas
     ICanvas <|.. SFMLCanvas
+    IDrawable ..> ICanvas: use
 
 
 
