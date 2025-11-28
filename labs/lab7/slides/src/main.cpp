@@ -2,40 +2,67 @@
 // Created by smmm on 21.11.2025.
 //
 
+#include "lib/Canvas.h"
+#include "lib/Shapes/GroupShape.h"
 #include "lib/Shapes/Shapes.h"
 
-#include <iostream>
+
+void CreateScene(std::vector<std::shared_ptr<IDrawable>>& drawables)
+{
+	auto circle = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakeEllipseStrategy()),
+		RectD{ 50, 50, 100, 100 }, std::make_unique<Style>(true, 0xFF0000FF),
+		std::make_unique<Style>(true, 0x000000FF), 5);
+	drawables.push_back(circle);
+
+	auto rect = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakeRectangleStrategy()),
+		RectD{ 200, 50, 150, 80 }, std::make_unique<Style>(true, 0x00FF00FF),
+		std::make_unique<Style>(true, 0x808080FF), 2);
+	drawables.push_back(rect);
+
+	auto group = std::make_shared<GroupShape>();
+	group->InsertShape(circle->Clone());
+
+	auto smallRect = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakeRectangleStrategy()),
+		RectD{ 0, 0, 30, 30 }, std::make_unique<Style>(true, 0x0000FFFF),
+		std::make_unique<Style>(false, 0x000000FF), 1);
+	group->InsertShape(smallRect);
+
+	group->SetFrame(RectD{ 300, 200, 200, 150 });
+	group->SetOutlineThickness(3);
+	group->SetOutlineColor(0xFF00FFFF);
+
+	drawables.push_back(group);
+}
 
 int main()
 {
-	std::cout << "--- Initialization ---" << std::endl;
-	auto ellipseStrategy
-		= std::make_shared<DrawingStrategy>(MakeEllipseStrategy());
+	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Canvas Demo");
+	SFMLCanvas canvas(window);
 
-	RGBAColor originalFill = 0xFF0000FF; // Красный
-	RGBAColor originalOutline = 0x00FF00FF; // Зеленый
+	std::vector<std::shared_ptr<IDrawable>> drawables;
+	CreateScene(drawables);
 
-	auto originalShape = std::make_shared<SimpleShape>(ellipseStrategy,
-		RectD{ 10, 20, 100, 50 }, std::make_unique<Style>(true, originalFill),
-		std::make_unique<Style>(true, originalOutline));
+	while (window.isOpen())
+	{
+		sf::Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				window.close();
+		}
 
-	// 3. Клонирование фигуры
-	std::cout << "\n--- Cloning Shape ---" << std::endl;
-	auto clonedShape = originalShape->Clone();
+		window.clear(sf::Color(240, 240, 240));
 
-	RGBAColor newClonedFill = 0x0000FFFF; // Синий
-	clonedShape->GetFillStyle().SetColor(newClonedFill);
-	clonedShape->SetFrame(RectD{ 50, 50, 75, 75 });
-	// 5. Проверка глубокого копирования (Original не изменилась)
-	std::cout << "\n--- Final Check (Original vs Cloned) ---" << std::endl;
-	std::cout << "Original Fill Color: "
-			  << originalShape->GetFillStyle().GetColor().value() << std::endl;
-	std::cout << "Cloned Fill Color:   "
-			  << clonedShape->GetFillStyle().GetColor().value() << std::endl;
-	std::cout << "Original Frame X:    " << originalShape->GetFrame().left
-			  << std::endl;
-	std::cout << "Cloned Frame X:      " << clonedShape->GetFrame().left
-			  << std::endl;
+		for (const auto& drawable : drawables)
+		{
+			drawable->Draw(canvas);
+		}
+
+		window.display();
+	}
 
 	return 0;
 }

@@ -198,8 +198,8 @@ public:
 		return m_shapes.size();
 	}
 
-	void InsertShape(
-		const std::shared_ptr<IShape>& shape, size_t position) override
+	void InsertShape(const std::shared_ptr<IShape>& shape,
+		size_t position = std::numeric_limits<size_t>::max()) override
 	{
 		if (position >= m_shapes.size())
 		{

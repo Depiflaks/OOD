@@ -77,11 +77,13 @@ class SimpleShape final : public IShape
 {
 public:
 	explicit SimpleShape(std::shared_ptr<DrawingStrategy> strategy, RectD frame,
-		std::unique_ptr<IStyle> fillColor, std::unique_ptr<IStyle> outlineColor)
+		std::unique_ptr<IStyle> fillColor, std::unique_ptr<IStyle> outlineColor,
+		int thickness = 1)
 		: m_strategy(std::move(strategy))
 		, m_frame(frame)
-		, m_fill(std::move(fillColor))
 		, m_outline(std::move(outlineColor))
+		, m_fill(std::move(fillColor))
+		, m_outlineThickness(thickness)
 	{
 	}
 
@@ -105,16 +107,15 @@ public:
 		return *m_outline;
 	}
 
-	IStyle& GetFillStyle() override
-	{
-		return *m_fill;
-	}
-
 	const IStyle& GetOutlineStyle() const override
 	{
 		return *m_outline;
 	}
 
+	IStyle& GetFillStyle() override
+	{
+		return *m_fill;
+	}
 	const IStyle& GetFillStyle() const override
 	{
 		return *m_fill;
@@ -130,13 +131,36 @@ public:
 		return nullptr;
 	}
 
+	void SetOutlineColor(RGBAColor color) override
+	{
+		m_outline->SetColor(color);
+	}
+	void SetFillColor(RGBAColor color) override
+	{
+		m_fill->SetColor(color);
+	}
+	void EnableOutline(bool enable) override
+	{
+		m_outline->Enable(enable);
+	}
+	void EnableFill(bool enable) override
+	{
+		m_fill->Enable(enable);
+	}
+
+	void SetOutlineThickness(int thickness) override
+	{
+		m_outlineThickness = thickness;
+	}
+	std::optional<int> GetOutlineThickness() const override
+	{
+		return m_outlineThickness;
+	}
+
 	std::shared_ptr<IShape> Clone() override
 	{
-		auto newOutline = m_outline->Clone();
-		auto newFill = m_fill->Clone();
-
-		return std::make_shared<SimpleShape>(
-			m_strategy, m_frame, std::move(newFill), std::move(newOutline));
+		return std::make_shared<SimpleShape>(m_strategy, m_frame,
+			m_fill->Clone(), m_outline->Clone(), m_outlineThickness);
 	}
 
 private:
@@ -144,6 +168,7 @@ private:
 	RectD m_frame;
 	std::unique_ptr<IStyle> m_outline;
 	std::unique_ptr<IStyle> m_fill;
+	int m_outlineThickness;
 };
 
 #endif // OOD_SHAPES_H
