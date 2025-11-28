@@ -14,15 +14,15 @@
 #include <stdexcept>
 #include <vector>
 
-class GroupShape : public IGroupShape
+class GroupShape final : public IGroupShape
 {
-	class GroupStyle : public IStyle
+	class GroupStyle final : public IStyle
 	{
 	public:
 		using StyleEnumerator
 			= std::function<void(const std::function<void(IStyle&)>&)>;
 
-		GroupStyle(StyleEnumerator enumerator)
+		explicit GroupStyle(StyleEnumerator enumerator)
 			: m_enumerator(std::move(enumerator))
 		{
 		}
@@ -149,6 +149,40 @@ public:
 		return *m_fillStyle;
 	}
 
+	void SetOutlineColor(RGBAColor color) override
+	{
+		m_outlineStyle->SetColor(color);
+	}
+
+	void SetFillColor(RGBAColor color) override
+	{
+		m_fillStyle->SetColor(color);
+	}
+
+	void EnableOutline(bool enable) override
+	{
+		m_outlineStyle->Enable(enable);
+	}
+
+	void EnableFill(bool enable) override
+	{
+		m_fillStyle->Enable(enable);
+	}
+
+	void SetOutlineThickness(int thickness) override
+	{
+		for (auto& shape : m_shapes)
+		{
+			shape->SetOutlineThickness(thickness);
+		}
+		m_outlineThickness = thickness;
+	}
+
+	std::optional<int> GetOutlineThickness() const override
+	{
+		return m_outlineThickness;
+	}
+
 	std::shared_ptr<IGroupShape> GetGroup() override
 	{
 		return std::make_shared<GroupShape>(*this);
@@ -178,6 +212,7 @@ public:
 
 		RecalculateFrame();
 		UpdateStyles();
+		UpdateOutlineThickness();
 	}
 
 	std::shared_ptr<IShape> GetShapeAtIndex(size_t index) override
@@ -192,6 +227,7 @@ public:
 		m_shapes.erase(m_shapes.begin() + index);
 		RecalculateFrame();
 		UpdateStyles();
+		UpdateOutlineThickness();
 	}
 
 	std::shared_ptr<IShape> Clone() override
@@ -283,10 +319,32 @@ private:
 		updateStyle(m_fillStyle, false);
 	}
 
+	void UpdateOutlineThickness()
+	{
+		if (m_shapes.empty())
+		{
+			m_outlineThickness = std::nullopt;
+			return;
+		}
+
+		std::optional<int> commonThickness = m_shapes[0]->GetOutlineThickness();
+
+		for (size_t i = 1; i < m_shapes.size(); ++i)
+		{
+			if (m_shapes[i]->GetOutlineThickness() != commonThickness)
+			{
+				commonThickness = std::nullopt;
+				break;
+			}
+		}
+
+		m_outlineThickness = commonThickness;
+	}
+
 	std::vector<std::shared_ptr<IShape>> m_shapes;
 	RectD m_frame = { 0, 0, 0, 0 };
 	std::shared_ptr<GroupStyle> m_outlineStyle;
 	std::shared_ptr<GroupStyle> m_fillStyle;
+	std::optional<int> m_outlineThickness;
 };
-
 #endif // OOD_GROUPSHAPE_H

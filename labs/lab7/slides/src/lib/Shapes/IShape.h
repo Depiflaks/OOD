@@ -37,6 +37,14 @@ public:
 	virtual std::shared_ptr<IGroupShape> GetGroup() = 0;
 	virtual std::shared_ptr<const IGroupShape> GetGroup() const = 0;
 
+	virtual void SetOutlineColor(RGBAColor color) = 0;
+	virtual void SetFillColor(RGBAColor color) = 0;
+	virtual void EnableOutline(bool enable) = 0;
+	virtual void EnableFill(bool enable) = 0;
+
+	virtual void SetOutlineThickness(int thickness) = 0;
+	virtual std::optional<int> GetOutlineThickness() const = 0;
+
 	virtual std::shared_ptr<IShape> Clone() = 0;
 };
 
@@ -58,7 +66,6 @@ class IGroupShape
 	, public IShapes
 {
 };
-
 
 class ISlide : public IDrawable
 {
