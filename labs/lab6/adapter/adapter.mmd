@@ -80,11 +80,13 @@ classDiagram
         }
 
         class ObjectModernCanvasAdapter {
-            - m_currentPoint: ModernPoint
+            - m_currentPointerPosition: ModernPoint
+            - m_currentColor: uint32_t
         }
 
         class ClassModernCanvasAdapter {
-            - m_currentPoint: ModernPoint
+            - m_currentPointerPosition: ModernPoint
+            - m_currentColor: uint32_t
         }
 
     }
