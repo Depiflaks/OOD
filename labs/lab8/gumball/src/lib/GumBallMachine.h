@@ -4,12 +4,26 @@
 
 #include "State.h"
 
+#include <vector>
+
+inline std::string FormatExpectedCommands(
+	const std::vector<std::string>& commands)
+{
+	std::string result = "Expected commands:\n";
+	for (const auto& cmd : commands)
+	{
+		result += "- " + cmd + "\n";
+	}
+	return result;
+}
+
 struct IGumballMachine
 {
 	virtual void ReleaseBall() = 0;
 	virtual unsigned GetBallCount() const = 0;
 
 	virtual void DepositQuarter() = 0;
+	virtual void ReturnAllCoins() = 0;
 	virtual bool CanDepositQuarter() const = 0;
 
 	virtual void SetSoldOutState() = 0;
@@ -32,7 +46,7 @@ public:
 	{
 		std::cout << "Please wait, we're already giving you a gumball\n";
 	}
-	void EjectQuarter() override
+	void EjectQuarters() override
 	{
 		std::cout << "Sorry you already turned the crank\n";
 	}
@@ -74,9 +88,10 @@ public:
 	{
 		std::cout << "You can't insert a quarter, the machine is sold out\n";
 	}
-	void EjectQuarter() override
+	void EjectQuarters() override
 	{
-		std::cout << "You can't eject, you haven't inserted a quarter yet\n";
+		m_gumballMachine.ReturnAllCoins();
+		std::cout << "All quarters returned\n";
 	}
 	void TurnCrank() override
 	{
@@ -109,16 +124,16 @@ public:
 			<< "You can't insert a quarter, the machine is full of quarters\n";
 	}
 
-	void EjectQuarter() override
+	void EjectQuarters() override
 	{
-		// Фактический возврат монет делается в GumballMachine::EjectQuarter()
-		std::cout << "Quarters returned\n";
+		m_gumballMachine.ReturnAllCoins();
 		m_gumballMachine.SetNoQuarterState();
+		std::cout << "All quarters returned\n";
 	}
 
 	void TurnCrank() override
 	{
-		std::cout << "You turned...\n";
+		std::cout << "Pull the lever, Kronk!\n";
 		m_gumballMachine.SetSoldState();
 	}
 
@@ -146,16 +161,26 @@ public:
 
 	void InsertQuarter() override
 	{
-		std::cout << "You can't insert another quarter\n";
+		if (m_gumballMachine.CanDepositQuarter())
+		{
+			std::cout << "Deposit another coin...\n";
+			m_gumballMachine.DepositQuarter();
+		}
+		if (!m_gumballMachine.CanDepositQuarter())
+		{
+			std::cout << "Coin collector if full now!\n";
+			m_gumballMachine.SetFullQuartersState();
+		}
 	}
-	void EjectQuarter() override
+	void EjectQuarters() override
 	{
-		std::cout << "Quarter returned\n";
+		m_gumballMachine.ReturnAllCoins();
 		m_gumballMachine.SetNoQuarterState();
+		std::cout << "All quarters returned\n";
 	}
 	void TurnCrank() override
 	{
-		std::cout << "You turned...\n";
+		std::cout << "Pull the lever, Kronk!\n";
 		m_gumballMachine.SetSoldState();
 	}
 	void Dispense() override
@@ -181,16 +206,17 @@ public:
 
 	void InsertQuarter() override
 	{
-		std::cout << "You inserted a quarter\n";
+		m_gumballMachine.DepositQuarter();
 		m_gumballMachine.SetHasQuartersState();
+		std::cout << "You inserted a quarter\n";
 	}
-	void EjectQuarter() override
+	void EjectQuarters() override
 	{
-		std::cout << "You haven't inserted a quarter\n";
+		std::cout << "You haven't inserted any quarters\n";
 	}
 	void TurnCrank() override
 	{
-		std::cout << "You turned but there's no quarter\n";
+		std::cout << "You turned but there's no quarters\n";
 	}
 	void Dispense() override
 	{
@@ -235,16 +261,7 @@ public:
 
 	void EjectQuarter()
 	{
-		if (m_coinCount > 0)
-		{
-			std::cout << m_coinCount << " quarter(s) returned\n";
-			m_coinCount = 0;
-			SetNoQuarterState();
-			return;
-		}
-		// TODO: переделать, чтобы логика делегировалась состоянию
-
-		m_state->EjectQuarter();
+		m_state->EjectQuarters();
 	}
 
 	void InsertQuarter()
@@ -322,6 +339,13 @@ private:
 	{
 		m_state = &m_fullQuartersState;
 	}
+
+	void ReturnAllCoins() override
+	{
+		std::cout << m_coinCount << " quarter(s) returned\n";
+		m_coinCount = 0;
+		SetNoQuarterState();
+	};
 
 	static constexpr int k_coinCapacity = 5;
 
