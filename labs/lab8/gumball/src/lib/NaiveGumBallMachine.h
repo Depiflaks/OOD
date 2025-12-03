@@ -18,7 +18,8 @@ public:
 	};
 
 	GumballMachine(unsigned count)
-		: m_coinCount(count)
+		: m_ballCount(0)
+		, m_coinCount(count)
 		, m_state(count > 0 ? State::NoQuarter : State::SoldOut)
 	{
 	}

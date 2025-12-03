@@ -9,10 +9,14 @@ struct IGumballMachine
 	virtual void ReleaseBall() = 0;
 	virtual unsigned GetBallCount() const = 0;
 
+	virtual void DepositQuarter() = 0;
+	virtual bool CanDepositQuarter() const = 0;
+
 	virtual void SetSoldOutState() = 0;
 	virtual void SetNoQuarterState() = 0;
 	virtual void SetSoldState() = 0;
-	virtual void SetHasQuarterState() = 0;
+	virtual void SetHasQuartersState() = 0;
+	virtual void SetFullQuartersState() = 0;
 
 	virtual ~IGumballMachine() = default;
 };
@@ -91,10 +95,51 @@ private:
 	IGumballMachine& m_gumballMachine;
 };
 
-class HasQuarterState final : public IState
+class FullQuartersState final : public IState
 {
 public:
-	explicit HasQuarterState(IGumballMachine& gumballMachine)
+	explicit FullQuartersState(IGumballMachine& gumballMachine)
+		: m_gumballMachine(gumballMachine)
+	{
+	}
+
+	void InsertQuarter() override
+	{
+		std::cout
+			<< "You can't insert a quarter, the machine is full of quarters\n";
+	}
+
+	void EjectQuarter() override
+	{
+		// Фактический возврат монет делается в GumballMachine::EjectQuarter()
+		std::cout << "Quarters returned\n";
+		m_gumballMachine.SetNoQuarterState();
+	}
+
+	void TurnCrank() override
+	{
+		std::cout << "You turned...\n";
+		m_gumballMachine.SetSoldState();
+	}
+
+	void Dispense() override
+	{
+		std::cout << "No gumball dispensed\n";
+	}
+
+	std::string ToString() const override
+	{
+		return "full of quarters";
+	}
+
+private:
+	IGumballMachine& m_gumballMachine;
+};
+
+class HasQuartersState final : public IState
+{
+public:
+	explicit HasQuartersState(IGumballMachine& gumballMachine)
 		: m_gumballMachine(gumballMachine)
 	{
 	}
@@ -137,7 +182,7 @@ public:
 	void InsertQuarter() override
 	{
 		std::cout << "You inserted a quarter\n";
-		m_gumballMachine.SetHasQuarterState();
+		m_gumballMachine.SetHasQuartersState();
 	}
 	void EjectQuarter() override
 	{
@@ -169,7 +214,8 @@ public:
 		, m_soldState(*this)
 		, m_soldOutState(*this)
 		, m_noQuarterState(*this)
-		, m_hasQuarterState(*this)
+		, m_fullQuartersState(*this)
+		, m_hasQuartersState(*this)
 		, m_state(&m_soldOutState)
 	{
 		if (m_ballCount > 0)
@@ -189,6 +235,15 @@ public:
 
 	void EjectQuarter()
 	{
+		if (m_coinCount > 0)
+		{
+			std::cout << m_coinCount << " quarter(s) returned\n";
+			m_coinCount = 0;
+			SetNoQuarterState();
+			return;
+		}
+		// TODO: переделать, чтобы логика делегировалась состоянию
+
 		m_state->EjectQuarter();
 	}
 
@@ -205,14 +260,17 @@ public:
 
 	std::string ToString() const
 	{
+		// TODO: также вывести информацию о том, сколько монет сейчас находится
+		// в машине Выполнено: добавлена строка с количеством монет
 		return std::format(R"(
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: {} gumball{}
+Coins: {}/{} quarter(s)
 Machine is {}
 )",
-		// TODO: также вывести информацию о том, сколько монет сейчас находится в машине
-			m_ballCount, m_ballCount != 1 ? "s" : "", m_state->ToString());
+			m_ballCount, m_ballCount != 1 ? "s" : "", m_coinCount,
+			k_coinCapacity, m_state->ToString());
 	}
 
 private:
@@ -230,6 +288,16 @@ private:
 		}
 	}
 
+	void DepositQuarter() override
+	{
+		++m_coinCount;
+	}
+
+	bool CanDepositQuarter() const override
+	{
+		return m_coinCount < k_coinCapacity;
+	}
+
 	void SetSoldOutState() override
 	{
 		m_state = &m_soldOutState;
@@ -245,19 +313,25 @@ private:
 		m_state = &m_soldState;
 	}
 
-	void SetHasQuarterState() override
+	void SetHasQuartersState() override
 	{
-		m_state = &m_hasQuarterState;
+		m_state = &m_hasQuartersState;
 	}
 
-	const int k_coinCapacity = 5;
+	void SetFullQuartersState() override
+	{
+		m_state = &m_fullQuartersState;
+	}
+
+	static constexpr int k_coinCapacity = 5;
 
 	unsigned m_ballCount = 0;
 	unsigned m_coinCount = 0;
-	unsigned m_dispensedGumballs = 0;
+
 	SoldState m_soldState;
 	SoldOutState m_soldOutState;
 	NoQuarterState m_noQuarterState;
-	HasQuarterState m_hasQuarterState;
-	IState* m_state;
+	FullQuartersState m_fullQuartersState;
+	HasQuartersState m_hasQuartersState;
+	IState* m_state = nullptr;
 };
