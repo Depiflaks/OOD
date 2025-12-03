@@ -6,17 +6,6 @@
 
 #include <vector>
 
-inline std::string FormatExpectedCommands(
-	const std::vector<std::string>& commands)
-{
-	std::string result = "Expected commands:\n";
-	for (const auto& cmd : commands)
-	{
-		result += "- " + cmd + "\n";
-	}
-	return result;
-}
-
 struct IGumballMachine
 {
 	virtual void ReleaseBall() = 0;

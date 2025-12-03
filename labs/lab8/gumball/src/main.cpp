@@ -1,54 +1,32 @@
+#include "lib/Command.h"
 #include "lib/GumBallMachine.h"
 #include <iostream>
 
-using namespace std;
-
-template <typename GumballMachineType>
-void TestGumballMachine(GumballMachineType & m)
-{
-	cout << m.ToString() << endl;
-
-	m.InsertQuarter();
-	m.TurnCrank();
-
-	cout << m.ToString() << endl;
-
-	m.InsertQuarter();
-	m.EjectQuarter();
-	m.TurnCrank();
-
-	cout << m.ToString() << endl;
-
-	m.InsertQuarter();
-	m.TurnCrank();
-	m.InsertQuarter();
-	m.TurnCrank();
-	m.EjectQuarter();
-
-	cout << m.ToString() << endl;
-
-	m.InsertQuarter();
-	m.InsertQuarter();
-	m.TurnCrank();
-	m.InsertQuarter();
-	m.TurnCrank();
-	m.InsertQuarter();
-	m.TurnCrank();
-
-	cout << m.ToString() << endl;
-}
-
-
-void TestGumballMachineWithState()
-{
-	with_state::GumballMachine m(5);
-	TestGumballMachine(m);
-}
-
-
 int main()
 {
-	TestGumballMachineWithState();
+	GumballMachine machine(5);
+	command::CommandFactory factory(machine);
+
+	std::string line;
+	while (true)
+	{
+		if (!std::getline(std::cin, line))
+		{
+			break;
+		}
+
+		try
+		{
+			auto cmd = factory.Parse(line);
+			cmd->Execute(machine);
+		}
+		catch (const command::CommandParseError& e)
+		{
+			std::cout << e.what() << "\n";
+			std::cout << FormatExpectedCommands(
+				command::GetSupportedCommands());
+		}
+	}
 
 	return 0;
 }
