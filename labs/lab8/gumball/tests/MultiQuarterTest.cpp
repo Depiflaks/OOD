@@ -3,7 +3,8 @@
 //
 #include "CoutMock.h"
 #include "lib/GumBallMachine.h"
-
+// #include "lib/NaiveGumBallMachine.h"
+// using namespace naive;
 TEST_F(GumballMachineTest, InsertQuarterFourTimes_HasQuartersState)
 {
 	CaptureOutput();
@@ -91,7 +92,7 @@ TEST_F(GumballMachineTest, FourBalls_ThreeQuarters_ThreeCranks_NoQuarterState)
 	const std::string expectedState = R"(
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
-Inventory: 3 gumballs
+Inventory: 1 gumball
 Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
@@ -117,7 +118,7 @@ TEST_F(GumballMachineTest, FourBalls_ThreeQuarters_FourCranks_NoQuarterState)
 	const std::string expectedState = R"(
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
-Inventory: 3 gumballs
+Inventory: 1 gumball
 Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
@@ -143,9 +144,9 @@ TEST_F(GumballMachineTest, FourBalls_FourQuarters_ThreeCranks_NoQuarterState)
 	const std::string expectedState = R"(
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
-Inventory: 3 gumballs
+Inventory: 1 gumball
 Coins: 1/5 quarter(s)
-Machine is waiting for quarter
+Machine is waiting for turn of crank
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
 }
@@ -170,9 +171,9 @@ TEST_F(GumballMachineTest, FourBalls_FourQuarters_FourCranks_FinalState)
 	const std::string expectedState = R"(
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
-Inventory: 3 gumballs
+Inventory: 0 gumballs
 Coins: 0/5 quarter(s)
-Machine is waiting for quarter
+Machine is sold out
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
 }
@@ -197,7 +198,7 @@ TEST_F(GumballMachineTest, FourBalls_ComplexSequence_TwoVends_FinalState)
 	const std::string expectedState = R"(
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
-Inventory: 2 gumballs
+Inventory: 1 gumball
 Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
@@ -273,9 +274,9 @@ TEST_F(GumballMachineTest, ThreeBalls_FourQuarters_FourCranks_ThenEject)
 	const std::string expectedState = R"(
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
-Inventory: 2 gumballs
-Coins: 4/5 quarter(s)
-Machine is waiting for quarter
+Inventory: 0 gumballs
+Coins: 0/5 quarter(s)
+Machine is sold out
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
 }

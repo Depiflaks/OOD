@@ -164,15 +164,20 @@ private:
 			{
 				cout << "A gumball comes rolling out the slot...\n";
 				--m_ballCount;
+				--m_coinCount;
 			}
 			if (m_ballCount == 0)
 			{
 				cout << "Oops, out of gumballs\n";
 				m_state = State::SoldOut;
 			}
-			else
+			else if (m_coinCount == 0)
 			{
 				m_state = State::NoQuarter;
+			}
+			else
+			{
+				m_state = State::HasQuarters;
 			}
 			break;
 		case State::NoQuarter:

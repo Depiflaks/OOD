@@ -64,9 +64,13 @@ public:
 			std::cout << "Oops, out of gumballs\n";
 			m_gumballMachine.SetSoldOutState();
 		}
-		else
+		else if (m_gumballMachine.GetQuartersCount() == 0)
 		{
 			m_gumballMachine.SetNoQuarterState();
+		}
+		else
+		{
+			m_gumballMachine.SetHasQuartersState();
 		}
 	}
 	std::string ToString() const override
