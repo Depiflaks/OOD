@@ -1,66 +1,90 @@
 classDiagram
-    class IState {
-        + InsertQuarter()
-        + EjectQuarter()
-        + TurnCrank()
-        + Dispense()
-        + ToString() string
+    namespace gumball {
+        class IState {
+            + InsertQuarter()
+            + EjectQuarter()
+            + TurnCrank()
+            + Dispense()
+            + ToString() string
+        }
+
+        class IGumballMachine {
+            + ReleaseBall()
+            + GetBallCount() unsigned
+            + DepositQuarter()
+            + CanDepositQuarter() bool
+            + SetSoldOutState()
+            + SetNoQuarterState()
+            + SetSoldState()
+            + SetHasQuarterState()
+        }
+
+        class SoldState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class SoldOutState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class HasQuartersState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class FullQuartersState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class NoQuarterState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class GumballMachine {
+            - m_ballCount: unsigned
+            - m_coinCount: unsigned
+            - m_soldState: SoldState
+            - m_soldOutState: SoldOutState
+            - m_noQuarterState: NoQuarterState
+            - m_fullQuarterState: FullQuartersState
+            - m_hasQuarterState: HasQuartersState
+            - m_state: IState*
+        %% public
+            + InsertQuarter()
+            + EjectQuarter()
+            + TurnCrank()
+            + ToString() string
+            + RefillMachine(count: unsigned)
+        %% private
+            - ReleaseBall()
+            - GetBallCount() unsigned
+            - SetSoldState()
+            - SetSoldOutState()
+            - SetHasQuartersState()
+            - SetNoQuarterState()
+            - SetFullQuartersState()
+        }
     }
 
-    class IGumballMachine {
-        + ReleaseBall()
-        + GetBallCount() unsigned
-        + GetQuarterCount() unsigned
-        + DepositQuarter()
-        + SetSoldOutState()
-        + SetNoQuarterState()
-        + SetSoldState()
-        + SetHasQuarterState()
-    }
+    namespace command {
+        class ICommand {
+            <<interface>>
+            + Execute() void
+        }
 
-    class SoldState {
-        - m_gumballMachine: IGumballMachine&
-    }
+        class HelpCommand {
+        }
 
-    class SoldOutState {
-        - m_gumballMachine: IGumballMachine&
-    }
+        class InsertQuarterCommand {
+        }
 
-    class HasQuartersState {
-        - m_gumballMachine: IGumballMachine&
-    }
+        class EjectQuarterCommand {
+        }
 
-    class FullQuartersState {
-        - m_gumballMachine: IGumballMachine&
-    }
+        class TurnCrankCommand {
+        }
 
-    class NoQuarterState {
-        - m_gumballMachine: IGumballMachine&
-    }
-
-    class GumballMachine {
-        - m_ballCount: unsigned
-        - m_coinCount: unsigned
-        - m_soldState: SoldState
-        - m_soldOutState: SoldOutState
-        - m_noQuarterState: NoQuarterState
-        - m_fullQuarterState: FullQuartersState
-        - m_hasQuarterState: HasQuartersState
-        - m_state: IState*
-    %% public
-        + InsertQuarter()
-        + EjectQuarter()
-        + TurnCrank()
-        + ToString() string
-        + RefillMachine(count: unsigned)
-    %% private
-        - ReleaseBall()
-        - GetBallCount() unsigned
-        - SetSoldState()
-        - SetSoldOutState()
-        - SetHasQuartersState()
-        - SetNoQuarterState()
-        - SetFullQuartersState()
+        class RefillMachineCommand {
+        }
     }
 
     IState <|.. SoldState
@@ -70,3 +94,10 @@ classDiagram
     IState <|.. FullQuartersState
     IGumballMachine <|.. GumballMachine
     GumballMachine *--> IState
+
+
+    ICommand <|.. HelpCommand
+    ICommand <|.. InsertQuarterCommand
+    ICommand <|.. EjectQuarterCommand
+    ICommand <|.. TurnCrankCommand
+    ICommand <|.. RefillMachineCommand

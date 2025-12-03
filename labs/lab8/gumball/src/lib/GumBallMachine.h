@@ -154,6 +154,7 @@ public:
 	std::string ToString() const override
 	{
 		return "waiting for quarter";
+		// TODO: добавить сюда вывод возможных действий из текущего состояния
 	}
 
 private:
@@ -210,6 +211,7 @@ C++-enabled Standing Gumball Model #2025
 Inventory: {} gumball{}
 Machine is {}
 )",
+		// TODO: также вывести информацию о том, сколько монет сейчас находится в машине
 			m_ballCount, m_ballCount != 1 ? "s" : "", m_state->ToString());
 	}
 
