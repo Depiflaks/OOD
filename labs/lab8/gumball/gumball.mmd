@@ -33,26 +33,29 @@ classDiagram
     }
 
     class GumballMachine {
-        + InsertQuarter()
-        + EjectQuarter()
-        + TurnCrank()
-        + ToString() string
         - m_count: unsigned
         - m_soldState: SoldState
         - m_soldOutState: SoldOutState
         - m_noQuarterState: NoQuarterState
         - m_hasQuarterState: HasQuarterState
         - m_state: IState*
+    %% public
+        + InsertQuarter()
+        + EjectQuarter()
+        + TurnCrank()
+        + ToString() string
+    %% private
         - ReleaseBall()
+        - GetBallCount() unsigned
+        - SetSoldOutState()
+        - SetNoQuarterState()
+        - SetSoldState()
+        - SetHasQuarterState()
     }
 
     IState <|.. SoldState
     IState <|.. SoldOutState
     IState <|.. HasQuarterState
     IState <|.. NoQuarterState
-    IGumballMachine <|-- GumballMachine
-    SoldState --> IGumballMachine
-    SoldOutState --> IGumballMachine
-    HasQuarterState --> IGumballMachine
-    NoQuarterState --> IGumballMachine
-    GumballMachine --> IState
+    IGumballMachine <|.. GumballMachine
+    GumballMachine *--> IState
