@@ -23,7 +23,9 @@ struct IGumballMachine
 	virtual unsigned GetBallCount() const = 0;
 
 	virtual void DepositQuarter() = 0;
+	virtual unsigned GetQuartersCount() const = 0;
 	virtual void ReturnAllCoins() = 0;
+	virtual void RefillMachine(unsigned count) = 0;
 	virtual bool CanDepositQuarter() const = 0;
 
 	virtual void SetSoldOutState() = 0;
@@ -71,6 +73,10 @@ public:
 	{
 		return "delivering a gumball";
 	}
+	void RefillBalls(unsigned count) override
+	{
+		std::cout << "Cannot refill machine in this state\n";
+	}
 
 private:
 	IGumballMachine& m_gumballMachine;
@@ -104,6 +110,22 @@ public:
 	std::string ToString() const override
 	{
 		return "sold out";
+	}
+	void RefillBalls(unsigned count) override
+	{
+		m_gumballMachine.RefillMachine(count);
+		if (m_gumballMachine.GetQuartersCount() == 0)
+		{
+			m_gumballMachine.SetNoQuarterState();
+		}
+		else if (m_gumballMachine.CanDepositQuarter())
+		{
+			m_gumballMachine.SetHasQuartersState();
+		}
+		else
+		{
+			m_gumballMachine.SetFullQuartersState();
+		}
 	}
 
 private:
@@ -142,6 +164,10 @@ public:
 		std::cout << "No gumball dispensed\n";
 	}
 
+	void RefillBalls(unsigned count) override
+	{
+		m_gumballMachine.RefillMachine(count);
+	}
 	std::string ToString() const override
 	{
 		return "full of quarters";
@@ -187,6 +213,10 @@ public:
 	{
 		std::cout << "No gumball dispensed\n";
 	}
+	void RefillBalls(unsigned count) override
+	{
+		m_gumballMachine.RefillMachine(count);
+	}
 	std::string ToString() const override
 	{
 		return "waiting for turn of crank";
@@ -222,6 +252,10 @@ public:
 	{
 		std::cout << "You need to pay first\n";
 	}
+	void RefillBalls(unsigned count) override
+	{
+		m_gumballMachine.RefillMachine(count);
+	}
 	std::string ToString() const override
 	{
 		return "waiting for quarter";
@@ -250,13 +284,10 @@ public:
 		}
 	}
 
-	void RefillMachine(unsigned count)
+	void RefillMachine(unsigned count) override
 	{
 		m_ballCount += count;
-		if (m_state == &m_soldOutState && m_ballCount != 0)
-		{
-			m_state = &m_noQuarterState;
-		}
+		std::cout << "Append " << count << " gumballs\n";
 	}
 
 	void EjectQuarter()
@@ -277,8 +308,6 @@ public:
 
 	std::string ToString() const
 	{
-		// TODO: также вывести информацию о том, сколько монет сейчас находится
-		// в машине Выполнено: добавлена строка с количеством монет
 		return std::format(R"(
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
@@ -344,8 +373,12 @@ private:
 	{
 		std::cout << m_coinCount << " quarter(s) returned\n";
 		m_coinCount = 0;
-		SetNoQuarterState();
-	};
+	}
+
+	unsigned GetQuartersCount() const override
+	{
+		return m_coinCount;
+	}
 
 	static constexpr int k_coinCapacity = 5;
 
