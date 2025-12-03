@@ -1,38 +1,8 @@
-#include "../src/GumBallMachineWithState.h"
+#include "../src/lib/GumBallMachine.h"
+#include "CoutMock.h"
 #include <gtest/gtest.h>
 #include <iostream>
 #include <sstream>
-
-using namespace with_state;
-
-class GumballMachineTest : public ::testing::Test
-{
-protected:
-	void CaptureOutput()
-	{
-		m_oldCoutBuffer = std::cout.rdbuf();
-		std::cout.rdbuf(m_outputStream.rdbuf());
-	}
-
-	void ReleaseOutput()
-	{
-		std::cout.rdbuf(m_oldCoutBuffer);
-	}
-
-	std::string GetOutput()
-	{
-		return m_outputStream.str();
-	}
-
-	void ClearOutput()
-	{
-		m_outputStream.str("");
-	}
-
-private:
-	std::stringstream m_outputStream;
-	std::streambuf* m_oldCoutBuffer;
-};
 
 TEST_F(GumballMachineTest, SoldOutStateActions)
 {
