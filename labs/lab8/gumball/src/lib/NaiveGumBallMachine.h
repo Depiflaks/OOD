@@ -10,16 +10,15 @@ class GumballMachine
 public:
 	enum class State
 	{
-		SoldOut, // Жвачка закончилась
-		NoQuarter, // Нет монетки
-		HasQuarters, // Есть монетка
-		FullQuarters, // Полна монет
-		Sold, // Монетка выдана
+		SoldOut,
+		NoQuarter,
+		HasQuarters,
+		FullQuarters,
+		Sold,
 	};
 
 	GumballMachine(unsigned count)
-		: m_ballCount(0)
-		, m_coinCount(count)
+		: m_ballCount(count)
 		, m_state(count > 0 ? State::NoQuarter : State::SoldOut)
 	{
 	}
@@ -34,10 +33,29 @@ public:
 			break;
 		case State::NoQuarter:
 			cout << "You inserted a quarter\n";
+			++m_coinCount;
 			m_state = State::HasQuarters;
 			break;
 		case State::HasQuarters:
-			cout << "You can't insert another quarter\n";
+			if (m_coinCount < k_coinCapacity)
+			{
+				cout << "Deposit another coin...\n";
+				++m_coinCount;
+				if (m_coinCount == k_coinCapacity)
+				{
+					cout << "Coin collector if full now!\n";
+					m_state = State::FullQuarters;
+				}
+			}
+			else
+			{
+				cout << "Coin collector if full now!\n";
+				m_state = State::FullQuarters;
+			}
+			break;
+		case State::FullQuarters:
+			cout << "You can't insert a quarter, the machine is full of "
+					"quarters\n";
 			break;
 		case State::Sold:
 			cout << "Please wait, we're already giving you a gumball\n";
@@ -50,18 +68,19 @@ public:
 		using namespace std;
 		switch (m_state)
 		{
-		case State::HasQuarters:
-			cout << "Quarter returned\n";
-			m_state = State::NoQuarter;
-			break;
 		case State::NoQuarter:
-			cout << "You haven't inserted a quarter\n";
+			cout << "You haven't inserted any quarters\n";
+			break;
+		case State::HasQuarters:
+		case State::FullQuarters:
+		case State::SoldOut:
+			cout << m_coinCount << " quarter(s) returned\n";
+			m_coinCount = 0;
+			cout << "All quarters returned\n";
+			m_state = (m_ballCount > 0) ? State::NoQuarter : State::SoldOut;
 			break;
 		case State::Sold:
 			cout << "Sorry you already turned the crank\n";
-			break;
-		case State::SoldOut:
-			cout << "You can't eject, you haven't inserted a quarter yet\n";
 			break;
 		}
 	}
@@ -75,10 +94,11 @@ public:
 			cout << "You turned but there's no gumballs\n";
 			break;
 		case State::NoQuarter:
-			cout << "You turned but there's no quarter\n";
+			cout << "You turned but there's no quarters\n";
 			break;
 		case State::HasQuarters:
-			cout << "You turned...\n";
+		case State::FullQuarters:
+			cout << "Pull the lever, Kronk!\n";
 			m_state = State::Sold;
 			Dispense();
 			break;
@@ -90,24 +110,47 @@ public:
 
 	void Refill(unsigned numBalls)
 	{
-		m_coinCount = numBalls;
-		m_state = numBalls > 0 ? State::NoQuarter : State::SoldOut;
+		using namespace std;
+		m_ballCount += numBalls;
+		cout << "Append " << numBalls << " gumballs\n";
+
+		if (m_ballCount == 0)
+		{
+			m_state = State::SoldOut;
+			return;
+		}
+
+		if (m_coinCount == 0)
+		{
+			m_state = State::NoQuarter;
+		}
+		else if (m_coinCount < k_coinCapacity)
+		{
+			m_state = State::HasQuarters;
+		}
+		else
+		{
+			m_state = State::FullQuarters;
+		}
 	}
 
 	std::string ToString() const
 	{
 		std::string state = (m_state == State::SoldOut) ? "sold out"
 			: (m_state == State::NoQuarter)				? "waiting for quarter"
-			: (m_state == State::HasQuarters) ? "waiting for turn of crank"
-											  : "delivering a gumball";
+			: (m_state == State::HasQuarters)  ? "waiting for turn of crank"
+			: (m_state == State::FullQuarters) ? "full of quarters"
+											   : "delivering a gumball";
 
 		return std::format(R"(
 Mighty Gumball, Inc.
-C++-enabled Standing Gumball Model #2016
+C++-enabled Standing Gumball Model #2025
 Inventory: {} gumball{}
+Coins: {}/{} quarter(s)
 Machine is {}
 )",
-			m_coinCount, m_coinCount != 1 ? "s" : "", state);
+			m_ballCount, m_ballCount != 1 ? "s" : "", m_coinCount,
+			k_coinCapacity, state);
 	}
 
 private:
@@ -117,9 +160,12 @@ private:
 		switch (m_state)
 		{
 		case State::Sold:
-			cout << "A gumball comes rolling out the slot\n";
-			--m_coinCount;
-			if (m_coinCount == 0)
+			if (m_ballCount != 0)
+			{
+				cout << "A gumball comes rolling out the slot...\n";
+				--m_ballCount;
+			}
+			if (m_ballCount == 0)
 			{
 				cout << "Oops, out of gumballs\n";
 				m_state = State::SoldOut;
@@ -134,14 +180,15 @@ private:
 			break;
 		case State::SoldOut:
 		case State::HasQuarters:
+		case State::FullQuarters:
 			cout << "No gumball dispensed\n";
 			break;
 		}
 	}
 
-	unsigned m_ballCount; // Количество шариков
-	unsigned m_coinCount;
-	unsigned k_coinCapacity = 5;
+	unsigned m_ballCount = 0;
+	unsigned m_coinCount = 0;
+	static constexpr unsigned k_coinCapacity = 5;
 	State m_state = State::SoldOut;
 };
 } // namespace naive
