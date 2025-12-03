@@ -1,6 +1,58 @@
 classDiagram
-    direction TB
+    class IState {
+        + InsertQuarter()
+        + EjectQuarter()
+        + TurnCrank()
+        + Dispense()
+        + ToString() string
+    }
 
     class IGumballMachine {
-
+        + ReleaseBall()
+        + GetBallCount() unsigned
+        + SetSoldOutState()
+        + SetNoQuarterState()
+        + SetSoldState()
+        + SetHasQuarterState()
     }
+
+    class SoldState {
+        - m_gumballMachine: IGumballMachine&
+    }
+
+    class SoldOutState {
+        - m_gumballMachine: IGumballMachine&
+    }
+
+    class HasQuarterState {
+        - m_gumballMachine: IGumballMachine&
+    }
+
+    class NoQuarterState {
+        - m_gumballMachine: IGumballMachine&
+    }
+
+    class GumballMachine {
+        + InsertQuarter()
+        + EjectQuarter()
+        + TurnCrank()
+        + ToString() string
+        - m_count: unsigned
+        - m_soldState: SoldState
+        - m_soldOutState: SoldOutState
+        - m_noQuarterState: NoQuarterState
+        - m_hasQuarterState: HasQuarterState
+        - m_state: IState*
+        - ReleaseBall()
+    }
+
+    IState <|.. SoldState
+    IState <|.. SoldOutState
+    IState <|.. HasQuarterState
+    IState <|.. NoQuarterState
+    IGumballMachine <|-- GumballMachine
+    SoldState --> IGumballMachine
+    SoldOutState --> IGumballMachine
+    HasQuarterState --> IGumballMachine
+    NoQuarterState --> IGumballMachine
+    GumballMachine --> IState

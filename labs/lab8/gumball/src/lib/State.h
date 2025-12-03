@@ -21,7 +21,7 @@ struct IState
 class SoldState final : public IState
 {
 public:
-	SoldState(with_state::IGumballMachine& gumballMachine)
+	SoldState(IGumballMachine& gumballMachine)
 		: m_gumballMachine(gumballMachine)
 	{
 	}
