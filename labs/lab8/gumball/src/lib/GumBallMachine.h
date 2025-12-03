@@ -280,7 +280,6 @@ public:
 	void RefillMachine(unsigned count)
 	{
 		m_state->RefillBalls(count);
-		std::cout << "Append " << count << " gumballs\n";
 	}
 
 	void EjectQuarter()
