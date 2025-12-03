@@ -25,7 +25,7 @@ struct IGumballMachine
 	virtual void DepositQuarter() = 0;
 	virtual unsigned GetQuartersCount() const = 0;
 	virtual void ReturnAllCoins() = 0;
-	virtual void RefillMachine(unsigned count) = 0;
+	virtual void AppendBalls(unsigned count) = 0;
 	virtual bool CanDepositQuarter() const = 0;
 
 	virtual void SetSoldOutState() = 0;
@@ -113,7 +113,7 @@ public:
 	}
 	void RefillBalls(unsigned count) override
 	{
-		m_gumballMachine.RefillMachine(count);
+		m_gumballMachine.AppendBalls(count);
 		if (m_gumballMachine.GetQuartersCount() == 0)
 		{
 			m_gumballMachine.SetNoQuarterState();
@@ -166,7 +166,7 @@ public:
 
 	void RefillBalls(unsigned count) override
 	{
-		m_gumballMachine.RefillMachine(count);
+		m_gumballMachine.AppendBalls(count);
 	}
 	std::string ToString() const override
 	{
@@ -215,7 +215,7 @@ public:
 	}
 	void RefillBalls(unsigned count) override
 	{
-		m_gumballMachine.RefillMachine(count);
+		m_gumballMachine.AppendBalls(count);
 	}
 	std::string ToString() const override
 	{
@@ -254,7 +254,7 @@ public:
 	}
 	void RefillBalls(unsigned count) override
 	{
-		m_gumballMachine.RefillMachine(count);
+		m_gumballMachine.AppendBalls(count);
 	}
 	std::string ToString() const override
 	{
@@ -284,9 +284,9 @@ public:
 		}
 	}
 
-	void RefillMachine(unsigned count) override
+	void RefillMachine(unsigned count)
 	{
-		m_ballCount += count;
+		m_state->RefillBalls(count);
 		std::cout << "Append " << count << " gumballs\n";
 	}
 
@@ -325,11 +325,18 @@ private:
 		return m_ballCount;
 	}
 
+	void AppendBalls(unsigned count) override
+	{
+		m_ballCount += count;
+		std::cout << "Append " << count << " gumballs\n";
+	}
+
 	void ReleaseBall() override
 	{
 		if (m_ballCount != 0)
 		{
 			std::cout << "A gumball comes rolling out the slot...\n";
+			--m_coinCount;
 			--m_ballCount;
 		}
 	}

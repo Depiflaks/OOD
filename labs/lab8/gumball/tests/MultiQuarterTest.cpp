@@ -92,7 +92,7 @@ TEST_F(GumballMachineTest, FourBalls_ThreeQuarters_ThreeCranks_NoQuarterState)
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: 3 gumballs
-Coins: 3/5 quarter(s)
+Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
@@ -118,7 +118,7 @@ TEST_F(GumballMachineTest, FourBalls_ThreeQuarters_FourCranks_NoQuarterState)
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: 3 gumballs
-Coins: 3/5 quarter(s)
+Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
@@ -144,7 +144,7 @@ TEST_F(GumballMachineTest, FourBalls_FourQuarters_ThreeCranks_NoQuarterState)
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: 3 gumballs
-Coins: 4/5 quarter(s)
+Coins: 1/5 quarter(s)
 Machine is waiting for quarter
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
@@ -171,7 +171,7 @@ TEST_F(GumballMachineTest, FourBalls_FourQuarters_FourCranks_FinalState)
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: 3 gumballs
-Coins: 4/5 quarter(s)
+Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
@@ -198,7 +198,7 @@ TEST_F(GumballMachineTest, FourBalls_ComplexSequence_TwoVends_FinalState)
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: 2 gumballs
-Coins: 3/5 quarter(s)
+Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
@@ -245,7 +245,7 @@ TEST_F(GumballMachineTest, FourBalls_ThreeQuarters_OneCrank_ThenEject)
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: 3 gumballs
-Coins: 3/5 quarter(s)
+Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);

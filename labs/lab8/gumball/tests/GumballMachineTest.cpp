@@ -24,7 +24,7 @@ TEST_F(GumballMachineTest, TwoBalls_InsertQuarter_TurnCrank_CheckState)
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: 1 gumball
-Coins: 1/5 quarter(s)
+Coins: 0/5 quarter(s)
 Machine is waiting for quarter
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);
@@ -51,7 +51,7 @@ TEST_F(GumballMachineTest, OneBall_InsertQuarter_TurnCrank_CheckSoldOutState)
 Mighty Gumball, Inc.
 C++-enabled Standing Gumball Model #2025
 Inventory: 0 gumballs
-Coins: 1/5 quarter(s)
+Coins: 0/5 quarter(s)
 Machine is sold out
 )";
 	EXPECT_EQ(machine.ToString(), expectedState);

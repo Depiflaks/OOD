@@ -68,24 +68,36 @@ classDiagram
     }
 
     namespace command {
+        class CommandFactory {
+            + CommandFactory(machine: &GumballMachine)
+            + Parse(line: string) ICommand
+
+            - m_machinePtr: &GumballMachine
+        }
+
         class ICommand {
             <<interface>>
-            + Execute() void
+            + Execute(machine: &GumballMachine) void
         }
 
         class HelpCommand {
+            + HelpCommand()
         }
 
         class InsertQuarterCommand {
+            + InsertQuarterCommand()
         }
 
         class EjectQuarterCommand {
+            + EjectQuarterCommand()
         }
 
         class TurnCrankCommand {
+            + TurnCrankCommand()
         }
 
         class RefillMachineCommand {
+            + RefillMachineCommand(count: unsigned)
         }
     }
 
