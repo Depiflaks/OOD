@@ -13,6 +13,7 @@ public:
 		SoldOut, // Жвачка закончилась
 		NoQuarter, // Нет монетки
 		HasQuarters, // Есть монетка
+		FullQuarters, // Полна монет
 		Sold, // Монетка выдана
 	};
 
@@ -94,11 +95,10 @@ public:
 
 	std::string ToString() const
 	{
-		std::string state = (m_state == State::SoldOut)
-			? "sold out"
-			: (m_state == State::NoQuarter)	 ? "waiting for quarter"
+		std::string state = (m_state == State::SoldOut) ? "sold out"
+			: (m_state == State::NoQuarter)				? "waiting for quarter"
 			: (m_state == State::HasQuarters) ? "waiting for turn of crank"
-											 : "delivering a gumball";
+											  : "delivering a gumball";
 
 		return std::format(R"(
 Mighty Gumball, Inc.
@@ -138,7 +138,9 @@ private:
 		}
 	}
 
-	unsigned m_coinCount; // Количество шариков
+	unsigned m_ballCount; // Количество шариков
+	unsigned m_coinCount;
+	unsigned k_coinCapacity = 5;
 	State m_state = State::SoldOut;
 };
 } // namespace naive
