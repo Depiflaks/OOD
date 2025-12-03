@@ -164,14 +164,23 @@ class GumballMachine final : IGumballMachine
 {
 public:
 	explicit GumballMachine(unsigned numBalls)
-		: m_count(numBalls)
+		: m_ballCount(numBalls)
 		, m_soldState(*this)
 		, m_soldOutState(*this)
 		, m_noQuarterState(*this)
 		, m_hasQuarterState(*this)
 		, m_state(&m_soldOutState)
 	{
-		if (m_count > 0)
+		if (m_ballCount > 0)
+		{
+			m_state = &m_noQuarterState;
+		}
+	}
+
+	void RefillMachine(unsigned count)
+	{
+		m_ballCount += count;
+		if (m_state == &m_soldOutState && m_ballCount != 0)
 		{
 			m_state = &m_noQuarterState;
 		}
@@ -201,21 +210,21 @@ C++-enabled Standing Gumball Model #2025
 Inventory: {} gumball{}
 Machine is {}
 )",
-			m_count, m_count != 1 ? "s" : "", m_state->ToString());
+			m_ballCount, m_ballCount != 1 ? "s" : "", m_state->ToString());
 	}
 
 private:
 	unsigned GetBallCount() const override
 	{
-		return m_count;
+		return m_ballCount;
 	}
 
 	void ReleaseBall() override
 	{
-		if (m_count != 0)
+		if (m_ballCount != 0)
 		{
 			std::cout << "A gumball comes rolling out the slot...\n";
-			--m_count;
+			--m_ballCount;
 		}
 	}
 
@@ -239,7 +248,11 @@ private:
 		m_state = &m_hasQuarterState;
 	}
 
-	unsigned m_count = 0;
+	const int k_coinCapacity = 5;
+
+	unsigned m_ballCount = 0;
+	unsigned m_coinCount = 0;
+	unsigned m_dispensedGumballs = 0;
 	SoldState m_soldState;
 	SoldOutState m_soldOutState;
 	NoQuarterState m_noQuarterState;
