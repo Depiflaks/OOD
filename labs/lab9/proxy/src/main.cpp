@@ -3,29 +3,23 @@
 //
 #include "lib/Drawer.h"
 
-#include <iostream>
 #include "lib/CoW.h"
+#include "lib/Drawer.h"
+#include "lib/Image.h"
+#include "lib/ImageProcessor.h"
 
-struct foo
-{
-	int a;
-	void SetA(int na)
-	{
-		a = na;
-	}
-};
-
-constexpr int STAR_COUNT = 20;
+#include <fstream>
 
 int main()
 {
-	auto a1 = CoW<foo>(foo{});
-	auto a2 = a1;
+	auto img = ImportImage("in.ppm");
 
-	std::cout << a1.GetInstanceCount() << "\n";
-	std::cout << a2.GetInstanceCount() << "\n";
+	// DrawLine(img, { 10, 10 }, { 190, 10 }, 0xFFFFFF);
+	// DrawLine(img, { 10, 10 }, { 10, 190 }, 0xFFFFFF);
 
-	a2--->SetA(2);
-	std::cout << a1.GetInstanceCount() << "\n";
-	std::cout << a2.GetInstanceCount() << "\n";
+	// DrawCircle(img, { 80, 80 }, 4, 0xFF0000);
+	// DrawCircle(img, { 140, 80 }, 6, 0x00FF00);
+	FillCircle(img, { 20, 20 }, 20, 0xFFFFFF);
+
+	SaveImage(img, "out.ppm");
 }

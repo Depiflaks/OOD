@@ -13,7 +13,7 @@ int Sign(int value)
 	return (0 < value) - (value < 0);
 }
 
-void DrawSteepLine(Image& image, Point from, Point to, char color)
+void DrawSteepLine(Image& image, Point from, Point to, Color color)
 {
 	const int deltaX = std::abs(to.x - from.x);
 	const int deltaY = std::abs(to.y - from.y);
@@ -25,7 +25,7 @@ void DrawSteepLine(Image& image, Point from, Point to, char color)
 		std::swap(from, to);
 	}
 
-	const int stepX = Sign(to.x - from.x); // Øàã ïî îñè X (-1, 0 èëè 1).
+	const int stepX = Sign(to.x - from.x);
 	const int errorThreshold = deltaY + 1;
 	const int deltaErr = deltaX + 1;
 
@@ -46,7 +46,7 @@ void DrawSteepLine(Image& image, Point from, Point to, char color)
 	}
 }
 
-void DrawSlopeLine(Image& image, Point from, Point to, char color)
+void DrawSlopeLine(Image& image, Point from, Point to, Color color)
 {
 	const int deltaX = std::abs(to.x - from.x);
 	const int deltaY = std::abs(to.y - from.y);
@@ -81,7 +81,7 @@ void DrawSlopeLine(Image& image, Point from, Point to, char color)
 
 } // namespace
 
-void DrawLine(Image& image, Point from, Point to, char color)
+void DrawLine(Image& image, Point from, Point to, Color color)
 {
 	const int deltaX = std::abs(to.x - from.x);
 	const int deltaY = std::abs(to.y - from.y);
@@ -125,7 +125,7 @@ void FillCirclePoints(Image& image, Point c, int x, int y, Color color)
 }
 } // namespace
 
-inline void FillCircle(Image& image, Point center, int radius, Color color)
+void FillCircle(Image& image, Point center, int radius, Color color)
 {
 	if (radius < 0)
 	{
@@ -149,7 +149,7 @@ inline void FillCircle(Image& image, Point center, int radius, Color color)
 		++x;
 	}
 }
-inline void DrawCircle(Image& image, Point center, int radius, Color color)
+void DrawCircle(Image& image, Point center, int radius, Color color)
 {
 	if (radius < 0)
 	{
