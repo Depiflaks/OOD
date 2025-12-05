@@ -4,6 +4,9 @@
 
 #ifndef OOD_GEOM_H
 #define OOD_GEOM_H
+#include <cstdint>
+
+using Color = uint32_t;
 
 struct Point
 {
