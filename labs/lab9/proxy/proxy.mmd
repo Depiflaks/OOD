@@ -43,6 +43,8 @@ classDiagram
 
     class Drawer {
         + DrawLine(image: &Image, from: Point, to: Point, color: Color) void
+        + DrawCircle(image: &Image, center: Point, radius: int, color: Color) void
+        + FillCircle(image: &Image, center: Point, radius: int, color: Color) void
     }
 
     Point --> Size
