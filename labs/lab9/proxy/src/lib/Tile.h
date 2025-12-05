@@ -16,7 +16,7 @@ class Tile
 public:
 	constexpr static int SIZE = 8;
 
-	Tile(Color color = static_cast<Color>(' ')) noexcept
+	Tile(Color color = 0) noexcept
 		: m_pixels(SIZE * SIZE, color)
 	{
 		assert(m_instanceCount >= 0);
@@ -49,7 +49,7 @@ public:
 	{
 		if (!IsPointInSize(p, { SIZE, SIZE }))
 		{
-			return static_cast<Color>(' ');
+			return 0;
 		}
 		return m_pixels[p.y * SIZE + p.x];
 	}

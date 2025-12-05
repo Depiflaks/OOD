@@ -4,48 +4,68 @@
 
 #ifndef OOD_IMAGE_H
 #define OOD_IMAGE_H
+#include "CoW.h"
 #include "Geom.h"
 
-#include <iosfwd>
-#include <string>
-
-#include "Geom.h"
+#include "Tile.h"
 
 #include <sstream>
 
 class Image
 {
 public:
-	/**
-	 * Конструирует изображение заданного размера. Если размеры не являются
-	 * положительными, выбрасывает исключение std::out_of_range.
-	 */
-	explicit Image(Size size, Color color = ' ')
+	explicit Image(Size size, Color color = static_cast<Color>(' '))
+		: m_size(size)
 	{
+		if (size.width <= 0 || size.height <= 0)
+		{
+			throw std::out_of_range("Image size must be positive");
+		}
+		m_tilesX = (size.width + Tile::SIZE - 1) / Tile::SIZE;
+		m_tilesY = (size.height + Tile::SIZE - 1) / Tile::SIZE;
+		m_tiles.reserve(static_cast<size_t>(m_tilesX) * m_tilesY);
+		for (int i = 0; i < m_tilesX * m_tilesY; ++i)
+		{
+			m_tiles.emplace_back(Tile(color));
+		}
 	}
 
-	// Возвращает размер изображения в пикселях.
 	Size GetSize() const noexcept
 	{
+		return m_size;
 	}
 
-	/**
-	 * Возвращает «цвет» пикселя в указанных координатах.Если координаты выходят
-	 * за пределы изображения, возвращает «пробел».
-	 */
 	Color GetPixel(Point p) const noexcept
 	{
+		if (!IsPointInSize(p, m_size))
+		{
+			return 0;
+		}
+		int tileX = p.x / Tile::SIZE;
+		int tileY = p.y / Tile::SIZE;
+		int index = tileY * m_tilesX + tileX;
+		Point local{ p.x % Tile::SIZE, p.y % Tile::SIZE };
+		return m_tiles[static_cast<size_t>(index)]->GetPixel(local);
 	}
 
-	/**
-	 * Задаёт «цвет» пикселя в указанных координатах. Если координаты выходят за
-	 * пределы изображения действие игнорируется.
-	 */
 	void SetPixel(Point p, Color color)
 	{
+		if (!IsPointInSize(p, m_size))
+		{
+			return;
+		}
+		int tileX = p.x / Tile::SIZE;
+		int tileY = p.y / Tile::SIZE;
+		int index = tileY * m_tilesX + tileX;
+		Point local{ p.x % Tile::SIZE, p.y % Tile::SIZE };
+		m_tiles[static_cast<size_t>(index)].Write()->SetPixel(local, color);
 	}
 
 private:
+	Size m_size{};
+	int m_tilesX = 0;
+	int m_tilesY = 0;
+	std::vector<CoW<Tile>> m_tiles;
 };
 
 #endif // OOD_IMAGE_H
