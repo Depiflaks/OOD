@@ -9,73 +9,58 @@
 
 #include "Geom.h"
 
+#include <vector>
+
 class Tile
 {
 public:
-	// Размер тайла 8*8 пикселей.
 	constexpr static int SIZE = 8;
 
-	// Конструктор по умолчанию. Заполняет тайл указанным цветом.
-	Tile(char color = ' ') noexcept
+	Tile(Color color = static_cast<Color>(' ')) noexcept
+		: m_pixels(SIZE * SIZE, color)
 	{
-		/* Реализуйте недостающий код самостоятельно. */
-
-		// -------------- не удалять ------------
 		assert(m_instanceCount >= 0);
-		++m_instanceCount; // Увеличиваем счётчик тайлов (для целей тестирования).
-		// -------------- не удалять ------------
+		++m_instanceCount;
 	}
 
 	Tile(const Tile& other)
+		: m_pixels(other.m_pixels)
 	{
-		/* Реализуйте недостающий код самостоятельно. */
-
-		// -------------- не удалять ------------
 		assert(m_instanceCount >= 0);
-		++m_instanceCount; // Увеличиваем счётчик тайлов (для целей тестирования).
-		// -------------- не удалять ------------
+		++m_instanceCount;
 	}
 
 	~Tile()
 	{
-		// -------------- не удалять ------------
-		--m_instanceCount; // Уменьшаем счётчик тайлов.
+		--m_instanceCount;
 		assert(m_instanceCount >= 0);
-		// -------------- не удалять ------------
 	}
 
-	/**
-	 * Изменяет цвет пикселя тайла.
-	 * Если координаты выходят за пределы тайла, метод ничего не делает.
-	 */
-	void SetPixel(Point p, char color) noexcept
+	void SetPixel(Point p, Color color) noexcept
 	{
-		/* Реализуйте недостающий код самостоятельно. */
+		if (!IsPointInSize(p, { SIZE, SIZE }))
+		{
+			return;
+		}
+		m_pixels[p.y * SIZE + p.x] = color;
 	}
 
-	/**
-	 * Возвращает цвет пикселя. Если координаты выходят за пределы тайла,
-	 * возвращается пробел.
-	 */
-	char GetPixel(Point p) const noexcept
+	Color GetPixel(Point p) const noexcept
 	{
-		/* Реализуйте недостающий функционал самостоятельно. */
-		return ' ';
+		if (!IsPointInSize(p, { SIZE, SIZE }))
+		{
+			return static_cast<Color>(' ');
+		}
+		return m_pixels[p.y * SIZE + p.x];
 	}
 
-	// Возвращает количество экземпляра класса Tile в программе.
 	static int GetInstanceCount() noexcept
 	{
-		// -------------- не удалять ------------
 		return m_instanceCount;
-		// -------------- не удалять ------------
 	}
 
 private:
-	// -------------- не удалять ------------
 	inline static int m_instanceCount = 0;
-	// -------------- не удалять ------------
-
-	/* Разместите здесь поля для хранения пикселей тайла. */
+	std::vector<Color> m_pixels;
 };
 #endif // OOD_TILE_H
