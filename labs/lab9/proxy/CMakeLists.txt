@@ -32,5 +32,3 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
 include(GoogleTest)
 
 gtest_discover_tests(${PROJECT_NAME}_tests)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE sfml-system sfml-window sfml-graphics sfml-audio sfml-network)

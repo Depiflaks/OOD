@@ -14,7 +14,7 @@
 class Image
 {
 public:
-	explicit Image(Size size, Color color = static_cast<Color>(' '))
+	explicit Image(Size size, Color color = 0)
 		: m_size(size)
 	{
 		if (size.width <= 0 || size.height <= 0)
@@ -23,11 +23,9 @@ public:
 		}
 		m_tilesX = (size.width + Tile::SIZE - 1) / Tile::SIZE;
 		m_tilesY = (size.height + Tile::SIZE - 1) / Tile::SIZE;
-		m_tiles.reserve(static_cast<size_t>(m_tilesX) * m_tilesY);
-		for (int i = 0; i < m_tilesX * m_tilesY; ++i)
-		{
-			m_tiles.emplace_back(Tile(color));
-		}
+		const int tileCount = m_tilesX * m_tilesY;
+		CoW<Tile> commonTile(color);
+		m_tiles.assign(static_cast<size_t>(tileCount), commonTile);
 	}
 
 	Size GetSize() const noexcept
@@ -58,7 +56,13 @@ public:
 		int tileY = p.y / Tile::SIZE;
 		int index = tileY * m_tilesX + tileX;
 		Point local{ p.x % Tile::SIZE, p.y % Tile::SIZE };
-		m_tiles[static_cast<size_t>(index)].Write()->SetPixel(local, color);
+		m_tiles[static_cast<size_t>(index)]--->SetPixel(local, color);
+	}
+
+protected:
+	std::vector<CoW<Tile>>& GetTiles()
+	{
+		return m_tiles;
 	}
 
 private:

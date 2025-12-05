@@ -132,6 +132,11 @@ public:
 		return WriteProxy(m_shared.get());
 	}
 
+	int GetInstanceCount() const noexcept
+	{
+		return m_shared.use_count();
+	}
+
 private:
 	void EnsureUnique()
 	{
