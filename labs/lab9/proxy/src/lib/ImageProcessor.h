@@ -8,9 +8,6 @@
 
 #include <fstream>
 
-/**
- * Выводит в поток out изображение в виде символов.
- */
 inline void Print(const Image& img, std::ostream& out)
 {
 	const auto size = img.GetSize();
@@ -18,17 +15,13 @@ inline void Print(const Image& img, std::ostream& out)
 	{
 		for (int x = 0; x < size.width; ++x)
 		{
-			out.put(img.GetPixel({ x, y }));
+			Color c = img.GetPixel({ x, y });
+			out.put(static_cast<char>(c & 0xFF));
 		}
 		out.put('\n');
 	}
-};
+}
 
-/**
- * Загружает изображение из pixels. Линии изображения разделяются символами \n.
- * Размеры картинки определяются по количеству переводов строки и самой длинной
- * линии.
- */
 inline Image LoadImage(const std::string& pixels)
 {
 	std::istringstream s(pixels);
@@ -40,23 +33,24 @@ inline Image LoadImage(const std::string& pixels)
 		++size.height;
 	}
 
-	Image img(size);
+	Image img(size, 0);
 
-	s = std::istringstream(pixels);
+	s.clear();
+	s.str(pixels);
 	for (int y = 0; y < size.height; ++y)
 	{
 		if (!std::getline(s, line))
 			break;
 
 		int x = 0;
-		for (Color ch : line)
+		for (char ch : line)
 		{
-			img.SetPixel({ x++, y }, ch);
+			img.SetPixel({ x++, y }, static_cast<unsigned char>(ch));
 		}
 	}
 
 	return img;
-};
+}
 
 inline void SaveImage(const Image& image, const std::string& dst)
 {
@@ -64,14 +58,16 @@ inline void SaveImage(const Image& image, const std::string& dst)
 	const auto size = image.GetSize();
 	out << "P3\n" << size.width << " " << size.height << "\n255\n";
 	for (int y = 0; y < size.height; ++y)
+	{
 		for (int x = 0; x < size.width; ++x)
 		{
-			Color c = static_cast<unsigned char>(image.GetPixel({ x, y }));
-			unsigned r = (c >> 16) & 0xFF;
-			unsigned g = (c >> 8) & 0xFF;
+			Color c = image.GetPixel({ x, y });
+			unsigned r = c >> 16 & 0xFF;
+			unsigned g = c >> 8 & 0xFF;
 			unsigned b = c & 0xFF;
-			out << r << " " << g << " " << b << "\n";
+			out << r << ' ' << g << ' ' << b << '\n';
 		}
+	}
 }
 
 inline Image ImportImage(const std::string& source)
@@ -79,17 +75,32 @@ inline Image ImportImage(const std::string& source)
 	std::ifstream in(source, std::ios::binary);
 	std::string magic;
 	in >> magic;
-	int w, h, maxv;
-	in >> w >> h >> maxv;
-	Image img({ w, h });
-	for (int y = 0; y < h; ++y)
-		for (int x = 0; x < w; ++x)
+	int width = 0;
+	int height = 0;
+	int maxv = 0;
+	in >> width >> height >> maxv;
+	Image img({ width, height }, 0);
+	for (int y = 0; y < height; ++y)
+	{
+		for (int x = 0; x < width; ++x)
 		{
-			int r, g, b;
-			in >> r >> g >> b;
-			Color c = (r << 16) | (g << 8) | b;
-			img.SetPixel({ x, y }, static_cast<char>(c));
+			int r = 0;
+			int g = 0;
+			int b = 0;
+			if (!(in >> r >> g >> b))
+				break;
+			if (maxv != 255 && maxv > 0)
+			{
+				r = r * 255 / maxv;
+				g = g * 255 / maxv;
+				b = b * 255 / maxv;
+			}
+			Color c = (static_cast<Color>(r & 0xFF) << 16)
+				| (static_cast<Color>(g & 0xFF) << 8)
+				| static_cast<Color>(b & 0xFF);
+			img.SetPixel({ x, y }, c);
 		}
+	}
 	return img;
 }
 #endif // OOD_IMAGEPROCESSOR_H
