@@ -5,36 +5,59 @@
 #include "lib/Canvas.h"
 #include "lib/Shapes/GroupShape.h"
 #include "lib/Shapes/Shapes.h"
+#include <memory>
 
-
-void CreateScene(std::vector<std::shared_ptr<IDrawable>>& drawables)
+Slide CreateScene()
 {
-	auto circle = std::make_shared<SimpleShape>(
+	auto shapes = std::make_shared<GroupShape>();
+
+	auto houseBase = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakeRectangleStrategy()),
+		RectD{ 100, 100, 200, 150 }, std::make_unique<Style>(true, 0xFFFF0000),
+		std::make_unique<Style>(true, 0xFF000000), 2);
+
+	auto roof = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakePolygonStrategy(3)),
+		RectD{ 150, 50, 100, 80 }, std::make_unique<Style>(true, 0xFF8B4513),
+		std::make_unique<Style>(true, 0xFF000000), 2);
+
+	auto window = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakeRectangleStrategy()),
+		RectD{ 150, 130, 50, 40 }, std::make_unique<Style>(true, 0xFF87CEEB),
+		std::make_unique<Style>(true, 0xFF000000), 1);
+
+	auto door = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakeRectangleStrategy()),
+		RectD{ 220, 180, 40, 70 }, std::make_unique<Style>(true, 0xFF8B4513),
+		std::make_unique<Style>(true, 0xFF000000), 1);
+
+	auto houseGroup = std::make_shared<GroupShape>();
+	houseGroup->InsertShape(houseBase);
+	houseGroup->InsertShape(roof);
+	houseGroup->InsertShape(window);
+	houseGroup->InsertShape(door);
+
+	auto treeTrunk = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakeRectangleStrategy()),
+		RectD{ 350, 150, 20, 100 }, std::make_unique<Style>(true, 0xFF8B4513),
+		std::make_unique<Style>(true, 0xFF000000), 1);
+
+	auto treeCrown = std::make_shared<SimpleShape>(
 		std::make_shared<DrawingStrategy>(MakeEllipseStrategy()),
-		RectD{ 50, 50, 100, 100 }, std::make_unique<Style>(true, 0xFF0000FF),
-		std::make_unique<Style>(true, 0x000000FF), 5);
-	drawables.push_back(circle);
+		RectD{ 320, 80, 80, 80 }, std::make_unique<Style>(true, 0xFF228B22),
+		std::make_unique<Style>(true, 0xFF000000), 1);
 
-	auto rect = std::make_shared<SimpleShape>(
-		std::make_shared<DrawingStrategy>(MakeRectangleStrategy()),
-		RectD{ 200, 50, 150, 80 }, std::make_unique<Style>(true, 0x00FF00FF),
-		std::make_unique<Style>(true, 0x808080FF), 2);
-	drawables.push_back(rect);
+	auto sun = std::make_shared<SimpleShape>(
+		std::make_shared<DrawingStrategy>(MakeEllipseStrategy()),
+		RectD{ 50, 50, 60, 60 }, std::make_unique<Style>(true, 0xFFFFFF00),
+		std::make_unique<Style>(true, 0xFFFFA500), 3);
 
-	auto group = std::make_shared<GroupShape>();
-	group->InsertShape(circle->Clone());
+	shapes->InsertShape(houseGroup);
+	shapes->InsertShape(treeTrunk);
+	shapes->InsertShape(treeCrown);
+	shapes->InsertShape(sun);
 
-	auto smallRect = std::make_shared<SimpleShape>(
-		std::make_shared<DrawingStrategy>(MakeRectangleStrategy()),
-		RectD{ 0, 0, 30, 30 }, std::make_unique<Style>(true, 0x0000FFFF),
-		std::make_unique<Style>(false, 0x000000FF), 1);
-	group->InsertShape(smallRect);
-
-	group->SetFrame(RectD{ 300, 200, 200, 150 });
-	group->SetOutlineThickness(3);
-	group->SetOutlineColor(0xFF00FFFF);
-
-	drawables.push_back(group);
+	return Slide{ 800, 600, shapes };
 }
 
 int main()
@@ -42,8 +65,7 @@ int main()
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Canvas Demo");
 	SFMLCanvas canvas(window);
 
-	std::vector<std::shared_ptr<IDrawable>> drawables;
-	CreateScene(drawables);
+	auto slide = CreateScene();
 
 	while (window.isOpen())
 	{
@@ -56,10 +78,7 @@ int main()
 
 		window.clear(sf::Color(240, 240, 240));
 
-		for (const auto& drawable : drawables)
-		{
-			drawable->Draw(canvas);
-		}
+		slide.Draw(canvas);
 
 		window.display();
 	}

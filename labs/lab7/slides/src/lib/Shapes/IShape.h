@@ -80,6 +80,45 @@ public:
 
 class Slide : public ISlide
 {
+public:
+	Slide(double width, double height, std::shared_ptr<IShapes> shapes)
+		: m_width(width)
+		, m_height(height)
+		, m_shapes(std::move(shapes))
+	{
+	}
+
+	double GetWidth() const override
+	{
+		return m_width;
+	}
+
+	double GetHeight() const override
+	{
+		return m_height;
+	}
+
+	IShapes& GetShapes() const override
+	{
+		return *m_shapes;
+	}
+
+	void Draw(ICanvas& canvas) const override
+	{
+		for (size_t i = 0; i < m_shapes->GetShapesCount(); ++i)
+		{
+			auto shape = m_shapes->GetShapeAtIndex(i);
+			if (shape)
+			{
+				shape->Draw(canvas);
+			}
+		}
+	}
+
+private:
+	double m_width;
+	double m_height;
+	std::shared_ptr<IShapes> m_shapes;
 };
 
 #endif // OOD_ISHAPE_H

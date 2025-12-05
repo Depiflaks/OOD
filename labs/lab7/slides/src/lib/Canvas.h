@@ -23,10 +23,10 @@ public:
 
 inline sf::Color toSfColor(RGBAColor color)
 {
-	return sf::Color((color >> 24) & 0xFF,
-		(color >> 16) & 0xFF,
-		(color >> 8) & 0xFF,
-		color & 0xFF
+	return sf::Color((color >> 16) & 0xFF, // R
+		(color >> 8) & 0xFF, // G
+		color & 0xFF, // B
+		(color >> 24) & 0xFF // A
 	);
 }
 
