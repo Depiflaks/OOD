@@ -26,8 +26,7 @@ void DrawSteepLine(Image& image, Point from, Point to, char color)
 	}
 
 	const int stepX = Sign(to.x - from.x); // Øàã ïî îñè X (-1, 0 èëè 1).
-	const int errorThreshold
-		= deltaY + 1;
+	const int errorThreshold = deltaY + 1;
 	const int deltaErr = deltaX + 1;
 
 	int error = deltaErr / 2;
@@ -94,5 +93,83 @@ void DrawLine(Image& image, Point from, Point to, char color)
 	else
 	{
 		DrawSlopeLine(image, from, to, color);
+	}
+}
+
+namespace
+{
+void DrawCirclePoints(Image& image, Point c, int x, int y, Color color)
+{
+	image.SetPixel({ c.x + x, c.y + y }, color);
+	image.SetPixel({ c.x - x, c.y + y }, color);
+	image.SetPixel({ c.x + x, c.y - y }, color);
+	image.SetPixel({ c.x - x, c.y - y }, color);
+	image.SetPixel({ c.x + y, c.y + x }, color);
+	image.SetPixel({ c.x - y, c.y + x }, color);
+	image.SetPixel({ c.x + y, c.y - x }, color);
+	image.SetPixel({ c.x - y, c.y - x }, color);
+}
+
+void FillCirclePoints(Image& image, Point c, int x, int y, Color color)
+{
+	for (int xx = c.x - x; xx <= c.x + x; ++xx)
+	{
+		image.SetPixel({ xx, c.y + y }, color);
+		image.SetPixel({ xx, c.y - y }, color);
+	}
+	for (int xx = c.x - y; xx <= c.x + y; ++xx)
+	{
+		image.SetPixel({ xx, c.y + x }, color);
+		image.SetPixel({ xx, c.y - x }, color);
+	}
+}
+} // namespace
+
+inline void FillCircle(Image& image, Point center, int radius, Color color)
+{
+	if (radius < 0)
+	{
+		return;
+	}
+	int x = 0;
+	int y = radius;
+	int d = 3 - 2 * radius;
+	while (y >= x)
+	{
+		FillCirclePoints(image, center, x, y, color);
+		if (d <= 0)
+		{
+			d += 4 * x + 6;
+		}
+		else
+		{
+			d += 4 * (x - y) + 10;
+			--y;
+		}
+		++x;
+	}
+}
+inline void DrawCircle(Image& image, Point center, int radius, Color color)
+{
+	if (radius < 0)
+	{
+		return;
+	}
+	int x = 0;
+	int y = radius;
+	int d = 3 - 2 * radius;
+	while (y >= x)
+	{
+		DrawCirclePoints(image, center, x, y, color);
+		if (d <= 0)
+		{
+			d += 4 * x + 6;
+		}
+		else
+		{
+			d += 4 * (x - y) + 10;
+			--y;
+		}
+		++x;
 	}
 }
