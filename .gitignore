@@ -5,7 +5,7 @@
 /compile_commands.json
 /Makefile
 /install_manifest.txt
-
+.idea/
 .cache/
 .clang-format/
 _deps/
