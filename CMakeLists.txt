@@ -4,6 +4,7 @@ project(OOD)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_PREFIX_PATH "/home/smmm/Qt/6.10.1/gcc_64")
+#set(BOOST_ROOT "/usr/include/boost")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS_OUTPUT_DIR ${CMAKE_BINARY_DIR})
 
@@ -18,6 +19,9 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
 endif()
 
 find_package(SFML 2.6 COMPONENTS system window graphics network audio REQUIRED)
+find_package(Boost 1.70 REQUIRED)
+
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_subdirectory(labs/lab1/object_ducks ${CMAKE_BINARY_DIR}/labs/lab1/object_ducks)
 add_subdirectory(labs/lab1/functional_ducks ${CMAKE_BINARY_DIR}/labs/lab1/functional_ducks)

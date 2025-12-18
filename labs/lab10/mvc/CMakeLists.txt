@@ -35,8 +35,12 @@ target_link_libraries(${PROJECT_NAME}_tests PRIVATE
         gmock
         gtest_main
         Qt6::Widgets
+        Boost::boost
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Qt6::Widgets
+    Boost::boost
+)
 
 include(GoogleTest)
 
