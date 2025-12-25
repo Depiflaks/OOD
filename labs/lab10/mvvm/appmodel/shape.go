@@ -1,7 +1,7 @@
 package appmodel
 
 import (
-	"vector-editor/graphics"
+	"vector-editor/geometry"
 	"vector-editor/history"
 	"vector-editor/model"
 )
@@ -41,7 +41,7 @@ func (m *ShapeManager) GetSelectedShapeIds() []model.ShapeId {
 	return ids
 }
 
-func (m *ShapeManager) Drag(delta graphics.Vector, isDragging bool) {
+func (m *ShapeManager) Drag(delta geometry.Vector, isDragging bool) {
 	if !isDragging {
 		cmd := history.NewMoveShapesCommand(
 			m.newMoveShapesFn(), delta)
@@ -53,8 +53,8 @@ func (m *ShapeManager) Drag(delta graphics.Vector, isDragging bool) {
 }
 
 func (m *ShapeManager) Resize(
-	delta graphics.Vector,
-	scale graphics.Scale,
+	delta geometry.Vector,
+	scale geometry.Scale,
 	isResizing bool,
 ) {
 	if !isResizing {
@@ -93,9 +93,9 @@ func (m *ShapeManager) ClearSelection() {
 	m.selected = make(map[model.ShapeId]EditableShape)
 }
 
-func (m *ShapeManager) SetStyle(newStyle graphics.Style) {
-	prevStyles := make(map[model.ShapeId]graphics.Style)
-	newStyles := make(map[model.ShapeId]graphics.Style)
+func (m *ShapeManager) SetStyle(newStyle geometry.Style) {
+	prevStyles := make(map[model.ShapeId]geometry.Style)
+	newStyles := make(map[model.ShapeId]geometry.Style)
 	for id, s := range m.selected {
 		prevStyles[id] = s.GetShape().GetStyle()
 		newStyles[id] = newStyle
@@ -105,7 +105,7 @@ func (m *ShapeManager) SetStyle(newStyle graphics.Style) {
 }
 
 func (m *ShapeManager) newMoveShapesFn() history.MoveShapesFn {
-	return func(delta graphics.Vector) {
+	return func(delta geometry.Vector) {
 		for _, s := range m.selected {
 			s.GetShape().Move(delta)
 		}
@@ -113,7 +113,7 @@ func (m *ShapeManager) newMoveShapesFn() history.MoveShapesFn {
 }
 
 func (m *ShapeManager) newResizeShapesFn() history.ResizeShapesFn {
-	return func(delta graphics.Vector, bounds graphics.Bounds) {
+	return func(delta geometry.Vector, bounds geometry.Bounds) {
 		for _, s := range m.selected {
 			s.GetShape().UpdateRect(delta, bounds)
 		}
@@ -121,7 +121,7 @@ func (m *ShapeManager) newResizeShapesFn() history.ResizeShapesFn {
 }
 
 func (m *ShapeManager) newSetStyleFn() history.SetStyleFn {
-	return func(styles map[model.ShapeId]graphics.Style) {
+	return func(styles map[model.ShapeId]geometry.Style) {
 		for id, s := range m.selected {
 			s.GetShape().SetStyle(styles[id])
 		}

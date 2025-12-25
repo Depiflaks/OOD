@@ -1,7 +1,7 @@
 package modelview
 
 import (
-	"vector-editor/graphics"
+	"vector-editor/geometry"
 	"vector-editor/model"
 )
 
@@ -15,8 +15,8 @@ type CanvasModelViewObserver interface {
 }
 
 type ShapeModelViewObserver interface {
-	UpdateRect(position graphics.Point, bounds graphics.Bounds)
-	UpdateStyle(style graphics.Style)
+	UpdateRect(position geometry.Point, bounds geometry.Bounds)
+	UpdateStyle(style geometry.Style)
 }
 
 type ToolbarModelViewObserver interface {

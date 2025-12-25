@@ -3,15 +3,15 @@ package history
 import (
 	"image/color"
 	"testing"
-	"vector-editor/graphics"
+	"vector-editor/geometry"
 	"vector-editor/model"
 )
 
 type mockShape struct {
 	id      model.ShapeId
-	pos     graphics.Vector
-	size    graphics.Bounds
-	style   graphics.Style
+	pos     geometry.Vector
+	size    geometry.Bounds
+	style   geometry.Style
 	marked  bool
 	deleted bool
 }
@@ -20,9 +20,9 @@ func newMockShape(id model.ShapeId) *mockShape {
 	return &mockShape{
 
 		id:    id,
-		pos:   graphics.Vector{X: 0, Y: 0},
-		size:  graphics.Bounds{Width: 10, Height: 10},
-		style: graphics.Style{},
+		pos:   geometry.Vector{X: 0, Y: 0},
+		size:  geometry.Bounds{Width: 10, Height: 10},
+		style: geometry.Style{},
 	}
 }
 
@@ -179,11 +179,11 @@ func TestDeleteShape_ExecuteDispose(t *testing.T) {
 func TestMove_NotExecuted(t *testing.T) {
 	shape := newMockShape(1)
 	cmd := NewMoveShapesCommand(
-		func(d graphics.Vector) {
+		func(d geometry.Vector) {
 			shape.pos.X += d.X
 			shape.pos.Y += d.Y
 		},
-		graphics.Vector{X: 5, Y: 5},
+		geometry.Vector{X: 5, Y: 5},
 	)
 	cmd.Unexecute()
 	if shape.pos.X != 0 || shape.pos.Y != 0 {
@@ -194,11 +194,11 @@ func TestMove_NotExecuted(t *testing.T) {
 func TestMove_Execute(t *testing.T) {
 	shape := newMockShape(1)
 	cmd := NewMoveShapesCommand(
-		func(d graphics.Vector) {
+		func(d geometry.Vector) {
 			shape.pos.X += d.X
 			shape.pos.Y += d.Y
 		},
-		graphics.Vector{X: 5, Y: 5},
+		geometry.Vector{X: 5, Y: 5},
 	)
 	cmd.Execute()
 	if shape.pos.X != 5 || shape.pos.Y != 5 {
@@ -209,11 +209,11 @@ func TestMove_Execute(t *testing.T) {
 func TestMove_ExecuteUnexecute(t *testing.T) {
 	shape := newMockShape(1)
 	cmd := NewMoveShapesCommand(
-		func(d graphics.Vector) {
+		func(d geometry.Vector) {
 			shape.pos.X += d.X
 			shape.pos.Y += d.Y
 		},
-		graphics.Vector{X: 5, Y: 5},
+		geometry.Vector{X: 5, Y: 5},
 	)
 	cmd.Execute()
 	cmd.Unexecute()
@@ -225,11 +225,11 @@ func TestMove_ExecuteUnexecute(t *testing.T) {
 func TestResize_NotExecuted(t *testing.T) {
 	shape := newMockShape(1)
 	cmd := NewResizeShapesCommand(
-		func(d graphics.Vector, b graphics.Bounds) {
+		func(d geometry.Vector, b geometry.Bounds) {
 			shape.size = b
 		},
-		graphics.Vector{},
-		graphics.Bounds{Width: 20, Height: 20},
+		geometry.Vector{},
+		geometry.Bounds{Width: 20, Height: 20},
 	)
 	cmd.Unexecute()
 	if shape.size.Width != 10 || shape.size.Height != 10 {
@@ -240,11 +240,11 @@ func TestResize_NotExecuted(t *testing.T) {
 func TestResize_Execute(t *testing.T) {
 	shape := newMockShape(1)
 	cmd := NewResizeShapesCommand(
-		func(d graphics.Vector, b graphics.Bounds) {
+		func(d geometry.Vector, b geometry.Bounds) {
 			shape.size = b
 		},
-		graphics.Vector{},
-		graphics.Bounds{Width: 20, Height: 20},
+		geometry.Vector{},
+		geometry.Bounds{Width: 20, Height: 20},
 	)
 	cmd.Execute()
 	if shape.size.Width != 20 || shape.size.Height != 20 {
@@ -256,11 +256,11 @@ func TestResize_Execute(t *testing.T) {
 //func TestResize_ExecuteUnexecute(t *testing.T) {
 //	shape := newMockShape(1)
 //	cmd := NewResizeShapesCommand(
-//		func(d graphics.Vector, b graphics.Bounds) {
+//		func(d geometry.Vector, b geometry.Bounds) {
 //			shape.size = b
 //		},
-//		graphics.Vector{},
-//		graphics.Bounds{Width: 20, Height: 20},
+//		geometry.Vector{},
+//		geometry.Bounds{Width: 20, Height: 20},
 //	)
 //	cmd.Execute()
 //	cmd.Unexecute()
@@ -271,7 +271,7 @@ func TestResize_Execute(t *testing.T) {
 
 type mockShapeStyle struct {
 	id    model.ShapeId
-	style graphics.Style
+	style geometry.Style
 }
 
 func newMockShapeStyle(id model.ShapeId) *mockShapeStyle {
@@ -283,7 +283,7 @@ func colorPtr(r, g, b, a uint8) *color.Color {
 	return &c
 }
 
-func stylesEqual(a, b graphics.Style) bool {
+func stylesEqual(a, b geometry.Style) bool {
 	if (a.Fill == nil) != (b.Fill == nil) {
 		return false
 	}
@@ -302,21 +302,21 @@ func stylesEqual(a, b graphics.Style) bool {
 func TestSetStyle_NotExecuted(t *testing.T) {
 	shape := newMockShapeStyle(1)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		shape.style = styles[shape.id]
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: {},
 	}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(1, 0, 0, 255)},
 	}
 
 	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
 	cmd.Unexecute()
 
-	if !stylesEqual(shape.style, graphics.Style{}) {
+	if !stylesEqual(shape.style, geometry.Style{}) {
 		t.Fail()
 	}
 }
@@ -324,15 +324,15 @@ func TestSetStyle_NotExecuted(t *testing.T) {
 func TestSetStyle_Execute(t *testing.T) {
 	shape := newMockShapeStyle(1)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		shape.style = styles[shape.id]
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: {},
 	}
-	newStyle := graphics.Style{Fill: colorPtr(1, 0, 0, 255)}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyle := geometry.Style{Fill: colorPtr(1, 0, 0, 255)}
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: newStyle,
 	}
 
@@ -347,16 +347,16 @@ func TestSetStyle_Execute(t *testing.T) {
 func TestSetStyle_ExecuteUnexecute(t *testing.T) {
 	shape := newMockShapeStyle(1)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		shape.style = styles[shape.id]
 	}
 
-	prev := graphics.Style{Fill: colorPtr(9, 0, 0, 255)}
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prev := geometry.Style{Fill: colorPtr(9, 0, 0, 255)}
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: prev,
 	}
-	newStyle := graphics.Style{Fill: colorPtr(1, 0, 0, 255)}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyle := geometry.Style{Fill: colorPtr(1, 0, 0, 255)}
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: newStyle,
 	}
 
@@ -372,15 +372,15 @@ func TestSetStyle_ExecuteUnexecute(t *testing.T) {
 func TestSetStyle_ExecuteDispose(t *testing.T) {
 	shape := newMockShapeStyle(1)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		shape.style = styles[shape.id]
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: {},
 	}
-	newStyle := graphics.Style{Fill: colorPtr(1, 0, 0, 255)}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyle := geometry.Style{Fill: colorPtr(1, 0, 0, 255)}
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: newStyle,
 	}
 
@@ -397,18 +397,18 @@ func TestSetStyle_Multi_NotExecuted_Full(t *testing.T) {
 	s2 := newMockShapeStyle(2)
 	s3 := newMockShapeStyle(3)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		s1.style = styles[1]
 		s2.style = styles[2]
 		s3.style = styles[3]
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(10, 0, 0, 255)},
 		2: {Fill: colorPtr(20, 0, 0, 255)},
 		3: {Fill: colorPtr(30, 0, 0, 255)},
 	}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(1, 0, 0, 255)},
 		2: {Fill: colorPtr(2, 0, 0, 255)},
 		3: {Fill: colorPtr(3, 0, 0, 255)},
@@ -417,7 +417,7 @@ func TestSetStyle_Multi_NotExecuted_Full(t *testing.T) {
 	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
 	cmd.Unexecute()
 
-	if !stylesEqual(s1.style, graphics.Style{}) || !stylesEqual(s2.style, graphics.Style{}) || !stylesEqual(s3.style, graphics.Style{}) {
+	if !stylesEqual(s1.style, geometry.Style{}) || !stylesEqual(s2.style, geometry.Style{}) || !stylesEqual(s3.style, geometry.Style{}) {
 		t.Fail()
 	}
 }
@@ -427,18 +427,18 @@ func TestSetStyle_Multi_Execute_Full(t *testing.T) {
 	s2 := newMockShapeStyle(2)
 	s3 := newMockShapeStyle(3)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		s1.style = styles[1]
 		s2.style = styles[2]
 		s3.style = styles[3]
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: {},
 		2: {},
 		3: {},
 	}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(1, 0, 0, 255)},
 		2: {Fill: colorPtr(2, 0, 0, 255)},
 		3: {Fill: colorPtr(3, 0, 0, 255)},
@@ -457,18 +457,18 @@ func TestSetStyle_Multi_ExecuteUnexecute_Full(t *testing.T) {
 	s2 := newMockShapeStyle(2)
 	s3 := newMockShapeStyle(3)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		s1.style = styles[1]
 		s2.style = styles[2]
 		s3.style = styles[3]
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(10, 0, 0, 255)},
 		2: {Fill: colorPtr(20, 0, 0, 255)},
 		3: {Fill: colorPtr(30, 0, 0, 255)},
 	}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(1, 0, 0, 255)},
 		2: {Fill: colorPtr(2, 0, 0, 255)},
 		3: {Fill: colorPtr(3, 0, 0, 255)},
@@ -488,18 +488,18 @@ func TestSetStyle_Multi_ExecuteUnexecuteDispose_Full(t *testing.T) {
 	s2 := newMockShapeStyle(2)
 	s3 := newMockShapeStyle(3)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		s1.style = styles[1]
 		s2.style = styles[2]
 		s3.style = styles[3]
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(10, 0, 0, 255)},
 		2: {Fill: colorPtr(20, 0, 0, 255)},
 		3: {Fill: colorPtr(30, 0, 0, 255)},
 	}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(1, 0, 0, 255)},
 		2: {Fill: colorPtr(2, 0, 0, 255)},
 		3: {Fill: colorPtr(3, 0, 0, 255)},
@@ -519,18 +519,18 @@ func TestSetStyle_Multi_ExecuteDispose_Full(t *testing.T) {
 	s2 := newMockShapeStyle(2)
 	s3 := newMockShapeStyle(3)
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		s1.style = styles[1]
 		s2.style = styles[2]
 		s3.style = styles[3]
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: {},
 		2: {},
 		3: {},
 	}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(1, 0, 0, 255)},
 		2: {Fill: colorPtr(2, 0, 0, 255)},
 		3: {Fill: colorPtr(3, 0, 0, 255)},
@@ -549,11 +549,11 @@ func TestSetStyle_Multi_Execute_Partial(t *testing.T) {
 	s2 := newMockShapeStyle(2)
 	s3 := newMockShapeStyle(3)
 
-	s1.style = graphics.Style{Fill: colorPtr(10, 0, 0, 255)}
-	s2.style = graphics.Style{Fill: colorPtr(20, 0, 0, 255)}
-	s3.style = graphics.Style{Fill: colorPtr(30, 0, 0, 255)}
+	s1.style = geometry.Style{Fill: colorPtr(10, 0, 0, 255)}
+	s2.style = geometry.Style{Fill: colorPtr(20, 0, 0, 255)}
+	s3.style = geometry.Style{Fill: colorPtr(30, 0, 0, 255)}
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		if st, ok := styles[1]; ok {
 			s1.style = st
 		}
@@ -565,12 +565,12 @@ func TestSetStyle_Multi_Execute_Partial(t *testing.T) {
 		}
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: s1.style,
 		2: s2.style,
 		3: s3.style,
 	}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(1, 0, 0, 255)},
 		3: {Fill: colorPtr(3, 0, 0, 255)},
 	}
@@ -594,11 +594,11 @@ func TestSetStyle_Multi_ExecuteUnexecute_Partial(t *testing.T) {
 	s2 := newMockShapeStyle(2)
 	s3 := newMockShapeStyle(3)
 
-	s1.style = graphics.Style{Fill: colorPtr(10, 0, 0, 255)}
-	s2.style = graphics.Style{Fill: colorPtr(20, 0, 0, 255)}
-	s3.style = graphics.Style{Fill: colorPtr(30, 0, 0, 255)}
+	s1.style = geometry.Style{Fill: colorPtr(10, 0, 0, 255)}
+	s2.style = geometry.Style{Fill: colorPtr(20, 0, 0, 255)}
+	s3.style = geometry.Style{Fill: colorPtr(30, 0, 0, 255)}
 
-	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+	setStyle := func(styles map[model.ShapeId]geometry.Style) {
 		if st, ok := styles[1]; ok {
 			s1.style = st
 		}
@@ -610,12 +610,12 @@ func TestSetStyle_Multi_ExecuteUnexecute_Partial(t *testing.T) {
 		}
 	}
 
-	prevStyles := map[model.ShapeId]graphics.Style{
+	prevStyles := map[model.ShapeId]geometry.Style{
 		1: s1.style,
 		2: s2.style,
 		3: s3.style,
 	}
-	newStyles := map[model.ShapeId]graphics.Style{
+	newStyles := map[model.ShapeId]geometry.Style{
 		1: {Fill: colorPtr(1, 0, 0, 255)},
 		3: {Fill: colorPtr(3, 0, 0, 255)},
 	}

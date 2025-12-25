@@ -2,7 +2,7 @@ package modelview
 
 import (
 	"vector-editor/appmodel"
-	"vector-editor/graphics"
+	"vector-editor/geometry"
 	"vector-editor/model"
 )
 
@@ -14,16 +14,54 @@ func (s *editableShape) GetShape() *model.Shape {
 	return s.owner.shape
 }
 
-func (s *editableShape) Move(delta graphics.Vector) {
+func (s *editableShape) Move(delta geometry.Vector) {
 	pos := s.owner.dragStartPosition
 	pos.X += delta.X
 	pos.Y += delta.Y
 	s.owner.position = pos
 }
 
-func (s *editableShape) Scale(delta graphics.Vector, scale graphics.Scale) {
-	bounds := s.owner.GetBounds()
-	// TODO: здесь провести скалирование
+func (s *editableShape) Scale(delta geometry.Vector, scale geometry.Scale) {
+	startPos := s.owner.resizeStartPosition
+	startBounds := s.owner.resizeStartBounds
+
+	newBounds := geometry.Bounds{
+		Width:  startBounds.Width * scale.ScaleX,
+		Height: startBounds.Height * scale.ScaleY,
+	}
+
+	const eps = 1e-9
+	dx0 := delta.X > -eps && delta.X < eps
+	dy0 := delta.Y > -eps && delta.Y < eps
+
+	fixedTop := dy0
+	fixedLeft := dx0
+
+	var fixed geometry.Point
+	switch {
+	case fixedLeft && fixedTop:
+		fixed = geometry.Point{X: startPos.X, Y: startPos.Y}
+	case !fixedLeft && fixedTop:
+		fixed = geometry.Point{X: startPos.X + startBounds.Width, Y: startPos.Y}
+	case fixedLeft && !fixedTop:
+		fixed = geometry.Point{X: startPos.X, Y: startPos.Y + startBounds.Height}
+	default:
+		fixed = geometry.Point{X: startPos.X + startBounds.Width, Y: startPos.Y + startBounds.Height}
+	}
+
+	var newPos geometry.Point
+	switch {
+	case fixedLeft && fixedTop:
+		newPos = geometry.Point{X: fixed.X, Y: fixed.Y}
+	case !fixedLeft && fixedTop:
+		newPos = geometry.Point{X: fixed.X - newBounds.Width, Y: fixed.Y}
+	case fixedLeft && !fixedTop:
+		newPos = geometry.Point{X: fixed.X, Y: fixed.Y - newBounds.Height}
+	default:
+		newPos = geometry.Point{X: fixed.X - newBounds.Width, Y: fixed.Y - newBounds.Height}
+	}
+
+	s.owner.UpdateRect(newPos, newBounds)
 }
 
 func (s *editableShape) StartDragging() {
@@ -61,13 +99,13 @@ type shapeObserver struct {
 	owner *ShapeModelView
 }
 
-func (s *shapeObserver) UpdateRect(position graphics.Point, bounds graphics.Bounds) {
+func (s *shapeObserver) UpdateRect(position geometry.Point, bounds geometry.Bounds) {
 	s.owner.position = position
 	s.owner.size = bounds
 	s.owner.notifyRect()
 }
 
-func (s *shapeObserver) UpdateStyle(style graphics.Style) {
+func (s *shapeObserver) UpdateStyle(style geometry.Style) {
 	s.owner.style = style
 	s.owner.manager.SetStyle(style)
 	s.owner.notifyStyle()
@@ -81,18 +119,18 @@ type ShapeModelView struct {
 	manager   *appmodel.ShapeManager
 	observers []ShapeModelViewObserver
 
-	position  graphics.Point
-	size      graphics.Bounds
-	style     graphics.Style
+	position  geometry.Point
+	size      geometry.Bounds
+	style     geometry.Style
 	shapeType model.ShapeType
 
 	isDragging bool
 	isResizing bool
 
-	dragStartPosition graphics.Point
+	dragStartPosition geometry.Point
 
-	resizeStartPosition graphics.Point
-	resizeStartBounds   graphics.Bounds
+	resizeStartPosition geometry.Point
+	resizeStartBounds   geometry.Bounds
 }
 
 func NewShapeModelView(
@@ -125,27 +163,27 @@ func (s *ShapeModelView) Select(withCtrl bool) {
 	s.manager.AppendToSelection(s, withCtrl)
 }
 
-func (s *ShapeModelView) Drag(delta graphics.Vector) {
+func (s *ShapeModelView) Drag(delta geometry.Vector) {
 	s.manager.Drag(delta, s.isDragging)
 }
 
-func (s *ShapeModelView) Resize(delta graphics.Vector, bounds graphics.Bounds) {
-	scale := graphics.Scale{
+func (s *ShapeModelView) Resize(delta geometry.Vector, bounds geometry.Bounds) {
+	scale := geometry.Scale{
 		ScaleX: bounds.Width / s.size.Width,
 		ScaleY: bounds.Height / s.size.Height,
 	}
 	s.manager.Resize(delta, scale, s.isResizing)
 }
 
-func (s *ShapeModelView) GetBounds() graphics.Bounds {
+func (s *ShapeModelView) GetBounds() geometry.Bounds {
 	return s.size
 }
 
-func (s *ShapeModelView) GetPosition() graphics.Point {
+func (s *ShapeModelView) GetPosition() geometry.Point {
 	return s.position
 }
 
-func (s *ShapeModelView) GetStyle() graphics.Style {
+func (s *ShapeModelView) GetStyle() geometry.Style {
 	return s.style
 }
 

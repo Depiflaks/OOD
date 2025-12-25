@@ -1,6 +1,6 @@
 package model
 
-import "vector-editor/graphics"
+import "vector-editor/geometry"
 
 type ShapeType int
 
@@ -13,16 +13,16 @@ const (
 type ShapeId int64
 
 type ShapeObserver interface {
-	UpdateRect(position graphics.Point, bounds graphics.Bounds)
-	UpdateStyle(style graphics.Style)
+	UpdateRect(position geometry.Point, bounds geometry.Bounds)
+	UpdateStyle(style geometry.Style)
 }
 
 type Shape struct {
 	id        ShapeId
 	shapeType ShapeType
-	position  graphics.Point
-	size      graphics.Bounds
-	style     graphics.Style
+	position  geometry.Point
+	size      geometry.Bounds
+	style     geometry.Style
 	observers []ShapeObserver
 }
 
@@ -38,25 +38,25 @@ func NewShape(
 
 type ShapeOption func(*Shape)
 
-func WithPosition(p graphics.Point) ShapeOption {
+func WithPosition(p geometry.Point) ShapeOption {
 	return func(s *Shape) {
 		s.position = p
 	}
 }
 
-func WithBounds(b graphics.Bounds) ShapeOption {
+func WithBounds(b geometry.Bounds) ShapeOption {
 	return func(s *Shape) {
 		s.size = b
 	}
 }
 
-func WithStyle(st graphics.Style) ShapeOption {
+func WithStyle(st geometry.Style) ShapeOption {
 	return func(s *Shape) {
 		s.SetStyle(st)
 	}
 }
 
-func (s *Shape) UpdateRect(v graphics.Vector, b graphics.Bounds) {
+func (s *Shape) UpdateRect(v geometry.Vector, b geometry.Bounds) {
 	s.position.X += v.X
 	s.position.Y += v.Y
 	s.size = b
@@ -65,7 +65,7 @@ func (s *Shape) UpdateRect(v graphics.Vector, b graphics.Bounds) {
 	}
 }
 
-func (s *Shape) Move(v graphics.Vector) {
+func (s *Shape) Move(v geometry.Vector) {
 	s.position.X += v.X
 	s.position.Y += v.Y
 	for _, o := range s.observers {
@@ -73,7 +73,7 @@ func (s *Shape) Move(v graphics.Vector) {
 	}
 }
 
-func (s *Shape) SetStyle(st graphics.Style) {
+func (s *Shape) SetStyle(st geometry.Style) {
 	if st.Fill != nil {
 		s.style.Fill = st.Fill
 	}
@@ -85,15 +85,15 @@ func (s *Shape) SetStyle(st graphics.Style) {
 	}
 }
 
-func (s *Shape) GetBounds() graphics.Bounds {
+func (s *Shape) GetBounds() geometry.Bounds {
 	return s.size
 }
 
-func (s *Shape) GetPosition() graphics.Point {
+func (s *Shape) GetPosition() geometry.Point {
 	return s.position
 }
 
-func (s *Shape) GetStyle() graphics.Style {
+func (s *Shape) GetStyle() geometry.Style {
 	return s.style
 }
 

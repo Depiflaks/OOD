@@ -1,7 +1,7 @@
 package history
 
 import (
-	"vector-editor/graphics"
+	"vector-editor/geometry"
 	"vector-editor/model"
 )
 
@@ -19,9 +19,9 @@ type MarkDeleteShapesFn func(ids []model.ShapeId)
 type RestoreShapesFn func(ids []model.ShapeId)
 type DeleteShapesFn func(ids []model.ShapeId)
 
-type MoveShapesFn func(delta graphics.Vector)
-type ResizeShapesFn func(delta graphics.Vector, bounds graphics.Bounds)
-type SetStyleFn func(styles map[model.ShapeId]graphics.Style)
+type MoveShapesFn func(delta geometry.Vector)
+type ResizeShapesFn func(delta geometry.Vector, bounds geometry.Bounds)
+type SetStyleFn func(styles map[model.ShapeId]geometry.Style)
 
 type NewShapeCommand struct {
 	create     CreateShapeFn
@@ -110,13 +110,13 @@ func (c *DeleteShapeCommand) Dispose() {
 
 type MoveShapesCommand struct {
 	move       MoveShapesFn
-	delta      graphics.Vector
+	delta      geometry.Vector
 	isExecuted bool
 }
 
 func NewMoveShapesCommand(
 	move MoveShapesFn,
-	delta graphics.Vector,
+	delta geometry.Vector,
 ) *MoveShapesCommand {
 	return &MoveShapesCommand{
 		move:  move,
@@ -133,7 +133,7 @@ func (c *MoveShapesCommand) Unexecute() {
 	if !c.isExecuted {
 		return
 	}
-	c.move(graphics.Vector{
+	c.move(geometry.Vector{
 		X: -c.delta.X,
 		Y: -c.delta.Y,
 	})
@@ -141,15 +141,15 @@ func (c *MoveShapesCommand) Unexecute() {
 
 type ResizeShapesCommand struct {
 	resize     ResizeShapesFn
-	delta      graphics.Vector
-	bounds     graphics.Bounds
+	delta      geometry.Vector
+	bounds     geometry.Bounds
 	isExecuted bool
 }
 
 func NewResizeShapesCommand(
 	resize ResizeShapesFn,
-	delta graphics.Vector,
-	bounds graphics.Bounds,
+	delta geometry.Vector,
+	bounds geometry.Bounds,
 ) *ResizeShapesCommand {
 	return &ResizeShapesCommand{
 		resize: resize,
@@ -168,7 +168,7 @@ func (c *ResizeShapesCommand) Unexecute() {
 		return
 	}
 	c.resize(
-		graphics.Vector{
+		geometry.Vector{
 			X: -c.delta.X,
 			Y: -c.delta.Y,
 		},
@@ -178,15 +178,15 @@ func (c *ResizeShapesCommand) Unexecute() {
 
 type SetStyleCommand struct {
 	setStyle   SetStyleFn
-	newStyles  map[model.ShapeId]graphics.Style
-	prevStyles map[model.ShapeId]graphics.Style
+	newStyles  map[model.ShapeId]geometry.Style
+	prevStyles map[model.ShapeId]geometry.Style
 	isExecuted bool
 }
 
 func NewSetStyleCommand(
 	setStyle SetStyleFn,
-	prevStyles map[model.ShapeId]graphics.Style,
-	newStyles map[model.ShapeId]graphics.Style,
+	prevStyles map[model.ShapeId]geometry.Style,
+	newStyles map[model.ShapeId]geometry.Style,
 ) *SetStyleCommand {
 	return &SetStyleCommand{
 		setStyle:   setStyle,

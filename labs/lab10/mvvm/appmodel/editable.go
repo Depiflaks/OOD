@@ -2,7 +2,7 @@ package appmodel
 
 import (
 	"image/color"
-	"vector-editor/graphics"
+	"vector-editor/geometry"
 	"vector-editor/model"
 )
 
@@ -11,8 +11,8 @@ type EditableShape interface {
 	ViewEvents
 
 	GetShape() *model.Shape
-	Move(delta graphics.Vector)
-	Scale(delta graphics.Vector, scale graphics.Scale)
+	Move(delta geometry.Vector)
+	Scale(delta geometry.Vector, scale geometry.Scale)
 }
 
 type ViewEvents interface {
