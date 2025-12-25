@@ -178,20 +178,20 @@ func (c *ResizeShapesCommand) Unexecute() {
 
 type SetStyleCommand struct {
 	setStyle   SetStyleFn
-	newStyle   graphics.Style
-	prevStyle  graphics.Style
+	newStyles  map[model.ShapeId]graphics.Style
+	prevStyles map[model.ShapeId]graphics.Style
 	isExecuted bool
 }
 
 func NewSetStyleCommand(
 	setStyle SetStyleFn,
-	prevStyle graphics.Style,
-	newStyle graphics.Style,
+	prevStyles map[model.ShapeId]graphics.Style,
+	newStyles map[model.ShapeId]graphics.Style,
 ) *SetStyleCommand {
 	return &SetStyleCommand{
-		setStyle:  setStyle,
-		prevStyle: prevStyle,
-		newStyle:  newStyle,
+		setStyle:   setStyle,
+		prevStyles: prevStyles,
+		newStyles:  newStyles,
 	}
 }
 

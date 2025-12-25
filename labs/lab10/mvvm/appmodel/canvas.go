@@ -18,7 +18,7 @@ func NewCanvasManager(
 	return &CanvasManager{
 		history:      h,
 		canvas:       canvas,
-		shapeManager: NewShapeManager(),
+		shapeManager: NewShapeManager(&h),
 	}
 }
 
@@ -42,7 +42,7 @@ func (m *CanvasManager) Delete() {
 		return
 	}
 	cmd := history.NewDeleteShapeCommand(
-		ConvertShapeIds(ids),
+		ids,
 		m.newMarkDeleteShapesFn(),
 		m.newRestoreShapesFn(),
 		m.newDeleteShapesFn(),
