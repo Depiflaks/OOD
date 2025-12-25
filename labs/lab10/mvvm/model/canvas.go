@@ -22,12 +22,14 @@ func NewCanvas() *Canvas {
 	}
 }
 
-func (c *Canvas) NewShape(t ShapeType) *Shape {
-	c.nextId++
+func (c *Canvas) NewShape(t ShapeType) ShapeId {
+	defer func() {
+		c.nextId += 1
+	}()
 	shape := NewShape(t, c.nextId)
 	c.shapes[shape.id] = shape
 	c.notify([]ShapeId{shape.id})
-	return shape
+	return c.nextId
 }
 
 func (c *Canvas) ImportImage() {
