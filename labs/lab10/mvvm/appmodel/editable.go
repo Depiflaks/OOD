@@ -8,9 +8,18 @@ import (
 
 // TODO: разобраться с перемещениями объектов
 type EditableShape interface {
+	ViewEvents
+
 	GetShape() *model.Shape
 	Move(delta graphics.Vector)
-	Scale(delta graphics.Vector, bounds graphics.Bounds)
+	Scale(delta graphics.Vector, scale graphics.Scale)
+}
+
+type ViewEvents interface {
+	StartDragging()
+	StopDragging()
+	StartResizing()
+	StopResizing()
 }
 
 type EditableCanvas interface {

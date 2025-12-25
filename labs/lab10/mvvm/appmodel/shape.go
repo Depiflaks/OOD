@@ -54,11 +54,38 @@ func (m *ShapeManager) Drag(delta graphics.Vector, isDragging bool) {
 
 func (m *ShapeManager) Resize(
 	delta graphics.Vector,
-	bounds graphics.Bounds,
+	scale graphics.Scale,
+	isResizing bool,
 ) {
-	// TODO: добавить сюда параметр
+	if !isResizing {
+
+	}
 	for _, s := range m.selected {
-		s.Scale(delta, bounds)
+		s.Scale(delta, scale)
+	}
+}
+
+func (m *ShapeManager) StartDragging() {
+	for _, s := range m.selected {
+		s.StartDragging()
+	}
+}
+
+func (m *ShapeManager) StopDragging() {
+	for _, s := range m.selected {
+		s.StopDragging()
+	}
+}
+
+func (m *ShapeManager) StartResizing() {
+	for _, s := range m.selected {
+		s.StartResizing()
+	}
+}
+
+func (m *ShapeManager) StopResizing() {
+	for _, s := range m.selected {
+		s.StopResizing()
 	}
 }
 

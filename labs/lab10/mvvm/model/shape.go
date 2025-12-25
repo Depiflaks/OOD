@@ -73,13 +73,6 @@ func (s *Shape) Move(v graphics.Vector) {
 	}
 }
 
-func (s *Shape) Resize(b graphics.Bounds) {
-	s.size = b
-	for _, o := range s.observers {
-		o.UpdateRect(s.position, s.size)
-	}
-}
-
 func (s *Shape) SetStyle(st graphics.Style) {
 	if st.Fill != nil {
 		s.style.Fill = st.Fill

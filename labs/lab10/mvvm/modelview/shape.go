@@ -21,8 +21,40 @@ func (s *editableShape) Move(delta graphics.Vector) {
 	s.owner.position = pos
 }
 
-func (s *editableShape) Scale(delta graphics.Vector, bounds graphics.Bounds) {
+func (s *editableShape) Scale(delta graphics.Vector, scale graphics.Scale) {
+	bounds := s.owner.GetBounds()
 	// TODO: здесь провести скалирование
+}
+
+func (s *editableShape) StartDragging() {
+	if !s.owner.isDragging {
+		s.owner.isDragging = true
+		s.owner.dragStartPosition = s.owner.position
+		s.owner.manager.StartDragging()
+	}
+}
+
+func (s *editableShape) StopDragging() {
+	if s.owner.isDragging {
+		s.owner.isDragging = false
+		s.owner.manager.StopDragging()
+	}
+}
+
+func (s *editableShape) StartResizing() {
+	if !s.owner.isResizing {
+		s.owner.isResizing = true
+		s.owner.resizeStartPosition = s.owner.position
+		s.owner.resizeStartBounds = s.owner.size
+		s.owner.manager.StartResizing()
+	}
+}
+
+func (s *editableShape) StopResizing() {
+	if s.owner.isResizing {
+		s.owner.isResizing = false
+		s.owner.manager.StopResizing()
+	}
 }
 
 type shapeObserver struct {
@@ -85,42 +117,50 @@ func NewShapeModelView(
 	return mv
 }
 
-func (s *ShapeModelView) StartDragging() {
-	s.isDragging = true
-	s.dragStartPosition = s.position
+func (s *ShapeModelView) Events() appmodel.ViewEvents {
+	return &s.editableShape
+}
+
+func (s *ShapeModelView) Select(withCtrl bool) {
+	s.manager.AppendToSelection(s, withCtrl)
 }
 
 func (s *ShapeModelView) Drag(delta graphics.Vector) {
 	s.manager.Drag(delta, s.isDragging)
 }
 
-func (s *ShapeModelView) StopDragging() {
-	s.isDragging = false
-}
-
-func (s *ShapeModelView) StartResizing() {
-	s.isResizing = true
-	s.resizeStartPosition = s.position
-	s.resizeStartBounds = s.size
-}
-
 func (s *ShapeModelView) Resize(delta graphics.Vector, bounds graphics.Bounds) {
-	// TODO: добавить сюда флаг
-	s.manager.Resize(delta, bounds)
+	scale := graphics.Scale{
+		ScaleX: bounds.Width / s.size.Width,
+		ScaleY: bounds.Height / s.size.Height,
+	}
+	s.manager.Resize(delta, scale, s.isResizing)
 }
 
-func (s *ShapeModelView) StopResizing() {
-	s.isResizing = false
+func (s *ShapeModelView) GetBounds() graphics.Bounds {
+	return s.size
+}
+
+func (s *ShapeModelView) GetPosition() graphics.Point {
+	return s.position
+}
+
+func (s *ShapeModelView) GetStyle() graphics.Style {
+	return s.style
+}
+
+func (s *ShapeModelView) GetShapeType() model.ShapeType {
+	return s.shapeType
 }
 
 func (s *ShapeModelView) notifyRect() {
 	for _, o := range s.observers {
-		o.UpdateRect()
+		o.UpdateRect(s.GetPosition(), s.GetBounds())
 	}
 }
 
 func (s *ShapeModelView) notifyStyle() {
 	for _, o := range s.observers {
-		o.UpdateStyle()
+		o.UpdateStyle(s.GetStyle())
 	}
 }

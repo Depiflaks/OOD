@@ -7,13 +7,13 @@ import (
 
 type CanvasManager struct {
 	history      history.History
-	canvas       *EditableCanvas
+	canvas       EditableCanvas
 	shapeManager *ShapeManager
 }
 
 func NewCanvasManager(
 	h history.History,
-	canvas *EditableCanvas,
+	canvas EditableCanvas,
 ) *CanvasManager {
 	return &CanvasManager{
 		history:      h,
@@ -52,24 +52,24 @@ func (m *CanvasManager) Delete() {
 
 func (m *CanvasManager) newCreateShapeFn(t model.ShapeType) history.CreateShapeFn {
 	return func() model.ShapeId {
-		return (*m.canvas).GetCanvas().NewShape(t)
+		return m.canvas.GetCanvas().NewShape(t)
 	}
 }
 
 func (m *CanvasManager) newMarkDeleteShapesFn() history.MarkDeleteShapesFn {
 	return func(ids []model.ShapeId) {
-		(*m.canvas).MarkDeleted(ids)
+		m.canvas.MarkDeleted(ids)
 	}
 }
 
 func (m *CanvasManager) newRestoreShapesFn() history.RestoreShapesFn {
 	return func(ids []model.ShapeId) {
-		(*m.canvas).Restore(ids)
+		m.canvas.Restore(ids)
 	}
 }
 
 func (m *CanvasManager) newDeleteShapesFn() history.DeleteShapesFn {
 	return func(ids []model.ShapeId) {
-		(*m.canvas).GetCanvas().DeleteShapes(ids)
+		m.canvas.GetCanvas().DeleteShapes(ids)
 	}
 }

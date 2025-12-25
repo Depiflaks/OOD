@@ -122,41 +122,6 @@ func TestMove_AllFields(t *testing.T) {
 	}
 }
 
-func TestResize_AllFields(t *testing.T) {
-	s := NewShape(Rect, 12)
-
-	p0 := graphics.Point{X: 7, Y: 8}
-	b0 := graphics.Bounds{Width: 9, Height: 10}
-	f0 := makeColorPtr(10, 20, 30, 40)
-	st0 := makeColorPtr(50, 60, 70, 80)
-
-	WithPosition(p0)(s)
-	WithBounds(b0)(s)
-	s.SetStyle(makeStyle(f0, st0))
-
-	b1 := graphics.Bounds{Width: 100, Height: 200}
-	s.Resize(b1)
-
-	if s.id != 12 {
-		t.Fail()
-	}
-	if s.shapeType != Rect {
-		t.Fail()
-	}
-	if s.position != p0 {
-		t.Fail()
-	}
-	if s.size != b1 {
-		t.Fail()
-	}
-	if s.style.Fill != f0 || s.style.Stroke != st0 {
-		t.Fail()
-	}
-	if len(s.observers) != 0 {
-		t.Fail()
-	}
-}
-
 func TestUpdateRect_AllFields(t *testing.T) {
 	s := NewShape(Ellipse, 13)
 
