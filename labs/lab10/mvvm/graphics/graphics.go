@@ -7,6 +7,11 @@ type Vector struct {
 	Y float64
 }
 
+type Point struct {
+	X float64
+	Y float64
+}
+
 type Bounds struct {
 	Width  float64
 	Height float64

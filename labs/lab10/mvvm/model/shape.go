@@ -56,8 +56,18 @@ func WithStyle(st graphics.Style) ShapeOption {
 	}
 }
 
+func (s *Shape) UpdateRect(v graphics.Vector, b graphics.Bounds) {
+	s.position.X += v.X
+	s.position.Y += v.Y
+	s.size = b
+	for _, o := range s.observers {
+		o.UpdateRect(s.position, s.size)
+	}
+}
+
 func (s *Shape) Move(v graphics.Vector) {
-	s.position = v
+	s.position.X += v.X
+	s.position.Y += v.Y
 	for _, o := range s.observers {
 		o.UpdateRect(s.position, s.size)
 	}

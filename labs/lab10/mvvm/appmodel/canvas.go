@@ -6,13 +6,13 @@ import (
 )
 
 type CanvasManager struct {
-	history      *history.History
+	history      history.History
 	canvas       *EditableCanvas
 	shapeManager *ShapeManager
 }
 
 func NewCanvasManager(
-	h *history.History,
+	h history.History,
 	canvas *EditableCanvas,
 ) *CanvasManager {
 	return &CanvasManager{
@@ -23,13 +23,12 @@ func NewCanvasManager(
 }
 
 func (m *CanvasManager) NewShape(t model.ShapeType) {
-	onExecute := func() {
-		id := (*m.canvas).GetCanvas().NewShape(t)
-	}
-	onUndo := func() {
-		(*m.canvas).MarkDeleted()
-	}
-	cmd := history.NewCommand(onUndo, onUndo, onUndo)
+	cmd := history.NewNewShapeCommand(
+		m.newCreateShapeFn(t),
+		m.newMarkDeleteShapesFn(),
+		m.newRestoreShapesFn(),
+		m.newDeleteShapesFn(),
+	)
 	m.history.AppendAndExecute(cmd)
 }
 
@@ -42,6 +41,35 @@ func (m *CanvasManager) Delete() {
 	if len(ids) == 0 {
 		return
 	}
-	cmd := NewDeleteShapeCommand(m.canvas, ids)
+	cmd := history.NewDeleteShapeCommand(
+		ConvertShapeIds(ids),
+		m.newMarkDeleteShapesFn(),
+		m.newRestoreShapesFn(),
+		m.newDeleteShapesFn(),
+	)
 	m.history.AppendAndExecute(cmd)
+}
+
+func (m *CanvasManager) newCreateShapeFn(t model.ShapeType) history.CreateShapeFn {
+	return func() model.ShapeId {
+		return (*m.canvas).GetCanvas().NewShape(t)
+	}
+}
+
+func (m *CanvasManager) newMarkDeleteShapesFn() history.MarkDeleteShapesFn {
+	return func(ids []model.ShapeId) {
+		(*m.canvas).MarkDeleted(ids)
+	}
+}
+
+func (m *CanvasManager) newRestoreShapesFn() history.RestoreShapesFn {
+	return func(ids []model.ShapeId) {
+		(*m.canvas).Restore(ids)
+	}
+}
+
+func (m *CanvasManager) newDeleteShapesFn() history.DeleteShapesFn {
+	return func(ids []model.ShapeId) {
+		(*m.canvas).GetCanvas().DeleteShapes(ids)
+	}
 }
