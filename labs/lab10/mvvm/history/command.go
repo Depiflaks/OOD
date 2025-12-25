@@ -195,9 +195,8 @@ func NewSetStyleCommand(
 	}
 }
 
-// TODO: доработать смену цвета
 func (c *SetStyleCommand) Execute() {
-	c.setStyle(c.newStyle)
+	c.setStyle(c.newStyles)
 	c.isExecuted = true
 }
 
@@ -205,5 +204,5 @@ func (c *SetStyleCommand) Unexecute() {
 	if !c.isExecuted {
 		return
 	}
-	c.setStyle(c.prevStyle)
+	c.setStyle(c.prevStyles)
 }

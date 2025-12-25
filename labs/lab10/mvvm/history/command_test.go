@@ -269,59 +269,362 @@ func TestResize_Execute(t *testing.T) {
 //	}
 //}
 
+type mockShapeStyle struct {
+	id    model.ShapeId
+	style graphics.Style
+}
+
+func newMockShapeStyle(id model.ShapeId) *mockShapeStyle {
+	return &mockShapeStyle{id: id}
+}
+
+func colorPtr(r, g, b, a uint8) *color.Color {
+	var c color.Color = color.RGBA{R: r, G: g, B: b, A: a}
+	return &c
+}
+
+func stylesEqual(a, b graphics.Style) bool {
+	if (a.Fill == nil) != (b.Fill == nil) {
+		return false
+	}
+	if a.Fill != nil && b.Fill != nil && a.Fill != b.Fill {
+		return false
+	}
+	if (a.Stroke == nil) != (b.Stroke == nil) {
+		return false
+	}
+	if a.Stroke != nil && b.Stroke != nil && a.Stroke != b.Stroke {
+		return false
+	}
+	return true
+}
+
 func TestSetStyle_NotExecuted(t *testing.T) {
-	shape := newMockShape(1)
-	cmd := NewSetStyleCommand(
-		func(s graphics.Style) { shape.style = s },
-		graphics.Style{},
-		graphics.Style{Fill: color.RGBA{R: 1}},
-	)
+	shape := newMockShapeStyle(1)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		shape.style = styles[shape.id]
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: {},
+	}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(1, 0, 0, 255)},
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
 	cmd.Unexecute()
-	if shape.style != (graphics.Style{}) {
+
+	if !stylesEqual(shape.style, graphics.Style{}) {
 		t.Fail()
 	}
 }
 
 func TestSetStyle_Execute(t *testing.T) {
-	shape := newMockShape(1)
-	newStyle := graphics.Style{Fill: color.RGBA{R: 1}}
-	cmd := NewSetStyleCommand(
-		func(s graphics.Style) { shape.style = s },
-		graphics.Style{},
-		newStyle,
-	)
+	shape := newMockShapeStyle(1)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		shape.style = styles[shape.id]
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: {},
+	}
+	newStyle := graphics.Style{Fill: colorPtr(1, 0, 0, 255)}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: newStyle,
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
 	cmd.Execute()
-	if shape.style != newStyle {
+
+	if !stylesEqual(shape.style, newStyle) {
 		t.Fail()
 	}
 }
 
 func TestSetStyle_ExecuteUnexecute(t *testing.T) {
-	shape := newMockShape(1)
-	prev := graphics.Style{}
-	newStyle := graphics.Style{Fill: color.RGBA{R: 1}}
-	cmd := NewSetStyleCommand(
-		func(s graphics.Style) { shape.style = s },
-		prev,
-		newStyle,
-	)
+	shape := newMockShapeStyle(1)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		shape.style = styles[shape.id]
+	}
+
+	prev := graphics.Style{Fill: colorPtr(9, 0, 0, 255)}
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: prev,
+	}
+	newStyle := graphics.Style{Fill: colorPtr(1, 0, 0, 255)}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: newStyle,
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
 	cmd.Execute()
 	cmd.Unexecute()
-	if shape.style != prev {
+
+	if !stylesEqual(shape.style, prev) {
 		t.Fail()
 	}
 }
 
 func TestSetStyle_ExecuteDispose(t *testing.T) {
-	shape := newMockShape(1)
-	newStyle := graphics.Style{Fill: color.RGBA{R: 1}}
-	cmd := NewSetStyleCommand(
-		func(s graphics.Style) { shape.style = s },
-		graphics.Style{},
-		newStyle,
-	)
+	shape := newMockShapeStyle(1)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		shape.style = styles[shape.id]
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: {},
+	}
+	newStyle := graphics.Style{Fill: colorPtr(1, 0, 0, 255)}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: newStyle,
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
 	cmd.Execute()
-	if shape.style != newStyle {
+
+	if !stylesEqual(shape.style, newStyle) {
+		t.Fail()
+	}
+}
+
+func TestSetStyle_Multi_NotExecuted_Full(t *testing.T) {
+	s1 := newMockShapeStyle(1)
+	s2 := newMockShapeStyle(2)
+	s3 := newMockShapeStyle(3)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		s1.style = styles[1]
+		s2.style = styles[2]
+		s3.style = styles[3]
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(10, 0, 0, 255)},
+		2: {Fill: colorPtr(20, 0, 0, 255)},
+		3: {Fill: colorPtr(30, 0, 0, 255)},
+	}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(1, 0, 0, 255)},
+		2: {Fill: colorPtr(2, 0, 0, 255)},
+		3: {Fill: colorPtr(3, 0, 0, 255)},
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
+	cmd.Unexecute()
+
+	if !stylesEqual(s1.style, graphics.Style{}) || !stylesEqual(s2.style, graphics.Style{}) || !stylesEqual(s3.style, graphics.Style{}) {
+		t.Fail()
+	}
+}
+
+func TestSetStyle_Multi_Execute_Full(t *testing.T) {
+	s1 := newMockShapeStyle(1)
+	s2 := newMockShapeStyle(2)
+	s3 := newMockShapeStyle(3)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		s1.style = styles[1]
+		s2.style = styles[2]
+		s3.style = styles[3]
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: {},
+		2: {},
+		3: {},
+	}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(1, 0, 0, 255)},
+		2: {Fill: colorPtr(2, 0, 0, 255)},
+		3: {Fill: colorPtr(3, 0, 0, 255)},
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
+	cmd.Execute()
+
+	if !stylesEqual(s1.style, newStyles[1]) || !stylesEqual(s2.style, newStyles[2]) || !stylesEqual(s3.style, newStyles[3]) {
+		t.Fail()
+	}
+}
+
+func TestSetStyle_Multi_ExecuteUnexecute_Full(t *testing.T) {
+	s1 := newMockShapeStyle(1)
+	s2 := newMockShapeStyle(2)
+	s3 := newMockShapeStyle(3)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		s1.style = styles[1]
+		s2.style = styles[2]
+		s3.style = styles[3]
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(10, 0, 0, 255)},
+		2: {Fill: colorPtr(20, 0, 0, 255)},
+		3: {Fill: colorPtr(30, 0, 0, 255)},
+	}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(1, 0, 0, 255)},
+		2: {Fill: colorPtr(2, 0, 0, 255)},
+		3: {Fill: colorPtr(3, 0, 0, 255)},
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
+	cmd.Execute()
+	cmd.Unexecute()
+
+	if !stylesEqual(s1.style, prevStyles[1]) || !stylesEqual(s2.style, prevStyles[2]) || !stylesEqual(s3.style, prevStyles[3]) {
+		t.Fail()
+	}
+}
+
+func TestSetStyle_Multi_ExecuteUnexecuteDispose_Full(t *testing.T) {
+	s1 := newMockShapeStyle(1)
+	s2 := newMockShapeStyle(2)
+	s3 := newMockShapeStyle(3)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		s1.style = styles[1]
+		s2.style = styles[2]
+		s3.style = styles[3]
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(10, 0, 0, 255)},
+		2: {Fill: colorPtr(20, 0, 0, 255)},
+		3: {Fill: colorPtr(30, 0, 0, 255)},
+	}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(1, 0, 0, 255)},
+		2: {Fill: colorPtr(2, 0, 0, 255)},
+		3: {Fill: colorPtr(3, 0, 0, 255)},
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
+	cmd.Execute()
+	cmd.Unexecute()
+
+	if !stylesEqual(s1.style, prevStyles[1]) || !stylesEqual(s2.style, prevStyles[2]) || !stylesEqual(s3.style, prevStyles[3]) {
+		t.Fail()
+	}
+}
+
+func TestSetStyle_Multi_ExecuteDispose_Full(t *testing.T) {
+	s1 := newMockShapeStyle(1)
+	s2 := newMockShapeStyle(2)
+	s3 := newMockShapeStyle(3)
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		s1.style = styles[1]
+		s2.style = styles[2]
+		s3.style = styles[3]
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: {},
+		2: {},
+		3: {},
+	}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(1, 0, 0, 255)},
+		2: {Fill: colorPtr(2, 0, 0, 255)},
+		3: {Fill: colorPtr(3, 0, 0, 255)},
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
+	cmd.Execute()
+
+	if !stylesEqual(s1.style, newStyles[1]) || !stylesEqual(s2.style, newStyles[2]) || !stylesEqual(s3.style, newStyles[3]) {
+		t.Fail()
+	}
+}
+
+func TestSetStyle_Multi_Execute_Partial(t *testing.T) {
+	s1 := newMockShapeStyle(1)
+	s2 := newMockShapeStyle(2)
+	s3 := newMockShapeStyle(3)
+
+	s1.style = graphics.Style{Fill: colorPtr(10, 0, 0, 255)}
+	s2.style = graphics.Style{Fill: colorPtr(20, 0, 0, 255)}
+	s3.style = graphics.Style{Fill: colorPtr(30, 0, 0, 255)}
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		if st, ok := styles[1]; ok {
+			s1.style = st
+		}
+		if st, ok := styles[2]; ok {
+			s2.style = st
+		}
+		if st, ok := styles[3]; ok {
+			s3.style = st
+		}
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: s1.style,
+		2: s2.style,
+		3: s3.style,
+	}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(1, 0, 0, 255)},
+		3: {Fill: colorPtr(3, 0, 0, 255)},
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
+	cmd.Execute()
+
+	if !stylesEqual(s1.style, newStyles[1]) {
+		t.Fail()
+	}
+	if !stylesEqual(s2.style, prevStyles[2]) {
+		t.Fail()
+	}
+	if !stylesEqual(s3.style, newStyles[3]) {
+		t.Fail()
+	}
+}
+
+func TestSetStyle_Multi_ExecuteUnexecute_Partial(t *testing.T) {
+	s1 := newMockShapeStyle(1)
+	s2 := newMockShapeStyle(2)
+	s3 := newMockShapeStyle(3)
+
+	s1.style = graphics.Style{Fill: colorPtr(10, 0, 0, 255)}
+	s2.style = graphics.Style{Fill: colorPtr(20, 0, 0, 255)}
+	s3.style = graphics.Style{Fill: colorPtr(30, 0, 0, 255)}
+
+	setStyle := func(styles map[model.ShapeId]graphics.Style) {
+		if st, ok := styles[1]; ok {
+			s1.style = st
+		}
+		if st, ok := styles[2]; ok {
+			s2.style = st
+		}
+		if st, ok := styles[3]; ok {
+			s3.style = st
+		}
+	}
+
+	prevStyles := map[model.ShapeId]graphics.Style{
+		1: s1.style,
+		2: s2.style,
+		3: s3.style,
+	}
+	newStyles := map[model.ShapeId]graphics.Style{
+		1: {Fill: colorPtr(1, 0, 0, 255)},
+		3: {Fill: colorPtr(3, 0, 0, 255)},
+	}
+
+	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
+	cmd.Execute()
+	cmd.Unexecute()
+
+	if !stylesEqual(s1.style, prevStyles[1]) || !stylesEqual(s2.style, prevStyles[2]) || !stylesEqual(s3.style, prevStyles[3]) {
 		t.Fail()
 	}
 }

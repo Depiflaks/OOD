@@ -67,8 +67,13 @@ func (m *ShapeManager) ClearSelection() {
 }
 
 func (m *ShapeManager) SetStyle(newStyle graphics.Style) {
-	cmd := history.NewSetStyleCommand(
-		m.newSetStyleFn())
+	prevStyles := make(map[model.ShapeId]graphics.Style)
+	newStyles := make(map[model.ShapeId]graphics.Style)
+	for id, s := range m.selected {
+		prevStyles[id] = s.GetShape().GetStyle()
+		newStyles[id] = newStyle
+	}
+	cmd := history.NewSetStyleCommand(m.newSetStyleFn(), prevStyles, newStyles)
 	m.history.AppendAndExecute(cmd)
 }
 
