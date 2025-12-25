@@ -3,6 +3,7 @@ package appmodel
 import (
 	"image/color"
 	"vector-editor/graphics"
+	"vector-editor/model"
 )
 
 type ShapeId int64
@@ -15,5 +16,6 @@ type EditableShape interface {
 
 type EditableCanvas interface {
 	SetBackground(color color.Color)
-	GetCanvas() interface{}
+	GetCanvas() *model.Canvas
+	MarkDeleted([]model.ShapeId)
 }

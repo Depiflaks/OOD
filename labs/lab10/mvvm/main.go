@@ -79,7 +79,7 @@ func (m *MouseLayer) CreateRenderer() fyne.WidgetRenderer {
 }
 
 func main() {
-	h := history.New(0)
+	h := history.NewHistory(0)
 
 	(*h).Redo()
 	a := app.New()

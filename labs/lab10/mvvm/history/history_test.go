@@ -38,7 +38,7 @@ func (m *mockDisposableCommand) Dispose() {
 }
 
 func TestAppendThreeCommands(t *testing.T) {
-	h := New(0)
+	h := NewHistory(0)
 	c1 := &mockCommand{}
 	c2 := &mockCommand{}
 	c3 := &mockCommand{}
@@ -53,7 +53,7 @@ func TestAppendThreeCommands(t *testing.T) {
 }
 
 func TestAppendThreeUndoOne(t *testing.T) {
-	h := New(0)
+	h := NewHistory(0)
 	c1 := &mockCommand{}
 	c2 := &mockCommand{}
 	c3 := &mockCommand{}
@@ -69,7 +69,7 @@ func TestAppendThreeUndoOne(t *testing.T) {
 }
 
 func TestUndoAllThenRedo(t *testing.T) {
-	h := New(0)
+	h := NewHistory(0)
 	c1 := &mockCommand{}
 	c2 := &mockCommand{}
 	c3 := &mockCommand{}
@@ -90,7 +90,7 @@ func TestUndoAllThenRedo(t *testing.T) {
 }
 
 func TestUndoMoreThanExistsThenRedo(t *testing.T) {
-	h := New(0)
+	h := NewHistory(0)
 	c1 := &mockCommand{}
 	c2 := &mockCommand{}
 	c3 := &mockCommand{}
@@ -112,7 +112,7 @@ func TestUndoMoreThanExistsThenRedo(t *testing.T) {
 }
 
 func TestRedoWithoutUndo(t *testing.T) {
-	h := New(0)
+	h := NewHistory(0)
 	c1 := &mockCommand{}
 	c2 := &mockCommand{}
 	c3 := &mockCommand{}
@@ -129,7 +129,7 @@ func TestRedoWithoutUndo(t *testing.T) {
 }
 
 func TestLimitOverflow(t *testing.T) {
-	h := New(5)
+	h := NewHistory(5)
 	var cmds []*mockCommand
 
 	for i := 0; i < 6; i++ {
@@ -148,7 +148,7 @@ func TestLimitOverflow(t *testing.T) {
 }
 
 func TestUndoThenNewCommandThenUndoRedo(t *testing.T) {
-	h := New(0)
+	h := NewHistory(0)
 	c1 := &mockCommand{}
 	c2 := &mockCommand{}
 	c3 := &mockCommand{}
@@ -172,7 +172,7 @@ func TestDisposableCommand(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "file.txt")
 
-	h := New(0)
+	h := NewHistory(0)
 	c := &mockDisposableCommand{path: path}
 
 	h.AppendAndExecute(c)
@@ -185,7 +185,7 @@ func TestDisposableCommand(t *testing.T) {
 }
 
 func TestBranchingHistory(t *testing.T) {
-	h := New(0)
+	h := NewHistory(0)
 	c1 := &mockCommand{}
 	c2 := &mockCommand{}
 	c3 := &mockCommand{}

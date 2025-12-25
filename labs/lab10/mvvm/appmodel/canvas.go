@@ -23,7 +23,13 @@ func NewCanvasManager(
 }
 
 func (m *CanvasManager) NewShape(t model.ShapeType) {
-	cmd := NewNewShapeCommand(m.canvas, t)
+	onExecute := func() {
+		id := (*m.canvas).GetCanvas().NewShape(t)
+	}
+	onUndo := func() {
+		(*m.canvas).MarkDeleted()
+	}
+	cmd := history.NewCommand(onUndo, onUndo, onUndo)
 	m.history.AppendAndExecute(cmd)
 }
 

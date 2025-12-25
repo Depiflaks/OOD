@@ -6,7 +6,7 @@ type History struct {
 	limit    int
 }
 
-func New(limit int) *History {
+func NewHistory(limit int) *History {
 	return &History{
 		limit: limit,
 	}
