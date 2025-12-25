@@ -130,7 +130,7 @@ func TestRedoWithoutUndo(t *testing.T) {
 
 func TestLimitOverflow(t *testing.T) {
 	h := New(5)
-	cmds := []*mockCommand{}
+	var cmds []*mockCommand
 
 	for i := 0; i < 6; i++ {
 		c := &mockCommand{}
