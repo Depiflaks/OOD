@@ -18,22 +18,6 @@ type Bounds struct {
 }
 
 type Style struct {
-	fill   color.Color
-	stroke color.Color
-}
-
-func (s *Style) GetFill() color.Color {
-	return s.fill
-}
-
-func (s *Style) SetFill(c color.Color) {
-	s.fill = c
-}
-
-func (s *Style) GetStroke() color.Color {
-	return s.stroke
-}
-
-func (s *Style) SetStroke(c color.Color) {
-	s.stroke = c
+	Fill   color.Color
+	Stroke color.Color
 }

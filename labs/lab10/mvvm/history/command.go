@@ -21,6 +21,7 @@ type DeleteShapesFn func(ids []model.ShapeId)
 
 type MoveShapesFn func(delta graphics.Vector)
 type ResizeShapesFn func(delta graphics.Vector, bounds graphics.Bounds)
+type SetStyleFn func(style graphics.Style)
 
 type NewShapeCommand struct {
 	create     CreateShapeFn
@@ -173,4 +174,35 @@ func (c *ResizeShapesCommand) Unexecute() {
 		},
 		c.bounds,
 	)
+}
+
+type SetStyleCommand struct {
+	setStyle   SetStyleFn
+	newStyle   graphics.Style
+	prevStyle  graphics.Style
+	isExecuted bool
+}
+
+func NewSetStyleCommand(
+	setStyle SetStyleFn,
+	prevStyle graphics.Style,
+	newStyle graphics.Style,
+) *SetStyleCommand {
+	return &SetStyleCommand{
+		setStyle:  setStyle,
+		prevStyle: prevStyle,
+		newStyle:  newStyle,
+	}
+}
+
+func (c *SetStyleCommand) Execute() {
+	c.setStyle(c.newStyle)
+	c.isExecuted = true
+}
+
+func (c *SetStyleCommand) Unexecute() {
+	if !c.isExecuted {
+		return
+	}
+	c.setStyle(c.prevStyle)
 }
