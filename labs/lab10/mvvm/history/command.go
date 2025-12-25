@@ -195,6 +195,7 @@ func NewSetStyleCommand(
 	}
 }
 
+// TODO: доработать смену цвета
 func (c *SetStyleCommand) Execute() {
 	c.setStyle(c.newStyle)
 	c.isExecuted = true
