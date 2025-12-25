@@ -2,7 +2,7 @@ package graphics
 
 import "image/color"
 
-type Vector2D struct {
+type Vector struct {
 	X float64
 	Y float64
 }
