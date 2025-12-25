@@ -70,9 +70,6 @@ func (m *ShapeManager) SetStyle(newStyle graphics.Style) {
 	cmd := history.NewSetStyleCommand(
 		m.newSetStyleFn())
 	m.history.AppendAndExecute(cmd)
-	for _, s := range m.selected {
-		s.Move(delta)
-	}
 }
 
 func (m *ShapeManager) newMoveShapesFn() history.MoveShapesFn {
@@ -92,9 +89,9 @@ func (m *ShapeManager) newResizeShapesFn() history.ResizeShapesFn {
 }
 
 func (m *ShapeManager) newSetStyleFn() history.SetStyleFn {
-	return func(style graphics.Style) {
-		for _, s := range m.selected {
-			s.GetShape().SetStyle(style)
+	return func(styles map[model.ShapeId]graphics.Style) {
+		for id, s := range m.selected {
+			s.GetShape().SetStyle(styles[id])
 		}
 	}
 }

@@ -21,7 +21,7 @@ type DeleteShapesFn func(ids []model.ShapeId)
 
 type MoveShapesFn func(delta graphics.Vector)
 type ResizeShapesFn func(delta graphics.Vector, bounds graphics.Bounds)
-type SetStyleFn func(style graphics.Style)
+type SetStyleFn func(styles map[model.ShapeId]graphics.Style)
 
 type NewShapeCommand struct {
 	create     CreateShapeFn

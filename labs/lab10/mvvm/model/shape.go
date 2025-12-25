@@ -38,7 +38,7 @@ func NewShape(
 
 type ShapeOption func(*Shape)
 
-func WithPosition(p graphics.Vector) ShapeOption {
+func WithPosition(p graphics.Point) ShapeOption {
 	return func(s *Shape) {
 		s.position = p
 	}
@@ -52,7 +52,7 @@ func WithBounds(b graphics.Bounds) ShapeOption {
 
 func WithStyle(st graphics.Style) ShapeOption {
 	return func(s *Shape) {
-		s.style = st
+		s.SetStyle(st)
 	}
 }
 
@@ -81,7 +81,12 @@ func (s *Shape) Resize(b graphics.Bounds) {
 }
 
 func (s *Shape) SetStyle(st graphics.Style) {
-	s.style = st
+	if st.Fill != nil {
+		s.style.Fill = st.Fill
+	}
+	if st.Stroke != nil {
+		s.style.Stroke = st.Stroke
+	}
 	for _, o := range s.observers {
 		o.UpdateStyle(st)
 	}

@@ -23,6 +23,6 @@ type Bounds struct {
 }
 
 type Style struct {
-	Fill   color.Color
-	Stroke color.Color
+	Fill   *color.Color
+	Stroke *color.Color
 }
