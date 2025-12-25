@@ -7,33 +7,38 @@ import (
 )
 
 type editableShape struct {
+	owner *ShapeModelView
 }
 
 func (s *editableShape) GetShape() *model.Shape {
-	//TODO implement me
-	panic("implement me")
+	return s.owner.shape
 }
 
 func (s *editableShape) Move(delta graphics.Vector) {
-	//TODO implement me
-	panic("implement me")
+	pos := s.owner.dragStartPosition
+	pos.X += delta.X
+	pos.Y += delta.Y
+	s.owner.position = pos
 }
 
 func (s *editableShape) Scale(delta graphics.Vector, bounds graphics.Bounds) {
-	//TODO implement me
-	panic("implement me")
+	// TODO: здесь провести скалирование
 }
 
-type shapeObserver struct{}
-
-func (s shapeObserver) UpdateRect(position graphics.Vector, bounds graphics.Bounds) {
-	//TODO implement me
-	panic("implement me")
+type shapeObserver struct {
+	owner *ShapeModelView
 }
 
-func (s shapeObserver) UpdateStyle(style graphics.Style) {
-	//TODO implement me
-	panic("implement me")
+func (s *shapeObserver) UpdateRect(position graphics.Point, bounds graphics.Bounds) {
+	s.owner.position = position
+	s.owner.size = bounds
+	s.owner.notifyRect()
+}
+
+func (s *shapeObserver) UpdateStyle(style graphics.Style) {
+	s.owner.style = style
+	s.owner.manager.SetStyle(style)
+	s.owner.notifyStyle()
 }
 
 type ShapeModelView struct {
@@ -44,57 +49,45 @@ type ShapeModelView struct {
 	manager   *appmodel.ShapeManager
 	observers []ShapeModelViewObserver
 
-	position  graphics.Vector
+	position  graphics.Point
 	size      graphics.Bounds
 	style     graphics.Style
 	shapeType model.ShapeType
 
 	isDragging bool
 	isResizing bool
+
+	dragStartPosition graphics.Point
+
+	resizeStartPosition graphics.Point
+	resizeStartBounds   graphics.Bounds
 }
 
 func NewShapeModelView(
 	shape *model.Shape,
 	manager *appmodel.ShapeManager,
 ) *ShapeModelView {
-	return &ShapeModelView{
+	mv := &ShapeModelView{
 		shape:   shape,
 		manager: manager,
 	}
-}
 
-func (s *ShapeModelView) GetPosition() graphics.Vector {
-	return s.position
-}
+	mv.editableShape = editableShape{owner: mv}
+	mv.shapeObserver = shapeObserver{owner: mv}
 
-func (s *ShapeModelView) GetBounds() graphics.Bounds {
-	return s.size
-}
+	mv.position = shape.GetPosition()
+	mv.size = shape.GetBounds()
+	mv.style = shape.GetStyle()
+	mv.shapeType = shape.GetShapeType()
 
-func (s *ShapeModelView) GetStyle() graphics.Style {
-	return s.style
-}
+	shape.AddObserver(mv)
 
-func (s *ShapeModelView) GetShapeType() model.ShapeType {
-	return s.shapeType
-}
-
-func (s *ShapeModelView) SetStyle(style graphics.Style) {
-	s.manager.
-		s.style = style
-	s.notifyStyle()
-}
-
-func (s *ShapeModelView) Select(withCtrl bool) {
-	s.manager.AppendToSelection(s, withCtrl)
-}
-
-func (s *ShapeModelView) IsSelected() bool {
-	return s.manager.IsSelected(s)
+	return mv
 }
 
 func (s *ShapeModelView) StartDragging() {
 	s.isDragging = true
+	s.dragStartPosition = s.position
 }
 
 func (s *ShapeModelView) Drag(delta graphics.Vector) {
@@ -107,18 +100,17 @@ func (s *ShapeModelView) StopDragging() {
 
 func (s *ShapeModelView) StartResizing() {
 	s.isResizing = true
+	s.resizeStartPosition = s.position
+	s.resizeStartBounds = s.size
 }
 
 func (s *ShapeModelView) Resize(delta graphics.Vector, bounds graphics.Bounds) {
+	// TODO: добавить сюда флаг
 	s.manager.Resize(delta, bounds)
 }
 
 func (s *ShapeModelView) StopResizing() {
 	s.isResizing = false
-}
-
-func (s *ShapeModelView) AddObserver(o ShapeModelViewObserver) {
-	s.observers = append(s.observers, o)
 }
 
 func (s *ShapeModelView) notifyRect() {

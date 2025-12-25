@@ -13,14 +13,14 @@ const (
 type ShapeId int64
 
 type ShapeObserver interface {
-	UpdateRect(position graphics.Vector, bounds graphics.Bounds)
+	UpdateRect(position graphics.Point, bounds graphics.Bounds)
 	UpdateStyle(style graphics.Style)
 }
 
 type Shape struct {
 	id        ShapeId
 	shapeType ShapeType
-	position  graphics.Vector
+	position  graphics.Point
 	size      graphics.Bounds
 	style     graphics.Style
 	observers []ShapeObserver
@@ -91,7 +91,7 @@ func (s *Shape) GetBounds() graphics.Bounds {
 	return s.size
 }
 
-func (s *Shape) GetPosition() graphics.Vector {
+func (s *Shape) GetPosition() graphics.Point {
 	return s.position
 }
 
