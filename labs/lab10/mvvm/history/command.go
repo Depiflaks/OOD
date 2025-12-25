@@ -28,7 +28,8 @@ type NewShapeCommand struct {
 	restore    RestoreShapesFn
 	delete     DeleteShapesFn
 
-	id model.ShapeId
+	id         model.ShapeId
+	isExecuted bool
 }
 
 func NewNewShapeCommand(
@@ -47,13 +48,20 @@ func NewNewShapeCommand(
 
 func (c *NewShapeCommand) Execute() {
 	c.id = c.create()
+	c.isExecuted = true
 }
 
 func (c *NewShapeCommand) Unexecute() {
+	if !c.isExecuted {
+		return
+	}
 	c.markDelete([]model.ShapeId{c.id})
 }
 
 func (c *NewShapeCommand) Dispose() {
+	if !c.isExecuted {
+		return
+	}
 	c.delete([]model.ShapeId{c.id})
 }
 
@@ -62,7 +70,8 @@ type DeleteShapeCommand struct {
 	restore    RestoreShapesFn
 	delete     DeleteShapesFn
 
-	ids []model.ShapeId
+	ids        []model.ShapeId
+	isExecuted bool
 }
 
 func NewDeleteShapeCommand(
@@ -81,19 +90,27 @@ func NewDeleteShapeCommand(
 
 func (c *DeleteShapeCommand) Execute() {
 	c.markDelete(c.ids)
+	c.isExecuted = true
 }
 
 func (c *DeleteShapeCommand) Unexecute() {
+	if !c.isExecuted {
+		return
+	}
 	c.restore(c.ids)
 }
 
 func (c *DeleteShapeCommand) Dispose() {
+	if !c.isExecuted {
+		return
+	}
 	c.delete(c.ids)
 }
 
 type MoveShapesCommand struct {
-	move  MoveShapesFn
-	delta graphics.Vector
+	move       MoveShapesFn
+	delta      graphics.Vector
+	isExecuted bool
 }
 
 func NewMoveShapesCommand(
@@ -108,9 +125,13 @@ func NewMoveShapesCommand(
 
 func (c *MoveShapesCommand) Execute() {
 	c.move(c.delta)
+	c.isExecuted = true
 }
 
 func (c *MoveShapesCommand) Unexecute() {
+	if !c.isExecuted {
+		return
+	}
 	c.move(graphics.Vector{
 		X: -c.delta.X,
 		Y: -c.delta.Y,
@@ -118,9 +139,10 @@ func (c *MoveShapesCommand) Unexecute() {
 }
 
 type ResizeShapesCommand struct {
-	resize ResizeShapesFn
-	delta  graphics.Vector
-	bounds graphics.Bounds
+	resize     ResizeShapesFn
+	delta      graphics.Vector
+	bounds     graphics.Bounds
+	isExecuted bool
 }
 
 func NewResizeShapesCommand(
@@ -137,9 +159,13 @@ func NewResizeShapesCommand(
 
 func (c *ResizeShapesCommand) Execute() {
 	c.resize(c.delta, c.bounds)
+	c.isExecuted = true
 }
 
 func (c *ResizeShapesCommand) Unexecute() {
+	if !c.isExecuted {
+		return
+	}
 	c.resize(
 		graphics.Vector{
 			X: -c.delta.X,
