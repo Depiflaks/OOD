@@ -12,6 +12,11 @@ type Point struct {
 	Y float64
 }
 
+type Scale struct {
+	ScaleX float64
+	ScaleY float64
+}
+
 type Bounds struct {
 	Width  float64
 	Height float64

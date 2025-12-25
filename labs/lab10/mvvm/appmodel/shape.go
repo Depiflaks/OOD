@@ -43,7 +43,7 @@ func (m *ShapeManager) GetSelectedShapeIds() []ShapeId {
 }
 
 func (m *ShapeManager) Drag(delta graphics.Vector, isDragging bool) {
-	if isDragging {
+	if !isDragging {
 		cmd := history.NewMoveShapesCommand(
 			m.newMoveShapesFn(), delta)
 		m.history.AppendAndExecute(cmd)
@@ -53,7 +53,10 @@ func (m *ShapeManager) Drag(delta graphics.Vector, isDragging bool) {
 	}
 }
 
-func (m *ShapeManager) Resize(delta graphics.Vector, bounds graphics.Bounds) {
+func (m *ShapeManager) Resize(
+	delta graphics.Vector,
+	bounds graphics.Bounds,
+) {
 	for _, s := range m.selected {
 		(*s).Scale(delta, bounds)
 	}
