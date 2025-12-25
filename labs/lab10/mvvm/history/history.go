@@ -34,14 +34,14 @@ func (h *History) Undo() {
 		return
 	}
 	h.cursor--
-	h.commands[h.cursor].Undo()
+	h.commands[h.cursor].Unexecute()
 }
 
 func (h *History) Redo() {
 	if h.cursor == len(h.commands) {
 		return
 	}
-	h.commands[h.cursor].Redo()
+	h.commands[h.cursor].Execute()
 	h.cursor++
 }
 

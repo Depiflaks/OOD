@@ -3,6 +3,7 @@ package main
 import (
 	"image/color"
 	"math"
+	"vector-editor/history"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -78,6 +79,9 @@ func (m *MouseLayer) CreateRenderer() fyne.WidgetRenderer {
 }
 
 func main() {
+	h := history.New(0)
+
+	(*h).Redo()
 	a := app.New()
 	w := a.NewWindow("Fyne Shapes")
 

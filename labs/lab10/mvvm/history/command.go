@@ -2,8 +2,7 @@ package history
 
 type Command interface {
 	Execute()
-	Undo()
-	Redo()
+	Unexecute()
 }
 
 type Disposable interface {
