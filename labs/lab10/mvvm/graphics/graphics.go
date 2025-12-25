@@ -12,25 +12,23 @@ type Bounds struct {
 	Height float64
 }
 
-type Color color.Color
-
 type Style struct {
-	fill   Color
-	stroke Color
+	fill   color.Color
+	stroke color.Color
 }
 
-func (s *Style) GetFill() Color {
+func (s *Style) GetFill() color.Color {
 	return s.fill
 }
 
-func (s *Style) SetFill(c Color) {
+func (s *Style) SetFill(c color.Color) {
 	s.fill = c
 }
 
-func (s *Style) GetStroke() Color {
+func (s *Style) GetStroke() color.Color {
 	return s.stroke
 }
 
-func (s *Style) SetStroke(c Color) {
+func (s *Style) SetStroke(c color.Color) {
 	s.stroke = c
 }
