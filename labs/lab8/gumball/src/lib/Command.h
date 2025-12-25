@@ -170,9 +170,12 @@ public:
 
 		if (cmd == "refill")
 		{
-			unsigned count = 0;
+			int count = 0;
 			if (!(iss >> count))
 			{
+				throw CommandParseError("refill: expected unsigned count");
+			}
+			if (count <= 0) {
 				throw CommandParseError("refill: expected unsigned count");
 			}
 			std::string extra;

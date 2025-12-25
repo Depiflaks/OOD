@@ -99,32 +99,6 @@ Machine is waiting for quarter
 	EXPECT_EQ(machine.ToString(), expectedState);
 }
 
-TEST_F(GumballMachineTest, FourBalls_ThreeQuarters_FourCranks_NoQuarterState)
-{
-	CaptureOutput();
-	GumballMachine machine(4);
-
-	machine.InsertQuarter();
-	machine.InsertQuarter();
-	machine.InsertQuarter();
-
-	machine.TurnCrank();
-	machine.TurnCrank();
-	machine.TurnCrank();
-	machine.TurnCrank();
-
-	ReleaseOutput();
-
-	const std::string expectedState = R"(
-Mighty Gumball, Inc.
-C++-enabled Standing Gumball Model #2025
-Inventory: 1 gumball
-Coins: 0/5 quarter(s)
-Machine is waiting for quarter
-)";
-	EXPECT_EQ(machine.ToString(), expectedState);
-}
-
 TEST_F(GumballMachineTest, FourBalls_FourQuarters_ThreeCranks_NoQuarterState)
 {
 	CaptureOutput();

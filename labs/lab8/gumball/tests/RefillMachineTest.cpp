@@ -62,6 +62,28 @@ Machine is waiting for turn of crank
 	EXPECT_EQ(machine.ToString(), expectedState);
 }
 
+TEST_F(GumballMachineTest, RefillWithHasQuartersPreservesHasQuartersFromSoldOut)
+{
+	CaptureOutput();
+	GumballMachine machine(1);
+
+	machine.InsertQuarter();
+	machine.TurnCrank();
+
+	machine.RefillMachine(3);
+
+	ReleaseOutput();
+
+	const std::string expectedState = R"(
+Mighty Gumball, Inc.
+C++-enabled Standing Gumball Model #2025
+Inventory: 3 gumballs
+Coins: 0/5 quarter(s)
+Machine is waiting for quarter
+)";
+	EXPECT_EQ(machine.ToString(), expectedState);
+}
+
 TEST_F(GumballMachineTest, RefillFullQuartersThenFiveVendsLeadsToSoldOut)
 {
 	CaptureOutput();

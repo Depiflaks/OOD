@@ -132,7 +132,7 @@ public:
 		return WriteProxy(m_shared.get());
 	}
 
-	int GetInstanceCount() const noexcept
+	int GetLinksCount() const noexcept
 	{
 		return m_shared.use_count();
 	}

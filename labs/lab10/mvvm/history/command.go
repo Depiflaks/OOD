@@ -1,7 +1,5 @@
 package history
 
-import "vector-editor/model"
-
 type Command interface {
 	Execute()
 	Unexecute()
@@ -11,24 +9,42 @@ type Disposable interface {
 	Dispose()
 }
 
-type NewShapeCommand struct {
-	canvas *model.Canvas
-	id     model.ShapeId
-	t      model.ShapeType
+type ExecuteFunc func()
+type UnexecuteFunc func()
+type DisposeFunc func()
+
+type funcCommand struct {
+	onExecute   ExecuteFunc
+	onUnexecute UnexecuteFunc
+	onDispose   DisposeFunc
 }
 
-func NewNewShapeCommand(canvas *model.Canvas, t model.ShapeType) *NewShapeCommand {
-	return &NewShapeCommand{canvas: canvas, t: t}
+func NewCommand(
+	onExecute ExecuteFunc,
+	onUnexecute UnexecuteFunc,
+	onDispose DisposeFunc,
+) Command {
+	return &funcCommand{
+		onExecute:   onExecute,
+		onUnexecute: onUnexecute,
+		onDispose:   onDispose,
+	}
 }
 
-func (c *NewShapeCommand) Execute() {
-	c.id = c.canvas.NewShape(c.t)
+func (c *funcCommand) Execute() {
+	if c.onExecute != nil {
+		c.onExecute()
+	}
 }
 
-func (c *NewShapeCommand) Undo() {
-	c.canvas.GetCanvas().DeleteShapes([]model.ShapeId{c.shape.GetShapeId()})
+func (c *funcCommand) Unexecute() {
+	if c.onUnexecute != nil {
+		c.onUnexecute()
+	}
 }
 
-func (c *NewShapeCommand) Redo() {
-	c.Execute()
+func (c *funcCommand) Dispose() {
+	if c.onDispose != nil {
+		c.onDispose()
+	}
 }

@@ -2,6 +2,7 @@
 // Created by smmm on 05.12.2025.
 //
 #include "../src/lib/Image.h"
+#include <exception>
 #include <gtest/gtest.h>
 
 class TestImage : public Image
@@ -23,8 +24,9 @@ TEST(ImageTilesTest, SixteenBySixteenSingleUnderlyingTile)
 
 	for (auto& t : tiles)
 	{
-		EXPECT_EQ(4, t.GetInstanceCount());
+		EXPECT_EQ(4, t.GetLinksCount());
 	}
+	EXPECT_EQ(1, Tile::GetInstanceCount());
 
 	EXPECT_EQ(baseColor, img.GetPixel({ 0, 0 }));
 	EXPECT_EQ(baseColor, img.GetPixel({ 15, 15 }));
@@ -37,6 +39,22 @@ TEST(ImageTilesTest, SixteenBySixteenSingleUnderlyingTile)
 	EXPECT_EQ(baseColor, tiles[static_cast<size_t>(index)]->GetPixel(local));
 }
 
+TEST(ImageTilesTest, GetAndSetOutOfRange)
+{
+	const Color baseColor = 0x010203;
+	TestImage img({ 16, 16 }, baseColor);
+	auto& tiles = img.Tiles();
+	ASSERT_EQ(4u, tiles.size());
+
+	EXPECT_NO_THROW(img.GetPixel({ 20, 20 }));
+	EXPECT_NO_THROW(img.GetPixel({ -3, 4 }));
+	EXPECT_NO_THROW(img.GetPixel({ 16, 16 }));
+
+	EXPECT_NO_THROW(img.SetPixel({ 20, 20 }, 0));
+	EXPECT_NO_THROW(img.SetPixel({ -3, 4 }, 0));
+	EXPECT_NO_THROW(img.SetPixel({ 16, 16 }, 0));
+}
+
 TEST(ImageTilesTest, SeventeenBySeventeenNineTiles)
 {
 	const Color baseColor = 0x0A0B0C;
@@ -46,8 +64,10 @@ TEST(ImageTilesTest, SeventeenBySeventeenNineTiles)
 
 	for (auto& t : tiles)
 	{
-		EXPECT_EQ(9, t.GetInstanceCount());
+		EXPECT_EQ(9, t.GetLinksCount());
 	}
+	EXPECT_EQ(1, Tile::GetInstanceCount());
+
 
 	EXPECT_EQ(baseColor, img.GetPixel({ 0, 0 }));
 	EXPECT_EQ(baseColor, img.GetPixel({ 16, 16 }));
@@ -70,8 +90,10 @@ TEST(ImageTilesTest, SixteenBySixteenModifyOneTileCreatesOneUnique)
 
 	for (auto& t : tiles)
 	{
-		ASSERT_EQ(4, t.GetInstanceCount());
+		ASSERT_EQ(4, t.GetLinksCount());
 	}
+	EXPECT_EQ(1, Tile::GetInstanceCount());
+
 
 	Point p{ 0, 0 };
 	img.SetPixel(p, newColor);
@@ -91,7 +113,7 @@ TEST(ImageTilesTest, SixteenBySixteenModifyOneTileCreatesOneUnique)
 	int count3 = 0;
 	for (auto& t : tiles)
 	{
-		int c = t.GetInstanceCount();
+		int c = t.GetLinksCount();
 		if (c == 1)
 		{
 			++count1;
@@ -107,7 +129,7 @@ TEST(ImageTilesTest, SixteenBySixteenModifyOneTileCreatesOneUnique)
 	}
 	EXPECT_EQ(1, count1);
 	EXPECT_EQ(3, count3);
-	EXPECT_EQ(1, tiles[static_cast<size_t>(index)].GetInstanceCount());
+	EXPECT_EQ(1, tiles[static_cast<size_t>(index)].GetLinksCount());
 }
 
 TEST(ImageTilesTest, SixteenBySixteenModifySameTileTwiceKeepsSharingPattern)
@@ -121,7 +143,7 @@ TEST(ImageTilesTest, SixteenBySixteenModifySameTileTwiceKeepsSharingPattern)
 
 	for (auto& t : tiles)
 	{
-		ASSERT_EQ(4, t.GetInstanceCount());
+		ASSERT_EQ(4, t.GetLinksCount());
 	}
 
 	Point p1{ 0, 0 };
@@ -143,12 +165,14 @@ TEST(ImageTilesTest, SixteenBySixteenModifySameTileTwiceKeepsSharingPattern)
 	EXPECT_EQ(baseColor, img.GetPixel({ 8, 0 }));
 	EXPECT_EQ(baseColor, img.GetPixel({ 0, 8 }));
 	EXPECT_EQ(baseColor, img.GetPixel({ 8, 8 }));
+	EXPECT_EQ(2, Tile::GetInstanceCount());
+
 
 	int count1 = 0;
 	int count3 = 0;
 	for (auto& t : tiles)
 	{
-		int c = t.GetInstanceCount();
+		int c = t.GetLinksCount();
 		if (c == 1)
 		{
 			++count1;
@@ -164,5 +188,6 @@ TEST(ImageTilesTest, SixteenBySixteenModifySameTileTwiceKeepsSharingPattern)
 	}
 	EXPECT_EQ(1, count1);
 	EXPECT_EQ(3, count3);
-	EXPECT_EQ(1, tiles[static_cast<size_t>(index)].GetInstanceCount());
+	// TODO: проверить Tile::GetIN... у каждого тайла. Надо.
+	EXPECT_EQ(1, tiles[static_cast<size_t>(index)].GetLinksCount());
 }

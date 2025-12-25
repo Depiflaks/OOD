@@ -106,6 +106,10 @@ public:
 	}
 	void RefillBalls(unsigned count) override
 	{
+		if (count == 0)
+		{
+			return;
+		}
 		m_gumballMachine.AppendBalls(count);
 		if (m_gumballMachine.GetQuartersCount() == 0)
 		{
@@ -252,7 +256,6 @@ public:
 	std::string ToString() const override
 	{
 		return "waiting for quarter";
-		// TODO: добавить сюда вывод возможных действий из текущего состояния
 	}
 
 private:
