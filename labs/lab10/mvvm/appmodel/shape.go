@@ -58,7 +58,30 @@ func (m *ShapeManager) Resize(
 	isResizing bool,
 ) {
 	if !isResizing {
-
+		newRects := map[model.ShapeId]geometry.Rect{}
+		curRects := map[model.ShapeId]geometry.Rect{}
+		for id, s := range m.selected {
+			curPos := s.GetShape().GetPosition()
+			curBounds := s.GetShape().GetBounds()
+			newPos, newBounds := geometry.CalculateScale(
+				delta,
+				scale,
+				curPos,
+				curBounds,
+			)
+			newRects[id] = geometry.Rect{
+				Position: newPos,
+				Size:     newBounds,
+			}
+			curRects[id] = geometry.Rect{
+				Position: curPos,
+				Size:     curBounds,
+			}
+		}
+		cmd := history.NewResizeShapesCommand(
+			m.newResizeShapesFn(),
+		)
+		m.history.AppendAndExecute(cmd)
 	}
 	for _, s := range m.selected {
 		s.Scale(delta, scale)
@@ -113,9 +136,9 @@ func (m *ShapeManager) newMoveShapesFn() history.MoveShapesFn {
 }
 
 func (m *ShapeManager) newResizeShapesFn() history.ResizeShapesFn {
-	return func(delta geometry.Vector, bounds geometry.Bounds) {
-		for _, s := range m.selected {
-			s.GetShape().UpdateRect(delta, bounds)
+	return func(rects map[model.ShapeId]geometry.Rect) {
+		for id, s := range m.selected {
+			s.GetShape().UpdateRect(rects[id].Position, rects[id].Size)
 		}
 	}
 }

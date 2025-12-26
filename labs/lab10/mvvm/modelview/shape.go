@@ -24,43 +24,7 @@ func (s *editableShape) Move(delta geometry.Vector) {
 func (s *editableShape) Scale(delta geometry.Vector, scale geometry.Scale) {
 	startPos := s.owner.resizeStartPosition
 	startBounds := s.owner.resizeStartBounds
-
-	newBounds := geometry.Bounds{
-		Width:  startBounds.Width * scale.ScaleX,
-		Height: startBounds.Height * scale.ScaleY,
-	}
-
-	const eps = 1e-9
-	dx0 := delta.X > -eps && delta.X < eps
-	dy0 := delta.Y > -eps && delta.Y < eps
-
-	fixedTop := dy0
-	fixedLeft := dx0
-
-	var fixed geometry.Point
-	switch {
-	case fixedLeft && fixedTop:
-		fixed = geometry.Point{X: startPos.X, Y: startPos.Y}
-	case !fixedLeft && fixedTop:
-		fixed = geometry.Point{X: startPos.X + startBounds.Width, Y: startPos.Y}
-	case fixedLeft && !fixedTop:
-		fixed = geometry.Point{X: startPos.X, Y: startPos.Y + startBounds.Height}
-	default:
-		fixed = geometry.Point{X: startPos.X + startBounds.Width, Y: startPos.Y + startBounds.Height}
-	}
-
-	var newPos geometry.Point
-	switch {
-	case fixedLeft && fixedTop:
-		newPos = geometry.Point{X: fixed.X, Y: fixed.Y}
-	case !fixedLeft && fixedTop:
-		newPos = geometry.Point{X: fixed.X - newBounds.Width, Y: fixed.Y}
-	case fixedLeft && !fixedTop:
-		newPos = geometry.Point{X: fixed.X, Y: fixed.Y - newBounds.Height}
-	default:
-		newPos = geometry.Point{X: fixed.X - newBounds.Width, Y: fixed.Y - newBounds.Height}
-	}
-
+	newPos, newBounds := geometry.CalculateScale(delta, scale, startPos, startBounds)
 	s.owner.UpdateRect(newPos, newBounds)
 }
 

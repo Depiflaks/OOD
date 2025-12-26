@@ -20,7 +20,7 @@ type RestoreShapesFn func(ids []model.ShapeId)
 type DeleteShapesFn func(ids []model.ShapeId)
 
 type MoveShapesFn func(delta geometry.Vector)
-type ResizeShapesFn func(delta geometry.Vector, bounds geometry.Bounds)
+type ResizeShapesFn func(rects map[model.ShapeId]geometry.Rect)
 type SetStyleFn func(styles map[model.ShapeId]geometry.Style)
 
 type NewShapeCommand struct {
@@ -141,25 +141,26 @@ func (c *MoveShapesCommand) Unexecute() {
 
 type ResizeShapesCommand struct {
 	resize     ResizeShapesFn
-	delta      geometry.Vector
-	bounds     geometry.Bounds
+	newRects   map[model.ShapeId]geometry.Rect
+	curRects   map[model.ShapeId]geometry.Rect
 	isExecuted bool
 }
 
 func NewResizeShapesCommand(
 	resize ResizeShapesFn,
-	delta geometry.Vector,
-	bounds geometry.Bounds,
+	newRects map[model.ShapeId]geometry.Rect,
+	curRects map[model.ShapeId]geometry.Rect,
 ) *ResizeShapesCommand {
 	return &ResizeShapesCommand{
-		resize: resize,
-		delta:  delta,
-		bounds: bounds,
+		resize:   resize,
+		newRects: newRects,
+		curRects: curRects,
 	}
 }
 
 func (c *ResizeShapesCommand) Execute() {
-	c.resize(c.delta, c.bounds)
+	c.resize(c.newRects)
+
 	c.isExecuted = true
 }
 
@@ -167,13 +168,7 @@ func (c *ResizeShapesCommand) Unexecute() {
 	if !c.isExecuted {
 		return
 	}
-	c.resize(
-		geometry.Vector{
-			X: -c.delta.X,
-			Y: -c.delta.Y,
-		},
-		c.bounds,
-	)
+	c.resize(c.curRects)
 }
 
 type SetStyleCommand struct {

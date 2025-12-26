@@ -56,9 +56,8 @@ func WithStyle(st geometry.Style) ShapeOption {
 	}
 }
 
-func (s *Shape) UpdateRect(v geometry.Vector, b geometry.Bounds) {
-	s.position.X += v.X
-	s.position.Y += v.Y
+func (s *Shape) UpdateRect(p geometry.Point, b geometry.Bounds) {
+	s.position = p
 	s.size = b
 	for _, o := range s.observers {
 		o.UpdateRect(s.position, s.size)

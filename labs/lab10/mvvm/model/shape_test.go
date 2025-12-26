@@ -134,7 +134,7 @@ func TestUpdateRect_AllFields(t *testing.T) {
 	WithBounds(b0)(s)
 	s.SetStyle(makeStyle(f0, st0))
 
-	d := geometry.Vector{X: 3, Y: 4}
+	d := geometry.Point{X: 3, Y: 4}
 	b1 := geometry.Bounds{Width: 10, Height: 20}
 	s.UpdateRect(d, b1)
 
@@ -144,7 +144,7 @@ func TestUpdateRect_AllFields(t *testing.T) {
 	if s.shapeType != Ellipse {
 		t.Fail()
 	}
-	if s.position != (geometry.Point{X: 4, Y: 5}) {
+	if s.position != (geometry.Point{X: 3, Y: 4}) {
 		t.Fail()
 	}
 	if s.size != b1 {
