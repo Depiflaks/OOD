@@ -75,3 +75,7 @@ func NewToolbarView(win fyne.Window, mv *modelview.ToolbarModelView, files FileA
 
 	return &ToolbarView{obj: obj}
 }
+
+func (t *ToolbarView) Object() fyne.CanvasObject {
+	return t.obj
+}

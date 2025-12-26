@@ -12,7 +12,7 @@ type CanvasObserver interface {
 type Canvas struct {
 	background color.Color
 	shapes     map[ShapeId]*Shape
-	observers  []*CanvasObserver
+	observers  []CanvasObserver
 	nextId     ShapeId
 }
 
@@ -53,12 +53,12 @@ func (c *Canvas) DeleteShapes(ids []ShapeId) {
 	c.notify(ids)
 }
 
-func (c *Canvas) AddObserver(o *CanvasObserver) {
+func (c *Canvas) AddObserver(o CanvasObserver) {
 	c.observers = append(c.observers, o)
 }
 
 func (c *Canvas) notify(ids []ShapeId) {
 	for _, o := range c.observers {
-		(*o).UpdateShapes(ids)
+		o.UpdateShapes(ids)
 	}
 }

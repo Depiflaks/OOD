@@ -17,11 +17,14 @@ func NewCanvasModelView(
 	canvas *model.Canvas,
 	canvasManager *appmodel.CanvasManager,
 ) *CanvasModelView {
-	return &CanvasModelView{
+
+	canvasMV := &CanvasModelView{
 		canvas:  canvas,
 		manager: canvasManager,
 		shapes:  make(map[model.ShapeId]*ShapeModelView),
 	}
+	canvasMV.GetCanvas().AddObserver(canvasMV)
+	return canvasMV
 }
 
 func (c *CanvasModelView) UpdateShapes(ids []model.ShapeId) {
