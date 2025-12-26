@@ -35,6 +35,8 @@ func NewShape(
 	return &Shape{
 		id:        id,
 		shapeType: t,
+		position:  geometry.Point{100, 100},
+		size:      geometry.Bounds{60, 120},
 	}
 }
 

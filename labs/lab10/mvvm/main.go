@@ -22,6 +22,7 @@ func main() {
 
 	// modelview
 	canvasMV := modelview.NewCanvasModelView(canvasModel, canvasManager)
+	canvasManager.RegisterCanvas(canvasMV)
 	toolbarMV := modelview.NewToolbarModelView(canvasManager)
 	wsMV := modelview.NewWorkspaceModelView(canvasMV, toolbarMV)
 

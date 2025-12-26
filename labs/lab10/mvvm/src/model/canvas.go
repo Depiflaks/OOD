@@ -2,6 +2,7 @@ package model
 
 import (
 	"image/color"
+	"vector-editor/src/geometry"
 )
 
 type CanvasObserver interface {
@@ -27,6 +28,11 @@ func (c *Canvas) NewShape(t ShapeType) ShapeId {
 		c.nextId += 1
 	}()
 	shape := NewShape(t, c.nextId)
+	var col color.Color = color.RGBA{R: 255, G: 3, B: 34, A: 1}
+	shape.SetStyle(geometry.Style{
+		Fill:   &col,
+		Stroke: nil,
+	})
 	c.shapes[shape.id] = shape
 	c.notify([]ShapeId{shape.id})
 	return c.nextId

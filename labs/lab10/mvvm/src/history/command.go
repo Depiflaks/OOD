@@ -1,6 +1,7 @@
 package history
 
 import (
+	"fmt"
 	"vector-editor/src/geometry"
 	"vector-editor/src/model"
 )
@@ -48,6 +49,7 @@ func NewNewShapeCommand(
 }
 
 func (c *NewShapeCommand) Execute() {
+	fmt.Println("NewShapeCommand execute")
 	c.id = c.create()
 	c.isExecuted = true
 }
