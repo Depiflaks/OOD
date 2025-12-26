@@ -1,18 +1,18 @@
 package appmodel
 
 import (
-	history2 "vector-editor/src/history"
+	"vector-editor/src/history"
 	"vector-editor/src/model"
 )
 
 type CanvasManager struct {
-	history      history2.History
+	history      history.History
 	canvas       EditableCanvas
 	shapeManager *ShapeManager
 }
 
 func NewCanvasManager(
-	h history2.History,
+	h history.History,
 	canvas EditableCanvas,
 ) *CanvasManager {
 	return &CanvasManager{
@@ -23,7 +23,7 @@ func NewCanvasManager(
 }
 
 func (m *CanvasManager) NewShape(t model.ShapeType) {
-	cmd := history2.NewNewShapeCommand(
+	cmd := history.NewNewShapeCommand(
 		m.newCreateShapeFn(t),
 		m.newMarkDeleteShapesFn(),
 		m.newRestoreShapesFn(),
@@ -41,7 +41,7 @@ func (m *CanvasManager) Delete() {
 	if len(ids) == 0 {
 		return
 	}
-	cmd := history2.NewDeleteShapeCommand(
+	cmd := history.NewDeleteShapeCommand(
 		ids,
 		m.newMarkDeleteShapesFn(),
 		m.newRestoreShapesFn(),
@@ -50,25 +50,25 @@ func (m *CanvasManager) Delete() {
 	m.history.AppendAndExecute(cmd)
 }
 
-func (m *CanvasManager) newCreateShapeFn(t model.ShapeType) history2.CreateShapeFn {
+func (m *CanvasManager) newCreateShapeFn(t model.ShapeType) history.CreateShapeFn {
 	return func() model.ShapeId {
 		return m.canvas.GetCanvas().NewShape(t)
 	}
 }
 
-func (m *CanvasManager) newMarkDeleteShapesFn() history2.MarkDeleteShapesFn {
+func (m *CanvasManager) newMarkDeleteShapesFn() history.MarkDeleteShapesFn {
 	return func(ids []model.ShapeId) {
 		m.canvas.MarkDeleted(ids)
 	}
 }
 
-func (m *CanvasManager) newRestoreShapesFn() history2.RestoreShapesFn {
+func (m *CanvasManager) newRestoreShapesFn() history.RestoreShapesFn {
 	return func(ids []model.ShapeId) {
 		m.canvas.Restore(ids)
 	}
 }
 
-func (m *CanvasManager) newDeleteShapesFn() history2.DeleteShapesFn {
+func (m *CanvasManager) newDeleteShapesFn() history.DeleteShapesFn {
 	return func(ids []model.ShapeId) {
 		m.canvas.GetCanvas().DeleteShapes(ids)
 	}
