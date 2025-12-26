@@ -1,28 +1,26 @@
 package modelview
 
 import (
+	"image/color"
 	"vector-editor/src/appmodel"
 	"vector-editor/src/model"
 )
 
 type CanvasModelView struct {
-	observers  []CanvasModelViewObserver
-	canvas     *model.Canvas
-	manager    *appmodel.CanvasManager
-	shapes     map[model.ShapeId]*ShapeModelView
-	newShapeMV func(shape *model.Shape) *ShapeModelView
+	observers []CanvasModelViewObserver
+	canvas    *model.Canvas
+	manager   *appmodel.CanvasManager
+	shapes    map[model.ShapeId]*ShapeModelView
 }
 
 func NewCanvasModelView(
 	canvas *model.Canvas,
 	canvasManager *appmodel.CanvasManager,
-	newShapeMV func(shape *model.Shape) *ShapeModelView,
 ) *CanvasModelView {
 	return &CanvasModelView{
-		canvas:     canvas,
-		manager:    canvasManager,
-		shapes:     make(map[model.ShapeId]*ShapeModelView),
-		newShapeMV: newShapeMV,
+		canvas:  canvas,
+		manager: canvasManager,
+		shapes:  make(map[model.ShapeId]*ShapeModelView),
 	}
 }
 
@@ -39,6 +37,30 @@ func (c *CanvasModelView) UpdateShapes(ids []model.ShapeId) {
 	}
 	for _, o := range c.observers {
 		o.UpdateShapes(ids)
+	}
+}
+
+func (c *CanvasModelView) newShapeMV(shape *model.Shape) *ShapeModelView {
+	return NewShapeModelView(shape, c.manager.ShapeManager())
+}
+
+func (c *CanvasModelView) SetBackground(color color.Color) {
+	// TODO: метод изменения фона
+}
+
+func (c *CanvasModelView) GetCanvas() *model.Canvas {
+	return c.canvas
+}
+
+func (c *CanvasModelView) MarkDeleted(ids []model.ShapeId) {
+	for _, id := range ids {
+		c.shapes[id].deleted = true
+	}
+}
+
+func (c *CanvasModelView) Restore(ids []model.ShapeId) {
+	for _, id := range ids {
+		c.shapes[id].deleted = false
 	}
 }
 

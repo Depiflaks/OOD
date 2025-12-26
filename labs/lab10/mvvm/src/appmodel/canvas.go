@@ -22,6 +22,10 @@ func NewCanvasManager(
 	}
 }
 
+func (m *CanvasManager) ShapeManager() *ShapeManager {
+	return m.shapeManager
+}
+
 func (m *CanvasManager) NewShape(t model.ShapeType) {
 	cmd := history.NewNewShapeCommand(
 		m.newCreateShapeFn(t),

@@ -1,7 +1,7 @@
 package modelview
 
 import (
-	appmodel2 "vector-editor/src/appmodel"
+	"vector-editor/src/appmodel"
 	"vector-editor/src/geometry"
 	"vector-editor/src/model"
 )
@@ -80,7 +80,7 @@ type ShapeModelView struct {
 	shapeObserver
 
 	shape     *model.Shape
-	manager   *appmodel2.ShapeManager
+	manager   *appmodel.ShapeManager
 	observers []ShapeModelViewObserver
 
 	position  geometry.Point
@@ -90,6 +90,7 @@ type ShapeModelView struct {
 
 	isDragging bool
 	isResizing bool
+	deleted    bool
 
 	dragStartPosition geometry.Point
 
@@ -99,7 +100,7 @@ type ShapeModelView struct {
 
 func NewShapeModelView(
 	shape *model.Shape,
-	manager *appmodel2.ShapeManager,
+	manager *appmodel.ShapeManager,
 ) *ShapeModelView {
 	mv := &ShapeModelView{
 		shape:   shape,
@@ -119,7 +120,11 @@ func NewShapeModelView(
 	return mv
 }
 
-func (s *ShapeModelView) Events() appmodel2.ViewEvents {
+func (s *ShapeModelView) Deleted() bool {
+	return s.deleted
+}
+
+func (s *ShapeModelView) Events() appmodel.ViewEvents {
 	return &s.editableShape
 }
 
