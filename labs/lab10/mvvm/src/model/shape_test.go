@@ -3,7 +3,7 @@ package model
 import (
 	"image/color"
 	"testing"
-	"vector-editor/geometry"
+	"vector-editor/src/geometry"
 )
 
 type mockObserver struct {

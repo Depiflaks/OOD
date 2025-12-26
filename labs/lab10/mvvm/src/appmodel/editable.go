@@ -2,15 +2,15 @@ package appmodel
 
 import (
 	"image/color"
-	"vector-editor/geometry"
-	"vector-editor/model"
+	"vector-editor/src/geometry"
+	model2 "vector-editor/src/model"
 )
 
 // TODO: разобраться с перемещениями объектов
 type EditableShape interface {
 	ViewEvents
 
-	GetShape() *model.Shape
+	GetShape() *model2.Shape
 	Move(delta geometry.Vector)
 	Scale(delta geometry.Vector, scale geometry.Scale)
 }
@@ -24,7 +24,7 @@ type ViewEvents interface {
 
 type EditableCanvas interface {
 	SetBackground(color color.Color)
-	GetCanvas() *model.Canvas
-	MarkDeleted([]model.ShapeId)
-	Restore([]model.ShapeId)
+	GetCanvas() *model2.Canvas
+	MarkDeleted([]model2.ShapeId)
+	Restore([]model2.ShapeId)
 }

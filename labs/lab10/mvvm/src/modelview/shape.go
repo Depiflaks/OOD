@@ -1,9 +1,9 @@
 package modelview
 
 import (
-	"vector-editor/appmodel"
-	"vector-editor/geometry"
-	"vector-editor/model"
+	appmodel2 "vector-editor/src/appmodel"
+	"vector-editor/src/geometry"
+	"vector-editor/src/model"
 )
 
 type editableShape struct {
@@ -80,7 +80,7 @@ type ShapeModelView struct {
 	shapeObserver
 
 	shape     *model.Shape
-	manager   *appmodel.ShapeManager
+	manager   *appmodel2.ShapeManager
 	observers []ShapeModelViewObserver
 
 	position  geometry.Point
@@ -99,7 +99,7 @@ type ShapeModelView struct {
 
 func NewShapeModelView(
 	shape *model.Shape,
-	manager *appmodel.ShapeManager,
+	manager *appmodel2.ShapeManager,
 ) *ShapeModelView {
 	mv := &ShapeModelView{
 		shape:   shape,
@@ -119,7 +119,7 @@ func NewShapeModelView(
 	return mv
 }
 
-func (s *ShapeModelView) Events() appmodel.ViewEvents {
+func (s *ShapeModelView) Events() appmodel2.ViewEvents {
 	return &s.editableShape
 }
 

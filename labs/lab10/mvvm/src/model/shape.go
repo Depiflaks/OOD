@@ -1,6 +1,8 @@
 package model
 
-import "vector-editor/geometry"
+import (
+	"vector-editor/src/geometry"
+)
 
 type ShapeType int
 

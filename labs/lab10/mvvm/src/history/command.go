@@ -1,8 +1,8 @@
 package history
 
 import (
-	"vector-editor/geometry"
-	"vector-editor/model"
+	"vector-editor/src/geometry"
+	"vector-editor/src/model"
 )
 
 type Command interface {

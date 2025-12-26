@@ -3,7 +3,7 @@ package main
 import (
 	"image/color"
 	"math"
-	"vector-editor/history"
+	"vector-editor/src/history"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"

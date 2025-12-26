@@ -2,9 +2,10 @@ package history
 
 import (
 	"image/color"
+	"math"
 	"testing"
-	"vector-editor/geometry"
-	"vector-editor/model"
+	"vector-editor/src/geometry"
+	"vector-editor/src/model"
 )
 
 type mockShape struct {
@@ -222,52 +223,241 @@ func TestMove_ExecuteUnexecute(t *testing.T) {
 	}
 }
 
+type mockShapeRect struct {
+	id   model.ShapeId
+	pos  geometry.Point
+	size geometry.Bounds
+}
+
+func newMockShapeRect(id model.ShapeId) *mockShapeRect {
+	return &mockShapeRect{
+		id:   id,
+		pos:  geometry.Point{X: 0, Y: 0},
+		size: geometry.Bounds{Width: 10, Height: 10},
+	}
+}
+
+func feq(a, b float64) bool {
+	const eps = 1e-9
+	return math.Abs(a-b) <= eps
+}
+
+func pointEq(a, b geometry.Point) bool {
+	return feq(a.X, b.X) && feq(a.Y, b.Y)
+}
+
+func boundsEq(a, b geometry.Bounds) bool {
+	return feq(a.Width, b.Width) && feq(a.Height, b.Height)
+}
+
+func rectEqPosSize(s *mockShapeRect, pos geometry.Point, size geometry.Bounds) bool {
+	return pointEq(s.pos, pos) && boundsEq(s.size, size)
+}
+
 func TestResize_NotExecuted(t *testing.T) {
-	shape := newMockShape(1)
-	cmd := NewResizeShapesCommand(
-		func(d geometry.Vector, b geometry.Bounds) {
-			shape.size = b
-		},
-		geometry.Vector{},
-		geometry.Bounds{Width: 20, Height: 20},
-	)
+	shape := newMockShapeRect(1)
+
+	resize := func(rects map[model.ShapeId]geometry.Rect) {
+		r := rects[shape.id]
+		shape.pos = r.Position
+		shape.size = r.Size
+	}
+
+	curRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: shape.pos, Size: shape.size},
+	}
+	newRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: geometry.Point{X: 5, Y: 7}, Size: geometry.Bounds{Width: 20, Height: 20}},
+	}
+
+	cmd := NewResizeShapesCommand(resize, newRects, curRects)
 	cmd.Unexecute()
-	if shape.size.Width != 10 || shape.size.Height != 10 {
+
+	if !rectEqPosSize(shape, geometry.Point{X: 0, Y: 0}, geometry.Bounds{Width: 10, Height: 10}) {
 		t.Fail()
 	}
 }
 
 func TestResize_Execute(t *testing.T) {
-	shape := newMockShape(1)
-	cmd := NewResizeShapesCommand(
-		func(d geometry.Vector, b geometry.Bounds) {
-			shape.size = b
-		},
-		geometry.Vector{},
-		geometry.Bounds{Width: 20, Height: 20},
-	)
+	shape := newMockShapeRect(1)
+
+	resize := func(rects map[model.ShapeId]geometry.Rect) {
+		r := rects[shape.id]
+		shape.pos = r.Position
+		shape.size = r.Size
+	}
+
+	curRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: shape.pos, Size: shape.size},
+	}
+	wantPos := geometry.Point{X: 5, Y: 7}
+	wantBounds := geometry.Bounds{Width: 20, Height: 20}
+	newRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: wantPos, Size: wantBounds},
+	}
+
+	cmd := NewResizeShapesCommand(resize, newRects, curRects)
 	cmd.Execute()
-	if shape.size.Width != 20 || shape.size.Height != 20 {
+
+	if !rectEqPosSize(shape, wantPos, wantBounds) {
 		t.Fail()
 	}
 }
 
-// TODO: исрпавить, когда будет готов мультиселект
-//func TestResize_ExecuteUnexecute(t *testing.T) {
-//	shape := newMockShape(1)
-//	cmd := NewResizeShapesCommand(
-//		func(d geometry.Vector, b geometry.Bounds) {
-//			shape.size = b
-//		},
-//		geometry.Vector{},
-//		geometry.Bounds{Width: 20, Height: 20},
-//	)
-//	cmd.Execute()
-//	cmd.Unexecute()
-//	if shape.size.Width != 10 || shape.size.Height != 10 {
-//		t.Fail()
-//	}
-//}
+func TestResize_ExecuteUnexecute(t *testing.T) {
+	shape := newMockShapeRect(1)
+
+	resize := func(rects map[model.ShapeId]geometry.Rect) {
+		r := rects[shape.id]
+		shape.pos = r.Position
+		shape.size = r.Size
+	}
+
+	startPos := shape.pos
+	startBounds := shape.size
+
+	curRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: startPos, Size: startBounds},
+	}
+	newRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: geometry.Point{X: 5, Y: 7}, Size: geometry.Bounds{Width: 20, Height: 20}},
+	}
+
+	cmd := NewResizeShapesCommand(resize, newRects, curRects)
+	cmd.Execute()
+	cmd.Unexecute()
+
+	if !rectEqPosSize(shape, startPos, startBounds) {
+		t.Fail()
+	}
+}
+
+func TestResize_Multi_NotExecuted(t *testing.T) {
+	s1 := newMockShapeRect(1)
+	s2 := newMockShapeRect(2)
+	s3 := newMockShapeRect(3)
+
+	resize := func(rects map[model.ShapeId]geometry.Rect) {
+		r1 := rects[s1.id]
+		r2 := rects[s2.id]
+		r3 := rects[s3.id]
+		s1.pos, s1.size = r1.Position, r1.Size
+		s2.pos, s2.size = r2.Position, r2.Size
+		s3.pos, s3.size = r3.Position, r3.Size
+	}
+
+	curRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: s1.pos, Size: s1.size},
+		2: {Position: s2.pos, Size: s2.size},
+		3: {Position: s3.pos, Size: s3.size},
+	}
+	newRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: geometry.Point{X: 1, Y: 2}, Size: geometry.Bounds{Width: 20, Height: 20}},
+		2: {Position: geometry.Point{X: 3, Y: 4}, Size: geometry.Bounds{Width: 30, Height: 40}},
+		3: {Position: geometry.Point{X: 5, Y: 6}, Size: geometry.Bounds{Width: 50, Height: 60}},
+	}
+
+	cmd := NewResizeShapesCommand(resize, newRects, curRects)
+	cmd.Unexecute()
+
+	if !rectEqPosSize(s1, geometry.Point{X: 0, Y: 0}, geometry.Bounds{Width: 10, Height: 10}) {
+		t.Fail()
+	}
+	if !rectEqPosSize(s2, geometry.Point{X: 0, Y: 0}, geometry.Bounds{Width: 10, Height: 10}) {
+		t.Fail()
+	}
+	if !rectEqPosSize(s3, geometry.Point{X: 0, Y: 0}, geometry.Bounds{Width: 10, Height: 10}) {
+		t.Fail()
+	}
+}
+
+func TestResize_Multi_Execute(t *testing.T) {
+	s1 := newMockShapeRect(1)
+	s2 := newMockShapeRect(2)
+	s3 := newMockShapeRect(3)
+
+	resize := func(rects map[model.ShapeId]geometry.Rect) {
+		r1 := rects[s1.id]
+		r2 := rects[s2.id]
+		r3 := rects[s3.id]
+		s1.pos, s1.size = r1.Position, r1.Size
+		s2.pos, s2.size = r2.Position, r2.Size
+		s3.pos, s3.size = r3.Position, r3.Size
+	}
+
+	curRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: s1.pos, Size: s1.size},
+		2: {Position: s2.pos, Size: s2.size},
+		3: {Position: s3.pos, Size: s3.size},
+	}
+
+	want1 := geometry.Rect{Position: geometry.Point{X: 1, Y: 2}, Size: geometry.Bounds{Width: 20, Height: 20}}
+	want2 := geometry.Rect{Position: geometry.Point{X: 3, Y: 4}, Size: geometry.Bounds{Width: 30, Height: 40}}
+	want3 := geometry.Rect{Position: geometry.Point{X: 5, Y: 6}, Size: geometry.Bounds{Width: 50, Height: 60}}
+
+	newRects := map[model.ShapeId]geometry.Rect{
+		1: want1,
+		2: want2,
+		3: want3,
+	}
+
+	cmd := NewResizeShapesCommand(resize, newRects, curRects)
+	cmd.Execute()
+
+	if !rectEqPosSize(s1, want1.Position, want1.Size) {
+		t.Fail()
+	}
+	if !rectEqPosSize(s2, want2.Position, want2.Size) {
+		t.Fail()
+	}
+	if !rectEqPosSize(s3, want3.Position, want3.Size) {
+		t.Fail()
+	}
+}
+
+func TestResize_Multi_ExecuteUnexecute(t *testing.T) {
+	s1 := newMockShapeRect(1)
+	s2 := newMockShapeRect(2)
+	s3 := newMockShapeRect(3)
+
+	resize := func(rects map[model.ShapeId]geometry.Rect) {
+		r1 := rects[s1.id]
+		r2 := rects[s2.id]
+		r3 := rects[s3.id]
+		s1.pos, s1.size = r1.Position, r1.Size
+		s2.pos, s2.size = r2.Position, r2.Size
+		s3.pos, s3.size = r3.Position, r3.Size
+	}
+
+	start1 := geometry.Rect{Position: s1.pos, Size: s1.size}
+	start2 := geometry.Rect{Position: s2.pos, Size: s2.size}
+	start3 := geometry.Rect{Position: s3.pos, Size: s3.size}
+
+	curRects := map[model.ShapeId]geometry.Rect{
+		1: start1,
+		2: start2,
+		3: start3,
+	}
+	newRects := map[model.ShapeId]geometry.Rect{
+		1: {Position: geometry.Point{X: 1, Y: 2}, Size: geometry.Bounds{Width: 20, Height: 20}},
+		2: {Position: geometry.Point{X: 3, Y: 4}, Size: geometry.Bounds{Width: 30, Height: 40}},
+		3: {Position: geometry.Point{X: 5, Y: 6}, Size: geometry.Bounds{Width: 50, Height: 60}},
+	}
+
+	cmd := NewResizeShapesCommand(resize, newRects, curRects)
+	cmd.Execute()
+	cmd.Unexecute()
+
+	if !rectEqPosSize(s1, start1.Position, start1.Size) {
+		t.Fail()
+	}
+	if !rectEqPosSize(s2, start2.Position, start2.Size) {
+		t.Fail()
+	}
+	if !rectEqPosSize(s3, start3.Position, start3.Size) {
+		t.Fail()
+	}
+}
 
 type mockShapeStyle struct {
 	id    model.ShapeId
