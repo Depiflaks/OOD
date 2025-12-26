@@ -2,16 +2,16 @@ package appmodel
 
 import (
 	"vector-editor/src/geometry"
-	history2 "vector-editor/src/history"
+	"vector-editor/src/history"
 	"vector-editor/src/model"
 )
 
 type ShapeManager struct {
-	history  *history2.History
+	history  *history.History
 	selected map[model.ShapeId]EditableShape
 }
 
-func NewShapeManager(history *history2.History) *ShapeManager {
+func NewShapeManager(history *history.History) *ShapeManager {
 	return &ShapeManager{
 		history:  history,
 		selected: make(map[model.ShapeId]EditableShape),
@@ -43,7 +43,7 @@ func (m *ShapeManager) GetSelectedShapeIds() []model.ShapeId {
 
 func (m *ShapeManager) Drag(delta geometry.Vector, isDragging bool) {
 	if !isDragging {
-		cmd := history2.NewMoveShapesCommand(
+		cmd := history.NewMoveShapesCommand(
 			m.newMoveShapesFn(), delta)
 		m.history.AppendAndExecute(cmd)
 	}
@@ -78,7 +78,7 @@ func (m *ShapeManager) Resize(
 				Size:     curBounds,
 			}
 		}
-		cmd := history2.NewResizeShapesCommand(
+		cmd := history.NewResizeShapesCommand(
 			m.newResizeShapesFn(), newRects, curRects,
 		)
 		m.history.AppendAndExecute(cmd)
@@ -123,11 +123,11 @@ func (m *ShapeManager) SetStyle(newStyle geometry.Style) {
 		prevStyles[id] = s.GetShape().GetStyle()
 		newStyles[id] = newStyle
 	}
-	cmd := history2.NewSetStyleCommand(m.newSetStyleFn(), prevStyles, newStyles)
+	cmd := history.NewSetStyleCommand(m.newSetStyleFn(), prevStyles, newStyles)
 	m.history.AppendAndExecute(cmd)
 }
 
-func (m *ShapeManager) newMoveShapesFn() history2.MoveShapesFn {
+func (m *ShapeManager) newMoveShapesFn() history.MoveShapesFn {
 	return func(delta geometry.Vector) {
 		for _, s := range m.selected {
 			s.GetShape().Move(delta)
@@ -135,7 +135,7 @@ func (m *ShapeManager) newMoveShapesFn() history2.MoveShapesFn {
 	}
 }
 
-func (m *ShapeManager) newResizeShapesFn() history2.ResizeShapesFn {
+func (m *ShapeManager) newResizeShapesFn() history.ResizeShapesFn {
 	return func(rects map[model.ShapeId]geometry.Rect) {
 		for id, s := range m.selected {
 			s.GetShape().UpdateRect(rects[id].Position, rects[id].Size)
@@ -143,7 +143,7 @@ func (m *ShapeManager) newResizeShapesFn() history2.ResizeShapesFn {
 	}
 }
 
-func (m *ShapeManager) newSetStyleFn() history2.SetStyleFn {
+func (m *ShapeManager) newSetStyleFn() history.SetStyleFn {
 	return func(styles map[model.ShapeId]geometry.Style) {
 		for id, s := range m.selected {
 			s.GetShape().SetStyle(styles[id])

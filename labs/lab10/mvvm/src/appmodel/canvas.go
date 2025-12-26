@@ -11,15 +11,20 @@ type CanvasManager struct {
 	shapeManager *ShapeManager
 }
 
-func NewCanvasManager(
-	h history.History,
-	canvas EditableCanvas,
-) *CanvasManager {
+func NewCanvasManager() *CanvasManager {
+	h := history.History{}
 	return &CanvasManager{
 		history:      h,
-		canvas:       canvas,
 		shapeManager: NewShapeManager(&h),
 	}
+}
+
+func (m *CanvasManager) History() *history.History {
+	return &m.history
+}
+
+func (m *CanvasManager) RegisterCanvas(canvas EditableCanvas) {
+	m.canvas = canvas
 }
 
 func (m *CanvasManager) ShapeManager() *ShapeManager {

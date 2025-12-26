@@ -125,6 +125,10 @@ func (s *ShapeModelView) SetDeleted(deleted bool) {
 	s.notifyDeleted()
 }
 
+func (s *ShapeModelView) IsSelected() bool {
+	return s.manager.IsSelected(s)
+}
+
 func (s *ShapeModelView) Deleted() bool {
 	return s.deleted
 }
@@ -141,11 +145,11 @@ func (s *ShapeModelView) Drag(delta geometry.Vector) {
 	s.manager.Drag(delta, s.isDragging)
 }
 
-func (s *ShapeModelView) Resize(delta geometry.Vector, bounds geometry.Bounds) {
-	scale := geometry.Scale{
-		ScaleX: bounds.Width / s.size.Width,
-		ScaleY: bounds.Height / s.size.Height,
-	}
+func (s *ShapeModelView) Resize(delta geometry.Vector, scale geometry.Scale) {
+	//scale := geometry.Scale{
+	//	ScaleX: bounds.Width / s.size.Width,
+	//	ScaleY: bounds.Height / s.size.Height,
+	//}
 	s.manager.Resize(delta, scale, s.isResizing)
 }
 
@@ -163,6 +167,10 @@ func (s *ShapeModelView) GetStyle() geometry.Style {
 
 func (s *ShapeModelView) GetShapeType() model.ShapeType {
 	return s.shapeType
+}
+
+func (s *ShapeModelView) AddObserver(o ShapeModelViewObserver) {
+	s.observers = append(s.observers, o)
 }
 
 func (s *ShapeModelView) notifyRect() {
