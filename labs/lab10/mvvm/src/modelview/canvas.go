@@ -54,13 +54,13 @@ func (c *CanvasModelView) GetCanvas() *model.Canvas {
 
 func (c *CanvasModelView) MarkDeleted(ids []model.ShapeId) {
 	for _, id := range ids {
-		c.shapes[id].deleted = true
+		c.shapes[id].SetDeleted(true)
 	}
 }
 
 func (c *CanvasModelView) Restore(ids []model.ShapeId) {
 	for _, id := range ids {
-		c.shapes[id].deleted = false
+		c.shapes[id].SetDeleted(false)
 	}
 }
 

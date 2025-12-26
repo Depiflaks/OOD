@@ -6,28 +6,28 @@ import (
 )
 
 type ToolbarModelView struct {
-	canvasManager *appmodel.CanvasManager
-	observers     []ToolbarModelViewObserver
+	manager   *appmodel.CanvasManager
+	observers []ToolbarModelViewObserver
 }
 
 func NewToolbarModelView(
 	canvasManager *appmodel.CanvasManager,
 ) *ToolbarModelView {
 	return &ToolbarModelView{
-		canvasManager: canvasManager,
+		manager: canvasManager,
 	}
 }
 
 func (t *ToolbarModelView) NewTriangle() {
-	t.canvasManager.NewShape(model.Triangle)
+	t.manager.NewShape(model.Triangle)
 }
 
 func (t *ToolbarModelView) NewRectangle() {
-	t.canvasManager.NewShape(model.Rect)
+	t.manager.NewShape(model.Rect)
 }
 
 func (t *ToolbarModelView) NewEllipse() {
-	t.canvasManager.NewShape(model.Ellipse)
+	t.manager.NewShape(model.Ellipse)
 }
 
 func (t *ToolbarModelView) AddObserver(o ToolbarModelViewObserver) {

@@ -17,6 +17,7 @@ type CanvasModelViewObserver interface {
 type ShapeModelViewObserver interface {
 	UpdateRect(position geometry.Point, bounds geometry.Bounds)
 	UpdateStyle(style geometry.Style)
+	UpdateDeleted(deleted bool)
 }
 
 type ToolbarModelViewObserver interface {

@@ -120,6 +120,11 @@ func NewShapeModelView(
 	return mv
 }
 
+func (s *ShapeModelView) SetDeleted(deleted bool) {
+	s.deleted = deleted
+	s.notifyDeleted()
+}
+
 func (s *ShapeModelView) Deleted() bool {
 	return s.deleted
 }
@@ -169,5 +174,11 @@ func (s *ShapeModelView) notifyRect() {
 func (s *ShapeModelView) notifyStyle() {
 	for _, o := range s.observers {
 		o.UpdateStyle(s.GetStyle())
+	}
+}
+
+func (s *ShapeModelView) notifyDeleted() {
+	for _, o := range s.observers {
+		o.UpdateDeleted(s.Deleted())
 	}
 }
