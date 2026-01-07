@@ -11,7 +11,7 @@ type CanvasObserver interface {
 
 type Canvas struct {
 	background color.Color
-	shapes     map[ShapeId]*Shape
+	shapes     map[ShapeId]Shape
 	observers  []CanvasObserver
 	nextId     ShapeId
 }
@@ -19,7 +19,7 @@ type Canvas struct {
 func NewCanvas() *Canvas {
 	return &Canvas{
 		background: color.RGBA{R: 255, G: 255, B: 255, A: 255},
-		shapes:     make(map[ShapeId]*Shape),
+		shapes:     make(map[ShapeId]Shape),
 	}
 }
 
@@ -33,8 +33,8 @@ func (c *Canvas) NewShape(t ShapeType) ShapeId {
 		Fill:   &col,
 		Stroke: nil,
 	})
-	c.shapes[shape.id] = shape
-	c.notify([]ShapeId{shape.id})
+	c.shapes[shape.GetShapeId()] = shape
+	c.notify([]ShapeId{shape.GetShapeId()})
 	return c.nextId
 }
 
@@ -42,7 +42,7 @@ func (c *Canvas) ImportImage() {
 	// TODO: implement me
 }
 
-func (c *Canvas) GetShape(id ShapeId) *Shape {
+func (c *Canvas) GetShape(id ShapeId) Shape {
 	return c.shapes[id]
 }
 

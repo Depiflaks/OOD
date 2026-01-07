@@ -19,7 +19,20 @@ type ShapeObserver interface {
 	UpdateStyle(style geometry.Style)
 }
 
-type Shape struct {
+type Shape interface {
+	UpdateRect(p geometry.Point, b geometry.Bounds)
+	Move(v geometry.Vector)
+	SetStyle(st geometry.Style)
+	AddObserver(o ShapeObserver)
+
+	GetBounds() geometry.Bounds
+	GetPosition() geometry.Point
+	GetStyle() geometry.Style
+	GetShapeId() ShapeId
+	GetShapeType() ShapeType
+}
+
+type shape struct {
 	id        ShapeId
 	shapeType ShapeType
 	position  geometry.Point
@@ -31,36 +44,36 @@ type Shape struct {
 func NewShape(
 	t ShapeType,
 	id ShapeId,
-) *Shape {
-	return &Shape{
+) Shape {
+	return &shape{
 		id:        id,
 		shapeType: t,
-		position:  geometry.Point{100, 100},
-		size:      geometry.Bounds{60, 120},
+		position:  geometry.Point{X: 100, Y: 100},
+		size:      geometry.Bounds{Width: 60, Height: 120},
 	}
 }
 
-type ShapeOption func(*Shape)
+type ShapeOption func(*shape)
 
 func WithPosition(p geometry.Point) ShapeOption {
-	return func(s *Shape) {
+	return func(s *shape) {
 		s.position = p
 	}
 }
 
 func WithBounds(b geometry.Bounds) ShapeOption {
-	return func(s *Shape) {
+	return func(s *shape) {
 		s.size = b
 	}
 }
 
 func WithStyle(st geometry.Style) ShapeOption {
-	return func(s *Shape) {
+	return func(s *shape) {
 		s.SetStyle(st)
 	}
 }
 
-func (s *Shape) UpdateRect(p geometry.Point, b geometry.Bounds) {
+func (s *shape) UpdateRect(p geometry.Point, b geometry.Bounds) {
 	s.position = p
 	s.size = b
 	for _, o := range s.observers {
@@ -68,7 +81,7 @@ func (s *Shape) UpdateRect(p geometry.Point, b geometry.Bounds) {
 	}
 }
 
-func (s *Shape) Move(v geometry.Vector) {
+func (s *shape) Move(v geometry.Vector) {
 	s.position.X += v.X
 	s.position.Y += v.Y
 	for _, o := range s.observers {
@@ -76,7 +89,7 @@ func (s *Shape) Move(v geometry.Vector) {
 	}
 }
 
-func (s *Shape) SetStyle(st geometry.Style) {
+func (s *shape) SetStyle(st geometry.Style) {
 	if st.Fill != nil {
 		s.style.Fill = st.Fill
 	}
@@ -88,26 +101,26 @@ func (s *Shape) SetStyle(st geometry.Style) {
 	}
 }
 
-func (s *Shape) GetBounds() geometry.Bounds {
+func (s *shape) GetBounds() geometry.Bounds {
 	return s.size
 }
 
-func (s *Shape) GetPosition() geometry.Point {
+func (s *shape) GetPosition() geometry.Point {
 	return s.position
 }
 
-func (s *Shape) GetStyle() geometry.Style {
+func (s *shape) GetStyle() geometry.Style {
 	return s.style
 }
 
-func (s *Shape) GetShapeId() ShapeId {
+func (s *shape) GetShapeId() ShapeId {
 	return s.id
 }
 
-func (s *Shape) GetShapeType() ShapeType {
+func (s *shape) GetShapeType() ShapeType {
 	return s.shapeType
 }
 
-func (s *Shape) AddObserver(o ShapeObserver) {
+func (s *shape) AddObserver(o ShapeObserver) {
 	s.observers = append(s.observers, o)
 }

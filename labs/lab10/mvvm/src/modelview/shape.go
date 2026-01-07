@@ -7,10 +7,10 @@ import (
 )
 
 type editableShape struct {
-	owner *ShapeModelView
+	owner *shapeModelView
 }
 
-func (s *editableShape) GetShape() *model.Shape {
+func (s *editableShape) GetShape() model.Shape {
 	return s.owner.shape
 }
 
@@ -60,7 +60,7 @@ func (s *editableShape) StopResizing() {
 }
 
 type shapeObserver struct {
-	owner *ShapeModelView
+	owner *shapeModelView
 }
 
 func (s *shapeObserver) UpdateRect(position geometry.Point, bounds geometry.Bounds) {
@@ -75,11 +75,30 @@ func (s *shapeObserver) UpdateStyle(style geometry.Style) {
 	s.owner.notifyStyle()
 }
 
-type ShapeModelView struct {
+type ShapeModelView interface {
+	appmodel.ViewEvents
+
+	IsDeleted() bool
+	IsSelected() bool
+
+	SetDeleted(deleted bool)
+	Select(withCtrl bool)
+	Drag(delta geometry.Vector)
+	Resize(delta geometry.Vector, scale geometry.Scale)
+
+	GetBounds() geometry.Bounds
+	GetPosition() geometry.Point
+	GetStyle() geometry.Style
+	GetShapeType() model.ShapeType
+
+	AddObserver(o ShapeModelViewObserver)
+}
+
+type shapeModelView struct {
 	editableShape
 	shapeObserver
 
-	shape     *model.Shape
+	shape     model.Shape
 	manager   *appmodel.ShapeManager
 	observers []ShapeModelViewObserver
 
@@ -99,10 +118,10 @@ type ShapeModelView struct {
 }
 
 func NewShapeModelView(
-	shape *model.Shape,
+	shape model.Shape,
 	manager *appmodel.ShapeManager,
-) *ShapeModelView {
-	mv := &ShapeModelView{
+) ShapeModelView {
+	mv := &shapeModelView{
 		shape:   shape,
 		manager: manager,
 	}
@@ -120,32 +139,32 @@ func NewShapeModelView(
 	return mv
 }
 
-func (s *ShapeModelView) SetDeleted(deleted bool) {
+func (s *shapeModelView) SetDeleted(deleted bool) {
 	s.deleted = deleted
 	s.notifyDeleted()
 }
 
-func (s *ShapeModelView) IsSelected() bool {
+func (s *shapeModelView) IsSelected() bool {
 	return s.manager.IsSelected(s)
 }
 
-func (s *ShapeModelView) Deleted() bool {
+func (s *shapeModelView) IsDeleted() bool {
 	return s.deleted
 }
 
-func (s *ShapeModelView) Events() appmodel.ViewEvents {
+func (s *shapeModelView) Events() appmodel.ViewEvents {
 	return &s.editableShape
 }
 
-func (s *ShapeModelView) Select(withCtrl bool) {
+func (s *shapeModelView) Select(withCtrl bool) {
 	s.manager.AppendToSelection(s, withCtrl)
 }
 
-func (s *ShapeModelView) Drag(delta geometry.Vector) {
+func (s *shapeModelView) Drag(delta geometry.Vector) {
 	s.manager.Drag(delta, s.isDragging)
 }
 
-func (s *ShapeModelView) Resize(delta geometry.Vector, scale geometry.Scale) {
+func (s *shapeModelView) Resize(delta geometry.Vector, scale geometry.Scale) {
 	//scale := geometry.Scale{
 	//	ScaleX: bounds.Width / s.size.Width,
 	//	ScaleY: bounds.Height / s.size.Height,
@@ -153,40 +172,40 @@ func (s *ShapeModelView) Resize(delta geometry.Vector, scale geometry.Scale) {
 	s.manager.Resize(delta, scale, s.isResizing)
 }
 
-func (s *ShapeModelView) GetBounds() geometry.Bounds {
+func (s *shapeModelView) GetBounds() geometry.Bounds {
 	return s.size
 }
 
-func (s *ShapeModelView) GetPosition() geometry.Point {
+func (s *shapeModelView) GetPosition() geometry.Point {
 	return s.position
 }
 
-func (s *ShapeModelView) GetStyle() geometry.Style {
+func (s *shapeModelView) GetStyle() geometry.Style {
 	return s.style
 }
 
-func (s *ShapeModelView) GetShapeType() model.ShapeType {
+func (s *shapeModelView) GetShapeType() model.ShapeType {
 	return s.shapeType
 }
 
-func (s *ShapeModelView) AddObserver(o ShapeModelViewObserver) {
+func (s *shapeModelView) AddObserver(o ShapeModelViewObserver) {
 	s.observers = append(s.observers, o)
 }
 
-func (s *ShapeModelView) notifyRect() {
+func (s *shapeModelView) notifyRect() {
 	for _, o := range s.observers {
 		o.UpdateRect(s.GetPosition(), s.GetBounds())
 	}
 }
 
-func (s *ShapeModelView) notifyStyle() {
+func (s *shapeModelView) notifyStyle() {
 	for _, o := range s.observers {
 		o.UpdateStyle(s.GetStyle())
 	}
 }
 
-func (s *ShapeModelView) notifyDeleted() {
+func (s *shapeModelView) notifyDeleted() {
 	for _, o := range s.observers {
-		o.UpdateDeleted(s.Deleted())
+		o.UpdateDeleted(s.IsDeleted())
 	}
 }

@@ -10,7 +10,7 @@ import (
 type EditableShape interface {
 	ViewEvents
 
-	GetShape() *model.Shape
+	GetShape() model.Shape
 	Move(delta geometry.Vector)
 	Scale(delta geometry.Vector, scale geometry.Scale)
 }

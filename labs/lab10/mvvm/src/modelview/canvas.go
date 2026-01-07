@@ -10,7 +10,7 @@ type CanvasModelView struct {
 	observers []CanvasModelViewObserver
 	canvas    *model.Canvas
 	manager   *appmodel.CanvasManager
-	shapes    map[model.ShapeId]*ShapeModelView
+	shapes    map[model.ShapeId]ShapeModelView
 }
 
 func NewCanvasModelView(
@@ -21,7 +21,7 @@ func NewCanvasModelView(
 	canvasMV := &CanvasModelView{
 		canvas:  canvas,
 		manager: canvasManager,
-		shapes:  make(map[model.ShapeId]*ShapeModelView),
+		shapes:  make(map[model.ShapeId]ShapeModelView),
 	}
 	canvasMV.GetCanvas().AddObserver(canvasMV)
 	return canvasMV
@@ -43,7 +43,7 @@ func (c *CanvasModelView) UpdateShapes(ids []model.ShapeId) {
 	}
 }
 
-func (c *CanvasModelView) newShapeMV(shape *model.Shape) *ShapeModelView {
+func (c *CanvasModelView) newShapeMV(shape model.Shape) ShapeModelView {
 	return NewShapeModelView(shape, c.manager.ShapeManager())
 }
 
@@ -67,7 +67,7 @@ func (c *CanvasModelView) Restore(ids []model.ShapeId) {
 	}
 }
 
-func (c *CanvasModelView) GetShape(id model.ShapeId) *ShapeModelView {
+func (c *CanvasModelView) GetShape(id model.ShapeId) ShapeModelView {
 	return c.shapes[id]
 }
 

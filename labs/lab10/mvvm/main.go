@@ -26,6 +26,8 @@ func main() {
 	toolbarMV := modelview.NewToolbarModelView(canvasManager)
 	wsMV := modelview.NewWorkspaceModelView(canvasMV, toolbarMV)
 
+	// test
+
 	files := view.FileActions{
 		Open:   func() {},
 		Save:   func() {},

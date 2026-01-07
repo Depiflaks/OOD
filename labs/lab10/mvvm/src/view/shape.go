@@ -1,7 +1,6 @@
 package view
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
