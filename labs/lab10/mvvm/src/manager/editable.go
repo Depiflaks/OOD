@@ -1,4 +1,4 @@
-package appmodel
+package manager
 
 import (
 	"image/color"

@@ -12,7 +12,7 @@ import (
 )
 
 type ShapeView struct {
-	mv     *modelview.ShapeModelView
+	mv     modelview.ShapeModelView
 	canvas *CanvasView
 
 	pos   geometry.Point
@@ -24,7 +24,7 @@ type ShapeView struct {
 	selected bool
 }
 
-func NewShapeView(mv *modelview.ShapeModelView, canvas *CanvasView) *ShapeView {
+func NewShapeView(mv modelview.ShapeModelView, canvas *CanvasView) *ShapeView {
 	s := &ShapeView{mv: mv, canvas: canvas}
 	s.syncFromModel()
 	mv.AddObserver(s)
@@ -36,7 +36,7 @@ func (s *ShapeView) syncFromModel() {
 	s.b = s.mv.GetBounds()
 	s.style = s.mv.GetStyle()
 	s.typ = s.mv.GetShapeType()
-	s.deleted = s.mv.Deleted()
+	s.deleted = s.mv.IsDeleted()
 	s.selected = s.mv.IsSelected()
 }
 
@@ -57,7 +57,7 @@ func (s *ShapeView) UpdateDeleted(deleted bool) {
 }
 
 func (s *ShapeView) Deleted() bool {
-	return s.mv.Deleted()
+	return s.mv.IsDeleted()
 }
 
 func (s *ShapeView) Selected() bool {
@@ -146,7 +146,7 @@ func (s *ShapeView) HitHandle(p geometry.Point) (ResizeMarker, bool) {
 
 func (s *ShapeView) Draw(img *image.RGBA) {
 	s.syncFromModel()
-	if s.mv.Deleted() {
+	if s.mv.IsDeleted() {
 		return
 	}
 

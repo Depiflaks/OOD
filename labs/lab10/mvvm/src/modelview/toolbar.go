@@ -1,17 +1,17 @@
 package modelview
 
 import (
-	"vector-editor/src/appmodel"
+	"vector-editor/src/manager"
 	"vector-editor/src/model"
 )
 
 type ToolbarModelView struct {
-	manager   *appmodel.CanvasManager
+	manager   manager.CanvasManager
 	observers []ToolbarModelViewObserver
 }
 
 func NewToolbarModelView(
-	canvasManager *appmodel.CanvasManager,
+	canvasManager manager.CanvasManager,
 ) *ToolbarModelView {
 	return &ToolbarModelView{
 		manager: canvasManager,

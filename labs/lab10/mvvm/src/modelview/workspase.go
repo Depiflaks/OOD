@@ -1,13 +1,13 @@
 package modelview
 
 type WorkspaceModelView struct {
-	canvas    *CanvasModelView
+	canvas    CanvasModelView
 	toolbar   *ToolbarModelView
 	observers []WorkspaceModelViewObserver
 }
 
 func NewWorkspaceModelView(
-	canvas *CanvasModelView,
+	canvas CanvasModelView,
 	toolbar *ToolbarModelView,
 ) *WorkspaceModelView {
 	return &WorkspaceModelView{
@@ -16,7 +16,7 @@ func NewWorkspaceModelView(
 	}
 }
 
-func (w *WorkspaceModelView) Canvas() *CanvasModelView {
+func (w *WorkspaceModelView) Canvas() CanvasModelView {
 	return w.canvas
 }
 

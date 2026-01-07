@@ -5,7 +5,7 @@ import (
 
 	"fyne.io/fyne/v2/app"
 
-	"vector-editor/src/appmodel"
+	"vector-editor/src/manager"
 	"vector-editor/src/model"
 	"vector-editor/src/modelview"
 	"vector-editor/src/view"
@@ -18,15 +18,15 @@ func main() {
 	canvasModel := model.NewCanvas()
 
 	// manager
-	canvasManager := appmodel.NewCanvasManager()
+	canvasManager := manager.NewCanvasManager()
 
 	// modelview
 	canvasMV := modelview.NewCanvasModelView(canvasModel, canvasManager)
-	canvasManager.RegisterCanvas(canvasMV)
 	toolbarMV := modelview.NewToolbarModelView(canvasManager)
 	wsMV := modelview.NewWorkspaceModelView(canvasMV, toolbarMV)
 
 	// test
+	toolbarMV.NewRectangle()
 
 	files := view.FileActions{
 		Open:   func() {},

@@ -1,4 +1,4 @@
-package appmodel
+package manager
 
 import (
 	"vector-editor/src/geometry"

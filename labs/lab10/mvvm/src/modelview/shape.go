@@ -1,82 +1,80 @@
 package modelview
 
 import (
-	"vector-editor/src/appmodel"
 	"vector-editor/src/geometry"
+	"vector-editor/src/manager"
 	"vector-editor/src/model"
 )
 
-type editableShape struct {
-	owner *shapeModelView
+// EditableShape
+
+func (s *shapeModelView) GetShape() model.Shape {
+	return s.shape
 }
 
-func (s *editableShape) GetShape() model.Shape {
-	return s.owner.shape
-}
-
-func (s *editableShape) Move(delta geometry.Vector) {
-	pos := s.owner.dragStartPosition
+func (s *shapeModelView) Move(delta geometry.Vector) {
+	pos := s.dragStartPosition
 	pos.X += delta.X
 	pos.Y += delta.Y
-	s.owner.position = pos
+	s.position = pos
 }
 
-func (s *editableShape) Scale(delta geometry.Vector, scale geometry.Scale) {
-	startPos := s.owner.resizeStartPosition
-	startBounds := s.owner.resizeStartBounds
+func (s *shapeModelView) Scale(delta geometry.Vector, scale geometry.Scale) {
+	startPos := s.resizeStartPosition
+	startBounds := s.resizeStartBounds
 	newPos, newBounds := geometry.CalculateScale(delta, scale, startPos, startBounds)
-	s.owner.UpdateRect(newPos, newBounds)
+	s.UpdateRect(newPos, newBounds)
 }
 
-func (s *editableShape) StartDragging() {
-	if !s.owner.isDragging {
-		s.owner.isDragging = true
-		s.owner.dragStartPosition = s.owner.position
-		s.owner.manager.StartDragging()
+// ViewEvents
+
+func (s *shapeModelView) StartDragging() {
+	if !s.isDragging {
+		s.isDragging = true
+		s.dragStartPosition = s.position
+		s.manager.StartDragging()
 	}
 }
 
-func (s *editableShape) StopDragging() {
-	if s.owner.isDragging {
-		s.owner.isDragging = false
-		s.owner.manager.StopDragging()
+func (s *shapeModelView) StopDragging() {
+	if s.isDragging {
+		s.isDragging = false
+		s.manager.StopDragging()
 	}
 }
 
-func (s *editableShape) StartResizing() {
-	if !s.owner.isResizing {
-		s.owner.isResizing = true
-		s.owner.resizeStartPosition = s.owner.position
-		s.owner.resizeStartBounds = s.owner.size
-		s.owner.manager.StartResizing()
+func (s *shapeModelView) StartResizing() {
+	if !s.isResizing {
+		s.isResizing = true
+		s.resizeStartPosition = s.position
+		s.resizeStartBounds = s.size
+		s.manager.StartResizing()
 	}
 }
 
-func (s *editableShape) StopResizing() {
-	if s.owner.isResizing {
-		s.owner.isResizing = false
-		s.owner.manager.StopResizing()
+func (s *shapeModelView) StopResizing() {
+	if s.isResizing {
+		s.isResizing = false
+		s.manager.StopResizing()
 	}
 }
 
-type shapeObserver struct {
-	owner *shapeModelView
+// Observer
+
+func (s *shapeModelView) UpdateRect(position geometry.Point, bounds geometry.Bounds) {
+	s.position = position
+	s.size = bounds
+	s.notifyRect()
 }
 
-func (s *shapeObserver) UpdateRect(position geometry.Point, bounds geometry.Bounds) {
-	s.owner.position = position
-	s.owner.size = bounds
-	s.owner.notifyRect()
-}
-
-func (s *shapeObserver) UpdateStyle(style geometry.Style) {
-	s.owner.style = style
-	s.owner.manager.SetStyle(style)
-	s.owner.notifyStyle()
+func (s *shapeModelView) UpdateStyle(style geometry.Style) {
+	s.style = style
+	s.manager.SetStyle(style)
+	s.notifyStyle()
 }
 
 type ShapeModelView interface {
-	appmodel.ViewEvents
+	manager.ViewEvents
 
 	IsDeleted() bool
 	IsSelected() bool
@@ -95,11 +93,8 @@ type ShapeModelView interface {
 }
 
 type shapeModelView struct {
-	editableShape
-	shapeObserver
-
 	shape     model.Shape
-	manager   *appmodel.ShapeManager
+	manager   *manager.ShapeManager
 	observers []ShapeModelViewObserver
 
 	position  geometry.Point
@@ -119,21 +114,16 @@ type shapeModelView struct {
 
 func NewShapeModelView(
 	shape model.Shape,
-	manager *appmodel.ShapeManager,
+	manager *manager.ShapeManager,
 ) ShapeModelView {
 	mv := &shapeModelView{
-		shape:   shape,
-		manager: manager,
+		shape:     shape,
+		manager:   manager,
+		position:  shape.GetPosition(),
+		size:      shape.GetBounds(),
+		style:     shape.GetStyle(),
+		shapeType: shape.GetShapeType(),
 	}
-
-	mv.editableShape = editableShape{owner: mv}
-	mv.shapeObserver = shapeObserver{owner: mv}
-
-	mv.position = shape.GetPosition()
-	mv.size = shape.GetBounds()
-	mv.style = shape.GetStyle()
-	mv.shapeType = shape.GetShapeType()
-
 	shape.AddObserver(mv)
 
 	return mv
@@ -150,10 +140,6 @@ func (s *shapeModelView) IsSelected() bool {
 
 func (s *shapeModelView) IsDeleted() bool {
 	return s.deleted
-}
-
-func (s *shapeModelView) Events() appmodel.ViewEvents {
-	return &s.editableShape
 }
 
 func (s *shapeModelView) Select(withCtrl bool) {

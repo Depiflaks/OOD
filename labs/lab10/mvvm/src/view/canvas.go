@@ -41,7 +41,7 @@ type State interface {
 type CanvasView struct {
 	widget.BaseWidget
 
-	mv *modelview.CanvasModelView
+	mv modelview.CanvasModelView
 
 	bg color.Color
 
@@ -62,7 +62,7 @@ type CanvasView struct {
 	dirty bool
 }
 
-func NewCanvasView(mv *modelview.CanvasModelView) *CanvasView {
+func NewCanvasView(mv modelview.CanvasModelView) *CanvasView {
 	c := &CanvasView{
 		mv:     mv,
 		bg:     color.White,
