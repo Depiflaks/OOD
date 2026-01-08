@@ -22,7 +22,7 @@ type CanvasManager interface {
 type canvasManager struct {
 	history      history.History
 	canvas       EditableCanvas
-	shapeManager ShapeManager
+	shapeManager privateShapeManager
 }
 
 func NewCanvasManager(h history.History) CanvasManager {
@@ -96,7 +96,6 @@ func (m *canvasManager) SetStyle(newStyle geometry.Style) {
 	}
 	cmd := history.NewSetStyleCommand(m.newSetStyleFn(), prevStyles, newStyles)
 	m.history.AppendAndExecute(cmd)
-	// TODO: подумать над тем, как оповещать изменение selection'
 }
 
 func (m *canvasManager) newCreateShapeFn(t model.ShapeType, style geometry.Style) history.CreateShapeFn {
@@ -108,18 +107,22 @@ func (m *canvasManager) newCreateShapeFn(t model.ShapeType, style geometry.Style
 func (m *canvasManager) newMarkDeleteShapesFn() history.MarkDeleteShapesFn {
 	return func(ids []model.ShapeId) {
 		m.canvas.MarkDeleted(ids)
+		m.shapeManager.ClearSelection()
 	}
 }
 
 func (m *canvasManager) newRestoreShapesFn() history.RestoreShapesFn {
+	selected := snapshotSelected(m.shapeManager.GetSelectedShapes())
 	return func(ids []model.ShapeId) {
 		m.canvas.Restore(ids)
+		m.shapeManager.SetSelectedShapes(selected)
 	}
 }
 
 func (m *canvasManager) newDeleteShapesFn() history.DeleteShapesFn {
 	return func(ids []model.ShapeId) {
 		m.canvas.GetCanvas().DeleteShapes(ids)
+		m.shapeManager.ClearSelection()
 	}
 }
 
@@ -130,18 +133,15 @@ func (m *canvasManager) newSetBackgroundColorFn() history.SetBackgroundColorFn {
 }
 
 func (m *canvasManager) newSetStyleFn() history.SetStyleFn {
-	ids := m.shapeManager.GetSelectedShapeIds()
-	dst := make(map[model.ShapeId]model.Shape, len(ids))
-	for _, id := range ids {
-		dst[id] = m.canvas.GetCanvas().GetShape(id)
-	}
+	selected := snapshotSelected(m.shapeManager.GetSelectedShapes())
 	return func(styles map[model.ShapeId]geometry.Style) {
-		for id, s := range dst {
+		for id, s := range selected {
 			st, ok := styles[id]
 			if !ok {
 				continue
 			}
-			s.SetStyle(st)
+			s.GetShape().SetStyle(st)
 		}
+		m.shapeManager.SetSelectedShapes(selected)
 	}
 }

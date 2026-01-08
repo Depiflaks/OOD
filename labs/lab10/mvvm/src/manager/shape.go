@@ -11,12 +11,18 @@ type ShapeManagerObserver interface {
 	OnSelectionChange(style geometry.Style, count int)
 }
 
+type privateShapeManager interface {
+	ShapeManager
+
+	GetSelectedShapeIds() []model.ShapeId
+	GetSelectedShapes() map[model.ShapeId]EditableShape
+	SetSelectedShapes(newSelected map[model.ShapeId]EditableShape)
+	ClearSelection()
+}
+
 type ShapeManager interface {
 	AppendToSelection(s EditableShape, withCtrl bool)
-	SetSelectedShapes(newSelected map[model.ShapeId]EditableShape)
 	IsSelected(s EditableShape) bool
-	GetSelectedShapeIds() []model.ShapeId
-	ClearSelection()
 
 	Drag(delta geometry.Vector, isDragging bool)
 	Resize(delta geometry.Vector, scale geometry.Scale, isResizing bool)
@@ -35,7 +41,7 @@ type shapeManager struct {
 	selected  map[model.ShapeId]EditableShape
 }
 
-func NewShapeManager(history history.History) ShapeManager {
+func NewShapeManager(history history.History) privateShapeManager {
 	return &shapeManager{
 		history:  history,
 		selected: make(map[model.ShapeId]EditableShape),
@@ -73,6 +79,10 @@ func (m *shapeManager) GetSelectedShapeIds() []model.ShapeId {
 		ids = append(ids, id)
 	}
 	return ids
+}
+
+func (m *shapeManager) GetSelectedShapes() map[model.ShapeId]EditableShape {
+	return m.selected
 }
 
 func (m *shapeManager) Drag(delta geometry.Vector, isDragging bool) {
