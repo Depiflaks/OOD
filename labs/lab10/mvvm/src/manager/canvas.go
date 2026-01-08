@@ -25,7 +25,7 @@ type canvasManager struct {
 func NewCanvasManager(h history.History) CanvasManager {
 	return &canvasManager{
 		history:      h,
-		shapeManager: NewShapeManager(&h),
+		shapeManager: NewShapeManager(h),
 	}
 }
 

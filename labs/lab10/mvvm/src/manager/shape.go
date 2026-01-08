@@ -24,11 +24,11 @@ type ShapeManager interface {
 }
 
 type shapeManager struct {
-	history  *history.History
+	history  history.History
 	selected map[model.ShapeId]EditableShape
 }
 
-func NewShapeManager(history *history.History) ShapeManager {
+func NewShapeManager(history history.History) ShapeManager {
 	return &shapeManager{
 		history:  history,
 		selected: make(map[model.ShapeId]EditableShape),

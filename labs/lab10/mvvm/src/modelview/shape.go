@@ -94,7 +94,7 @@ type ShapeModelView interface {
 
 type shapeModelView struct {
 	shape     model.Shape
-	manager   *manager.ShapeManager
+	manager   manager.ShapeManager
 	observers []ShapeModelViewObserver
 
 	position  geometry.Point
@@ -114,7 +114,7 @@ type shapeModelView struct {
 
 func NewShapeModelView(
 	shape model.Shape,
-	manager *manager.ShapeManager,
+	manager manager.ShapeManager,
 ) ShapeModelView {
 	mv := &shapeModelView{
 		shape:     shape,

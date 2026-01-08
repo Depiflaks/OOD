@@ -55,19 +55,12 @@ func (w *workspaceView) Show() {
 }
 
 func (w *workspaceView) installShortcuts() {
-	c := w.window.Canvas()
-
-	c.SetOnTypedKey(func(ev *fyne.KeyEvent) {
-		switch ev.Name {
+	w.window.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
+		switch k.Name {
 		case fyne.KeyZ:
-			if c.ModifierKey() == fyne.KeyModifierControl {
-				w.workspaceMV.Undo()
-			}
-
-		case fyne.KeyX:
-			if c.ModifierKey() == (fyne.KeyModifierControl | fyne.KeyModifierShift) {
-				w.workspaceMV.Redo()
-			}
+			w.workspaceMV.Undo()
+		case fyne.KeyU:
+			w.workspaceMV.Redo()
 		}
 	})
 }
