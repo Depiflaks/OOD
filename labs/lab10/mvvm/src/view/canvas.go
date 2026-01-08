@@ -83,12 +83,10 @@ func NewCanvasView(mv modelview.CanvasModelView) *CanvasView {
 }
 
 func (c *CanvasView) CreateRenderer() fyne.WidgetRenderer {
-	c.ensureBuffer(c.Size())
 
 	c.raster = canvas.NewRaster(func(w, h int) image.Image {
 		if c.img == nil || c.img.Bounds().Dx() != w || c.img.Bounds().Dy() != h {
-			c.img = image.NewRGBA(image.Rect(0, 0, maxInt(1, w), maxInt(1, h)))
-			c.dirty = true
+			c.ensureBuffer(c.Size())
 		}
 		if c.dirty {
 			c.redraw()
@@ -101,13 +99,6 @@ func (c *CanvasView) CreateRenderer() fyne.WidgetRenderer {
 	return &canvasViewRenderer{c: c, objs: objs}
 }
 
-func maxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func (c *CanvasView) ensureBuffer(sz fyne.Size) {
 	w := int(math.Max(1, float64(sz.Width)))
 	h := int(math.Max(1, float64(sz.Height)))
@@ -115,7 +106,25 @@ func (c *CanvasView) ensureBuffer(sz fyne.Size) {
 	c.dirty = true
 }
 
-func (c *CanvasView) UpdateShapes(ids []model.ShapeId) {
+func (c *CanvasView) redraw() {
+	if c.img == nil {
+		return
+	}
+
+	draw.Draw(c.img, c.img.Bounds(), &image.Uniform{C: c.bg}, image.Point{}, draw.Src)
+
+	for _, id := range c.drawOrder {
+		sv := c.shapes[id]
+		if sv == nil || sv.IsDeleted() {
+			// TODO: почему nil?
+			continue
+		}
+		sv.Draw(c.img)
+	}
+}
+
+func (c *CanvasView) OnShapesChanged(ids []model.ShapeId) {
+	// TODO: что за хуета здесь творится?
 	for _, id := range ids {
 		if _, ok := c.shapes[id]; ok {
 			continue
@@ -176,6 +185,7 @@ func (c *CanvasView) setState(s State) {
 
 func (c *CanvasView) clearSelection() {
 	c.mv.ClearSelection()
+	// TODO: здесь не должно быть обновления
 	c.dirty = true
 	c.Refresh()
 }
@@ -198,7 +208,7 @@ func (c *CanvasView) hitTestShape(p geometry.Point) *ShapeView {
 		if sv == nil {
 			continue
 		}
-		if sv.Deleted() {
+		if sv.IsDeleted() {
 			continue
 		}
 		if sv.Hit(p) {
@@ -215,7 +225,7 @@ func (c *CanvasView) hitTestHandles(p geometry.Point) (*ShapeView, ResizeMarker,
 		if sv == nil {
 			continue
 		}
-		if sv.Deleted() || !sv.Selected() {
+		if sv.IsDeleted() || !sv.IsSelected() {
 			continue
 		}
 		m, ok := sv.HitHandle(p)
@@ -231,11 +241,11 @@ func (c *CanvasView) selectionRect() geometry.Rect {
 	var r geometry.Rect
 	for _, id := range c.drawOrder {
 		sv := c.shapes[id]
-		if sv == nil || sv.Deleted() || !sv.Selected() {
+		if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
 			continue
 		}
-		pos := sv.Position()
-		b := sv.Bounds()
+		pos := sv.GetPosition()
+		b := sv.GetBounds()
 		if first {
 			r = geometry.Rect{Position: pos, Size: b}
 			first = false
@@ -278,23 +288,3 @@ func (r *canvasViewRenderer) Objects() []fyne.CanvasObject {
 }
 
 func (r *canvasViewRenderer) Destroy() {}
-
-func (c *CanvasView) redraw() {
-	if c.img == nil {
-		return
-	}
-
-	draw.Draw(c.img, c.img.Bounds(), &image.Uniform{c.bg}, image.Point{}, draw.Src)
-
-	for _, id := range c.drawOrder {
-		sv := c.shapes[id]
-		if sv == nil || sv.Deleted() {
-			continue
-		}
-		sv.Draw(c.img)
-	}
-
-	if c.raster != nil {
-		c.raster.Refresh()
-	}
-}

@@ -1,7 +1,6 @@
 package modelview
 
 import (
-	"vector-editor/src/geometry"
 	"vector-editor/src/model"
 )
 
@@ -11,13 +10,11 @@ type WorkspaceModelViewObserver interface {
 }
 
 type CanvasModelViewObserver interface {
-	UpdateShapes(ids []model.ShapeId)
+	OnShapesChanged(ids []model.ShapeId)
 }
 
 type ShapeModelViewObserver interface {
-	UpdateRect(position geometry.Point, bounds geometry.Bounds)
-	UpdateStyle(style geometry.Style)
-	UpdateDeleted(deleted bool)
+	Update()
 }
 
 type ToolbarModelViewObserver interface {

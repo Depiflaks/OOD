@@ -14,67 +14,36 @@ import (
 type ShapeView struct {
 	mv     modelview.ShapeModelView
 	canvas *CanvasView
-
-	pos   geometry.Point
-	b     geometry.Bounds
-	style geometry.Style
-	typ   model.ShapeType
-
-	deleted  bool
-	selected bool
 }
 
 func NewShapeView(mv modelview.ShapeModelView, canvas *CanvasView) *ShapeView {
 	s := &ShapeView{mv: mv, canvas: canvas}
-	s.syncFromModel()
 	mv.AddObserver(s)
 	return s
 }
 
-func (s *ShapeView) syncFromModel() {
-	s.pos = s.mv.GetPosition()
-	s.b = s.mv.GetBounds()
-	s.style = s.mv.GetStyle()
-	s.typ = s.mv.GetShapeType()
-	s.deleted = s.mv.IsDeleted()
-	s.selected = s.mv.IsSelected()
-}
-
-func (s *ShapeView) UpdateRect(position geometry.Point, bounds geometry.Bounds) {
-	s.pos = position
-	s.b = bounds
+func (s *ShapeView) Update() {
 	s.canvas.invalidate()
 }
 
-func (s *ShapeView) UpdateStyle(style geometry.Style) {
-	s.style = style
-	s.canvas.invalidate()
-}
-
-func (s *ShapeView) UpdateDeleted(deleted bool) {
-	s.deleted = deleted
-	s.canvas.invalidate()
-}
-
-func (s *ShapeView) Deleted() bool {
+func (s *ShapeView) IsDeleted() bool {
 	return s.mv.IsDeleted()
 }
 
-func (s *ShapeView) Selected() bool {
+func (s *ShapeView) IsSelected() bool {
 	return s.mv.IsSelected()
 }
 
-func (s *ShapeView) Position() geometry.Point {
+func (s *ShapeView) GetPosition() geometry.Point {
 	return s.mv.GetPosition()
 }
 
-func (s *ShapeView) Bounds() geometry.Bounds {
+func (s *ShapeView) GetBounds() geometry.Bounds {
 	return s.mv.GetBounds()
 }
 
 func (s *ShapeView) Select(ctrl bool) {
 	s.mv.Select(ctrl)
-	s.canvas.invalidate()
 }
 
 func (s *ShapeView) StartDragging() { s.mv.StartDragging() }
@@ -145,18 +114,17 @@ func (s *ShapeView) HitHandle(p geometry.Point) (ResizeMarker, bool) {
 }
 
 func (s *ShapeView) Draw(img *image.RGBA) {
-	s.syncFromModel()
 	if s.mv.IsDeleted() {
 		return
 	}
 
-	pos := s.pos
-	b := s.b
+	pos := s.mv.GetPosition()
+	b := s.mv.GetBounds()
 
-	fill := rgbaFromPtr(s.style.Fill)
-	stroke := rgbaFromPtr(s.style.Stroke)
+	fill := rgbaFromPtr(s.mv.GetStyle().Fill)
+	stroke := rgbaFromPtr(s.mv.GetStyle().Stroke)
 
-	switch s.typ {
+	switch s.mv.GetShapeType() {
 	case model.Rect:
 		drawRect(img, pos, b, fill, stroke)
 	case model.Ellipse:
@@ -176,7 +144,7 @@ func (s *ShapeView) handleSize() float64 {
 
 func rgbaFromPtr(p *color.Color) color.RGBA {
 	if p == nil || *p == nil {
-		return color.RGBA{0, 0, 0, 0}
+		return color.RGBA{}
 	}
 	c := color.RGBAModel.Convert(*p).(color.RGBA)
 	return c

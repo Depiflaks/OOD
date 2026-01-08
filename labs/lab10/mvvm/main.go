@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	"vector-editor/src/geometry"
 
 	"fyne.io/fyne/v2/app"
 
@@ -25,9 +26,6 @@ func main() {
 	toolbarMV := modelview.NewToolbarModelView(canvasManager)
 	wsMV := modelview.NewWorkspaceModelView(canvasMV, toolbarMV)
 
-	// test
-	toolbarMV.NewRectangle()
-
 	files := view.FileActions{
 		Open:   func() {},
 		Save:   func() {},
@@ -47,6 +45,19 @@ func main() {
 
 	w := view.NewWorkspaceView(a, wsMV, files, colors)
 	w.Show()
+
+	// test
+	toolbarMV.NewRectangle()
+	sh := canvasMV.GetShape(0)
+	sh.StartResizing()
+	sh.Resize(geometry.Vector{
+		X: 10,
+		Y: 10,
+	}, geometry.Scale{
+		ScaleX: 1.1,
+		ScaleY: 1.1,
+	})
+	canvasMV.GetShape(0)
 
 	a.Run()
 }

@@ -16,7 +16,7 @@ func (s *shapeModelView) Move(delta geometry.Vector) {
 	pos := s.dragStartPosition
 	pos.X += delta.X
 	pos.Y += delta.Y
-	s.position = pos
+	s.UpdateRect(pos, s.size)
 }
 
 func (s *shapeModelView) Scale(delta geometry.Vector, scale geometry.Scale) {
@@ -64,13 +64,13 @@ func (s *shapeModelView) StopResizing() {
 func (s *shapeModelView) UpdateRect(position geometry.Point, bounds geometry.Bounds) {
 	s.position = position
 	s.size = bounds
-	s.notifyRect()
+	s.notify()
 }
 
 func (s *shapeModelView) UpdateStyle(style geometry.Style) {
 	s.style = style
 	s.manager.SetStyle(style)
-	s.notifyStyle()
+	s.notify()
 }
 
 type ShapeModelView interface {
@@ -131,7 +131,7 @@ func NewShapeModelView(
 
 func (s *shapeModelView) SetDeleted(deleted bool) {
 	s.deleted = deleted
-	s.notifyDeleted()
+	s.notify()
 }
 
 func (s *shapeModelView) IsSelected() bool {
@@ -178,20 +178,8 @@ func (s *shapeModelView) AddObserver(o ShapeModelViewObserver) {
 	s.observers = append(s.observers, o)
 }
 
-func (s *shapeModelView) notifyRect() {
+func (s *shapeModelView) notify() {
 	for _, o := range s.observers {
-		o.UpdateRect(s.GetPosition(), s.GetBounds())
-	}
-}
-
-func (s *shapeModelView) notifyStyle() {
-	for _, o := range s.observers {
-		o.UpdateStyle(s.GetStyle())
-	}
-}
-
-func (s *shapeModelView) notifyDeleted() {
-	for _, o := range s.observers {
-		o.UpdateDeleted(s.IsDeleted())
+		o.Update()
 	}
 }

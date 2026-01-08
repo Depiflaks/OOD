@@ -6,7 +6,7 @@ import (
 )
 
 type CanvasObserver interface {
-	UpdateShapes(ids []ShapeId)
+	OnShapesChanged(ids []ShapeId)
 }
 
 type Canvas struct {
@@ -59,6 +59,6 @@ func (c *Canvas) AddObserver(o CanvasObserver) {
 
 func (c *Canvas) notify(ids []ShapeId) {
 	for _, o := range c.observers {
-		o.UpdateShapes(ids)
+		o.OnShapesChanged(ids)
 	}
 }

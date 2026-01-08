@@ -28,7 +28,7 @@ type SelectedViewState struct {
 }
 
 func (s *SelectedViewState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
-	if !shape.Selected() || ctrl {
+	if !shape.IsSelected() || ctrl {
 		shape.Select(ctrl)
 	}
 	shape.StartDragging()

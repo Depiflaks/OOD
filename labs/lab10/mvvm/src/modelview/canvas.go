@@ -36,7 +36,7 @@ func NewCanvasModelView(
 	return canvasMV
 }
 
-func (c *canvasModelView) UpdateShapes(ids []model.ShapeId) {
+func (c *canvasModelView) OnShapesChanged(ids []model.ShapeId) {
 	for _, id := range ids {
 		if _, ok := c.shapes[id]; ok {
 			continue
@@ -48,7 +48,7 @@ func (c *canvasModelView) UpdateShapes(ids []model.ShapeId) {
 		c.shapes[id] = c.newShapeMV(shape)
 	}
 	for _, o := range c.observers {
-		o.UpdateShapes(ids)
+		o.OnShapesChanged(ids)
 	}
 }
 
