@@ -30,6 +30,7 @@ type Bounds struct {
 type Style struct {
 	Fill   *color.Color
 	Stroke *color.Color
+	Image  *string
 }
 
 func CalculateScale(

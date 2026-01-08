@@ -204,3 +204,34 @@ func (c *SetStyleCommand) Unexecute() {
 	}
 	c.setStyle(c.prevStyles)
 }
+
+type SetBackgroundCommand struct {
+	setBackground SetBackgroundColorFn
+	newColor      color.Color
+	prevColor     color.Color
+	isExecuted    bool
+}
+
+func NewSetBackgroundCommand(
+	setBackground SetBackgroundColorFn,
+	prevColor color.Color,
+	newColor color.Color,
+) *SetBackgroundCommand {
+	return &SetBackgroundCommand{
+		setBackground: setBackground,
+		prevColor:     prevColor,
+		newColor:      newColor,
+	}
+}
+
+func (c *SetBackgroundCommand) Execute() {
+	c.setBackground(c.newColor)
+	c.isExecuted = true
+}
+
+func (c *SetBackgroundCommand) Unexecute() {
+	if !c.isExecuted {
+		return
+	}
+	c.setBackground(c.prevColor)
+}

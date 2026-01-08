@@ -19,8 +19,6 @@ type ShapeManager interface {
 	StopDragging()
 	StartResizing()
 	StopResizing()
-
-	SetStyle(newStyle geometry.Style)
 }
 
 type shapeManager struct {
@@ -141,17 +139,6 @@ func (m *shapeManager) ClearSelection() {
 	m.selected = make(map[model.ShapeId]EditableShape)
 }
 
-func (m *shapeManager) SetStyle(newStyle geometry.Style) {
-	prevStyles := make(map[model.ShapeId]geometry.Style)
-	newStyles := make(map[model.ShapeId]geometry.Style)
-	for id, s := range m.selected {
-		prevStyles[id] = s.GetShape().GetStyle()
-		newStyles[id] = newStyle
-	}
-	cmd := history.NewSetStyleCommand(m.newSetStyleFn(), prevStyles, newStyles)
-	m.history.AppendAndExecute(cmd)
-}
-
 func snapshotSelected(src map[model.ShapeId]EditableShape) map[model.ShapeId]EditableShape {
 	dst := make(map[model.ShapeId]EditableShape, len(src))
 	for id, s := range src {
@@ -178,19 +165,6 @@ func (m *shapeManager) newResizeShapesFn() history.ResizeShapesFn {
 				continue
 			}
 			s.GetShape().UpdateRect(r.Position, r.Size)
-		}
-	}
-}
-
-func (m *shapeManager) newSetStyleFn() history.SetStyleFn {
-	selected := snapshotSelected(m.selected)
-	return func(styles map[model.ShapeId]geometry.Style) {
-		for id, s := range selected {
-			st, ok := styles[id]
-			if !ok {
-				continue
-			}
-			s.GetShape().SetStyle(st)
 		}
 	}
 }

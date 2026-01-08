@@ -1,7 +1,6 @@
 package view
 
 import (
-	"fmt"
 	"image/color"
 	"vector-editor/src/geometry"
 	"vector-editor/src/modelview"
@@ -61,7 +60,7 @@ func NewToolbarView(
 			view.fillPreview.FillColor = c
 			view.fillPreview.Refresh()
 
-			// TODO: вызов метода обновления стиля
+			mv.SetFillColor(c)
 		}, win)
 		d.Show()
 	})
@@ -74,7 +73,7 @@ func NewToolbarView(
 			view.strokePreview.FillColor = c
 			view.strokePreview.Refresh()
 
-			// TODO: вызов метода обновления стиля
+			mv.SetFillColor(c)
 		}, win)
 		d.Show()
 	})
@@ -87,8 +86,7 @@ func NewToolbarView(
 			path := rc.URI().Path()
 			_ = rc.Close()
 
-			fmt.Println(path)
-			// TODO: вызов метода вставки картинки
+			mv.LoadImage(path)
 		}, win)
 
 		d.SetFilter(storage.NewExtensionFileFilter([]string{".png", ".jpg", ".jpeg", ".bmp"}))
