@@ -1,6 +1,7 @@
 package modelview
 
 import (
+	"vector-editor/src/geometry"
 	"vector-editor/src/model"
 )
 
@@ -18,6 +19,5 @@ type ShapeModelViewObserver interface {
 }
 
 type ToolbarModelViewObserver interface {
-	// TODO: добавить что-то сюда
-	Update()
+	OnSelectionChange(style geometry.Style, selectedCount int)
 }
