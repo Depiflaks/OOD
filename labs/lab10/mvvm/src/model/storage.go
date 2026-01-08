@@ -32,8 +32,7 @@ func (s *storage) store(localPath string) string {
 	}
 	defer src.Close()
 
-	base := filepath.Base(localPath)
-	dstPath := filepath.Join(tmpDir, fmt.Sprintf("%d_%s", time.Now().UnixNano(), base))
+	dstPath := filepath.Join(tmpDir, fmt.Sprintf("%d", time.Now().UnixNano()))
 
 	dst, err := os.Create(dstPath)
 	if err != nil {

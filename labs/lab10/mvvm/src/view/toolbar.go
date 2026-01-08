@@ -80,7 +80,7 @@ func NewToolbarView(
 		d.Show()
 	})
 
-	view.btnImage = widget.NewButton("Load background Image", func() {
+	view.btnImage = widget.NewButton("Image", func() {
 		d := dialog.NewFileOpen(func(rc fyne.URIReadCloser, err error) {
 			if err != nil || rc == nil {
 				return
@@ -88,13 +88,12 @@ func NewToolbarView(
 			path := rc.URI().Path()
 			_ = rc.Close()
 
-			mv.LoadImage(path)
+			mv.NewImage(path)
 		}, win)
 
 		d.SetFilter(storage.NewExtensionFileFilter([]string{".png", ".jpg", ".jpeg", ".bmp"}))
 		d.Show()
 	})
-	view.btnImage.Hide()
 
 	btnOpen := widget.NewButton("Open", func() {
 		if files.Open != nil {
@@ -113,12 +112,10 @@ func NewToolbarView(
 	})
 
 	view.obj = container.NewHBox(
-		btnRect, btnEllipse, btnTriangle,
+		btnRect, btnEllipse, btnTriangle, view.btnImage,
 		widget.NewSeparator(),
 		container.NewHBox(btnFill, view.fillPreview),
 		container.NewHBox(btnStroke, view.strokePreview),
-		widget.NewSeparator(),
-		view.btnImage,
 		widget.NewSeparator(),
 		btnOpen, btnSave, btnSaveAs,
 	)
@@ -147,11 +144,4 @@ func (t *toolbarView) OnSelectionChange(style geometry.Style, selectedCount int)
 		t.strokePreview.FillColor = *style.Stroke
 	}
 	t.strokePreview.Refresh()
-
-	if selectedCount == 1 {
-		t.btnImage.Show()
-	} else {
-		t.btnImage.Hide()
-	}
-	t.btnImage.Refresh()
 }

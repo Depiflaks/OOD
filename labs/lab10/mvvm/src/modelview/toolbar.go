@@ -1,6 +1,7 @@
 package modelview
 
 import (
+	"fmt"
 	"image/color"
 	"vector-editor/src/geometry"
 	"vector-editor/src/manager"
@@ -15,7 +16,7 @@ type ToolbarModelView interface {
 
 	SetFillColor(c color.Color)
 	SetBorderColor(c color.Color)
-	LoadImage(path string)
+	NewImage(path string)
 }
 
 type toolbarModelView struct {
@@ -45,6 +46,14 @@ func (t *toolbarModelView) NewEllipse(style geometry.Style) {
 	t.manager.NewShape(model.Ellipse, style)
 }
 
+func (t *toolbarModelView) NewImage(path string) {
+	style := geometry.Style{
+		Image: &path,
+	}
+	fmt.Println("Image")
+	t.manager.NewShape(model.Rect, style)
+}
+
 func (t *toolbarModelView) AddObserver(o ToolbarModelViewObserver) {
 	t.observers = append(t.observers, o)
 }
@@ -61,11 +70,6 @@ func (t *toolbarModelView) SetBorderColor(c color.Color) {
 		Fill:   nil,
 		Stroke: &c,
 	})
-}
-
-func (t *toolbarModelView) LoadImage(path string) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (t *toolbarModelView) OnSelectionChange(style geometry.Style, count int) {

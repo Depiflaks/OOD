@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"vector-editor/src/geometry"
 )
 
@@ -55,8 +56,10 @@ func NewShape(
 		panic("Приложение поддерживает только прямоугольные картинки")
 	}
 	storage := NewStorage()
+	fmt.Println("here")
 	if style.Image != nil {
 		newPath := storage.store(*style.Image)
+		fmt.Println(newPath)
 		style.Image = &newPath
 	}
 	return &shape{

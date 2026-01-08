@@ -62,6 +62,7 @@ func (c *canvas) GetShape(id ShapeId) Shape {
 func (c *canvas) DeleteShapes(ids []ShapeId) {
 	fmt.Println("real delete")
 	for _, id := range ids {
+		c.shapes[id].Dispose()
 		delete(c.shapes, id)
 	}
 	c.notifyShapesChanged(ids)
