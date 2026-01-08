@@ -92,7 +92,10 @@ func NewResizingState(c CanvasView, e mouseEvent, active *ShapeView, marker Resi
 		active:     active,
 		marker:     marker,
 		startMouse: e.Pos,
-		startSel:   c.SelectionRect(),
+		startSel: geometry.Rect{
+			Position: active.GetPosition(),
+			Size:     active.GetBounds(),
+		},
 	}
 }
 

@@ -24,7 +24,7 @@ type ViewEvents interface {
 
 type EditableCanvas interface {
 	SetBackground(color color.Color)
-	GetCanvas() *model.Canvas
+	GetCanvas() model.Canvas
 	MarkDeleted([]model.ShapeId)
 	Restore([]model.ShapeId)
 }

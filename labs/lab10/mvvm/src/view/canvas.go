@@ -48,7 +48,6 @@ type CanvasView interface {
 	ClearSelection()
 	DeleteSelection()
 	Invalidate()
-	SelectionRect() geometry.Rect
 }
 
 type canvasView struct {
@@ -246,31 +245,6 @@ func (c *canvasView) hitTestHandles(p geometry.Point) (*ShapeView, ResizeMarker,
 		}
 	}
 	return nil, 0, false
-}
-
-func (c *canvasView) SelectionRect() geometry.Rect {
-	first := true
-	var r geometry.Rect
-	for _, id := range c.drawOrder {
-		sv := c.shapes[id]
-		if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
-			continue
-		}
-		pos := sv.GetPosition()
-		b := sv.GetBounds()
-		if first {
-			r = geometry.Rect{Position: pos, Size: b}
-			first = false
-			continue
-		}
-		minX := math.Min(r.Position.X, pos.X)
-		minY := math.Min(r.Position.Y, pos.Y)
-		maxX := math.Max(r.Position.X+r.Size.Width, pos.X+b.Width)
-		maxY := math.Max(r.Position.Y+r.Size.Height, pos.Y+b.Height)
-		r.Position = geometry.Point{X: minX, Y: minY}
-		r.Size = geometry.Bounds{Width: maxX - minX, Height: maxY - minY}
-	}
-	return r
 }
 
 type canvasViewRenderer struct {
