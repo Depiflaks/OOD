@@ -34,7 +34,7 @@ type toolbarView struct {
 func NewToolbarView(
 	win fyne.Window,
 	mv modelview.ToolbarModelView,
-	files FileActions,
+	fileActions FileActions,
 ) ToolbarView {
 	defaultFill := color.RGBA{R: 255, G: 3, B: 34, A: 255}
 	defaultStroke := color.RGBA{R: 0, G: 0, B: 0, A: 255}
@@ -101,19 +101,35 @@ func NewToolbarView(
 	})
 
 	btnOpen := widget.NewButton("Open", func() {
-		if files.Open != nil {
-			files.Open()
+		if fileActions.Open == nil {
+			return
 		}
+
+		d := dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
+			if err != nil || uri == nil {
+				return
+			}
+			fileActions.Open(uri.Path())
+		}, win)
+		d.Show()
 	})
+
 	btnSave := widget.NewButton("Save", func() {
-		if files.Save != nil {
-			files.Save()
-		}
+		fileActions.Save()
 	})
+
 	btnSaveAs := widget.NewButton("Save As", func() {
-		if files.SaveAs != nil {
-			files.SaveAs()
+		if fileActions.SaveAs == nil {
+			return
 		}
+
+		d := dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
+			if err != nil || uri == nil {
+				return
+			}
+			fileActions.SaveAs(uri.Path())
+		}, win)
+		d.Show()
 	})
 
 	view.obj = container.NewHBox(

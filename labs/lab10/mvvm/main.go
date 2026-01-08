@@ -23,24 +23,13 @@ func main() {
 	// modelview
 	wsMV := modelview.NewWorkspaceModelView(workspaceManager, workspaceModel)
 
-	files := view.FileActions{
-		Open:   func() {},
-		Save:   func() {},
-		SaveAs: func() {},
-	}
-
 	var currentFill color.Color = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 	var currentStroke color.Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
-
-	colors := view.ColorActions{
-		SetFill:   func(c color.Color) { currentFill = c; _ = currentFill },
-		SetStroke: func(c color.Color) { currentStroke = c; _ = currentStroke },
-	}
 
 	_ = currentFill
 	_ = currentStroke
 
-	w := view.NewWorkspaceView(a, wsMV, files, colors)
+	w := view.NewWorkspaceView(a, wsMV)
 	w.Show()
 
 	// test

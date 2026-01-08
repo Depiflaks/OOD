@@ -19,26 +19,31 @@ type workspaceView struct {
 
 	toolbar ToolbarView
 	canvas  CanvasView
-
-	files  FileActions
-	colors ColorActions
 }
 
 func NewWorkspaceView(
 	a fyne.App,
 	mv modelview.WorkspaceModelView,
-	files FileActions,
-	colors ColorActions,
 ) WorkspaceView {
 	w := &workspaceView{
 		app:         a,
 		window:      a.NewWindow("Vector Editor"),
-		files:       files,
-		colors:      colors,
 		workspaceMV: mv,
 	}
 
-	w.toolbar = NewToolbarView(w.window, mv.Toolbar(), files)
+	fileActions := FileActions{
+		Open: func(path string) {
+			mv.Open(path)
+		},
+		Save: func() {
+			mv.Save()
+		},
+		SaveAs: func(path string) {
+			mv.SaveAs(path)
+		},
+	}
+
+	w.toolbar = NewToolbarView(w.window, mv.Toolbar(), fileActions)
 	w.canvas = NewCanvasView(mv.Canvas())
 
 	content := container.NewBorder(w.toolbar.Object(), nil, nil, nil, w.canvas)

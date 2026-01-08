@@ -1,14 +1,7 @@
 package view
 
-import "image/color"
-
 type FileActions struct {
-	Open   func()
+	Open   func(string)
 	Save   func()
-	SaveAs func()
-}
-
-type ColorActions struct {
-	SetFill   func(c color.Color)
-	SetStroke func(c color.Color)
+	SaveAs func(string)
 }

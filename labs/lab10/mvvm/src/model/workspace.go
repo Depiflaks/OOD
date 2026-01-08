@@ -42,6 +42,7 @@ func (w *workspaceModel) Save() {
 }
 
 func (w *workspaceModel) SaveAs(path string) {
+	fmt.Printf("SaveAs(%s)\n", path)
 	dir := path
 	if filepath.Ext(path) != ".xml" {
 		dir = path
@@ -110,10 +111,12 @@ func (w *workspaceModel) SaveAs(path string) {
 }
 
 func (w *workspaceModel) Open(path string) {
+	fmt.Println("OPEN?")
 	xmlPath := path
 	if filepath.Ext(path) != ".xml" {
 		xmlPath = filepath.Join(path, workspaceFileName)
 	}
+	fmt.Println("XML:", xmlPath)
 	dir := filepath.Dir(xmlPath)
 
 	raw, err := os.ReadFile(xmlPath)
@@ -130,25 +133,7 @@ func (w *workspaceModel) Open(path string) {
 
 	c.SetBackground(fromRGBA8(xw.Background))
 
-	cc, ok := c.(*canvas)
-	if !ok {
-		for _, xs := range xw.Shapes {
-			st := styleFromXML(xs.Sty)
-			if st.BackgroundImagePath != nil {
-				abs := filepath.Join(dir, *st.BackgroundImagePath)
-				st.BackgroundImagePath = &abs
-			}
-			newID := c.NewShape(shapeTypeFromString(xs.Type), st)
-			sh := c.GetShape(newID)
-			sh.UpdateRect(
-				geometry.Point{X: float64(xs.Pos.X), Y: float64(xs.Pos.Y)},
-				geometry.Bounds{Width: float64(xs.Size.W), Height: float64(xs.Size.H)},
-			)
-		}
-		w.canvas = c
-		w.sourcePath = xmlPath
-		return
-	}
+	cc, _ := c.(*canvas)
 
 	cc.shapes = make(map[ShapeId]Shape, len(xw.Shapes))
 	for _, xs := range xw.Shapes {
