@@ -10,7 +10,7 @@ type CanvasObserver interface {
 }
 
 type Canvas interface {
-	NewShape(t ShapeType) ShapeId
+	NewShape(t ShapeType, style geometry.Style) ShapeId
 	ImportImage()
 	GetShape(id ShapeId) Shape
 	Shapes() map[ShapeId]Shape
@@ -36,16 +36,12 @@ func (c *canvas) Shapes() map[ShapeId]Shape {
 	return c.shapes
 }
 
-func (c *canvas) NewShape(t ShapeType) ShapeId {
+func (c *canvas) NewShape(t ShapeType, style geometry.Style) ShapeId {
 	defer func() {
 		c.nextId += 1
 	}()
 	shape := NewShape(t, c.nextId)
-	var col color.Color = color.RGBA{R: 255, G: 3, B: 34, A: 1}
-	shape.SetStyle(geometry.Style{
-		Fill:   &col,
-		Stroke: nil,
-	})
+	shape.SetStyle(style)
 	c.shapes[shape.GetShapeId()] = shape
 	c.notify([]ShapeId{shape.GetShapeId()})
 	return c.nextId

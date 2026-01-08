@@ -17,7 +17,7 @@ type workspaceView struct {
 	app    fyne.App
 	window fyne.Window
 
-	toolbar *ToolbarView
+	toolbar ToolbarView
 	canvas  CanvasView
 
 	files  FileActions

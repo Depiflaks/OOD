@@ -7,7 +7,7 @@ import (
 
 type WorkspaceModelView interface {
 	Canvas() CanvasModelView
-	Toolbar() *ToolbarModelView
+	Toolbar() ToolbarModelView
 
 	Undo()
 	Redo()
@@ -23,7 +23,7 @@ type workspaceModelView struct {
 	workspace        model.Workspace
 	workspaceManager manager.WorkspaceManager
 	canvas           CanvasModelView
-	toolbar          *ToolbarModelView
+	toolbar          ToolbarModelView
 	observers        []WorkspaceModelViewObserver
 }
 
@@ -55,7 +55,7 @@ func (w *workspaceModelView) Canvas() CanvasModelView {
 	return w.canvas
 }
 
-func (w *workspaceModelView) Toolbar() *ToolbarModelView {
+func (w *workspaceModelView) Toolbar() ToolbarModelView {
 	return w.toolbar
 }
 

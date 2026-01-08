@@ -1,14 +1,15 @@
 package modelview
 
 import (
+	"vector-editor/src/geometry"
 	"vector-editor/src/manager"
 	"vector-editor/src/model"
 )
 
 type ToolbarModelView interface {
-	NewTriangle()
-	NewRectangle()
-	NewEllipse()
+	NewTriangle(style geometry.Style)
+	NewRectangle(style geometry.Style)
+	NewEllipse(style geometry.Style)
 	AddObserver(o ToolbarModelViewObserver)
 }
 
@@ -25,16 +26,16 @@ func NewToolbarModelView(
 	}
 }
 
-func (t *toolbarModelView) NewTriangle() {
-	t.manager.NewShape(model.Triangle)
+func (t *toolbarModelView) NewTriangle(style geometry.Style) {
+	t.manager.NewShape(model.Triangle, style)
 }
 
-func (t *toolbarModelView) NewRectangle() {
-	t.manager.NewShape(model.Rect)
+func (t *toolbarModelView) NewRectangle(style geometry.Style) {
+	t.manager.NewShape(model.Rect, style)
 }
 
-func (t *toolbarModelView) NewEllipse() {
-	t.manager.NewShape(model.Ellipse)
+func (t *toolbarModelView) NewEllipse(style geometry.Style) {
+	t.manager.NewShape(model.Ellipse, style)
 }
 
 func (t *toolbarModelView) AddObserver(o ToolbarModelViewObserver) {

@@ -184,7 +184,8 @@ func NewSetStyleCommand(
 	newStyles map[model.ShapeId]geometry.Style,
 ) *SetStyleCommand {
 	return &SetStyleCommand{
-		setStyle:   setStyle,
+		setStyle: setStyle,
+		// TODO: добавить сюда dispose
 		prevStyles: prevStyles,
 		newStyles:  newStyles,
 	}

@@ -226,12 +226,31 @@ func getShapeBounds(img *image.RGBA, pos geometry.Point, b geometry.Bounds) (int
 }
 
 func drawTriangle(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, stroke color.RGBA) {
-	ax := pos.X + b.Width/2
-	ay := pos.Y
-	bx := pos.X
-	by := pos.Y + b.Height
-	cx := pos.X + b.Width
-	cy := pos.Y + b.Height
+	x, y := pos.X, pos.Y
+	w, h := b.Width, b.Height
+
+	if w < 0 {
+		x += w
+		w = -w
+	}
+	if h < 0 {
+		y += h
+		h = -h
+	}
+
+	if math.IsNaN(x) || math.IsInf(x, 0) ||
+		math.IsNaN(y) || math.IsInf(y, 0) ||
+		math.IsNaN(w) || math.IsInf(w, 0) ||
+		math.IsNaN(h) || math.IsInf(h, 0) {
+		return
+	}
+
+	ax := x + w/2
+	ay := y
+	bx := x
+	by := y + h
+	cx := x + w
+	cy := y + h
 
 	minX := int(math.Floor(math.Min(ax, math.Min(bx, cx))))
 	maxX := int(math.Ceil(math.Max(ax, math.Max(bx, cx))))
@@ -243,12 +262,17 @@ func drawTriangle(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, 
 	maxX = clampi(maxX, 0, img.Bounds().Dx())
 	maxY = clampi(maxY, 0, img.Bounds().Dy())
 
-	for y := minY; y < maxY; y++ {
-		for x := minX; x < maxX; x++ {
-			px := float64(x) + 0.5
-			py := float64(y) + 0.5
+	const maxPixels = 5_000_000
+	if (maxX-minX)*(maxY-minY) > maxPixels {
+		return
+	}
+
+	for yy := minY; yy < maxY; yy++ {
+		for xx := minX; xx < maxX; xx++ {
+			px := float64(xx) + 0.5
+			py := float64(yy) + 0.5
 			if fill.A != 0 && pointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
-				img.SetRGBA(x, y, fill)
+				img.SetRGBA(xx, yy, fill)
 			}
 		}
 	}
@@ -273,39 +297,140 @@ func drawSelection(img *image.RGBA, pos geometry.Point, b geometry.Bounds) {
 }
 
 func drawLine(img *image.RGBA, x0, y0, x1, y1 float64, c color.RGBA) {
-	dx := math.Abs(x1 - x0)
-	dy := math.Abs(y1 - y0)
-	sx := -1.0
-	if x0 < x1 {
-		sx = 1.0
+	if math.IsNaN(x0) || math.IsInf(x0, 0) ||
+		math.IsNaN(y0) || math.IsInf(y0, 0) ||
+		math.IsNaN(x1) || math.IsInf(x1, 0) ||
+		math.IsNaN(y1) || math.IsInf(y1, 0) {
+		return
 	}
-	sy := -1.0
-	if y0 < y1 {
-		sy = 1.0
-	}
-	err := dx - dy
 
-	x := x0
-	y := y0
-	for {
-		ix := int(math.Round(x))
-		iy := int(math.Round(y))
-		if ix >= 0 && iy >= 0 && ix < img.Bounds().Dx() && iy < img.Bounds().Dy() {
-			img.SetRGBA(ix, iy, c)
+	w := float64(img.Bounds().Dx() - 1)
+	h := float64(img.Bounds().Dy() - 1)
+	if w < 0 || h < 0 {
+		return
+	}
+
+	const (
+		inside = 0
+		left   = 1
+		right  = 2
+		bottom = 4
+		top    = 8
+	)
+
+	outCode := func(x, y float64) int {
+		code := inside
+		if x < 0 {
+			code |= left
+		} else if x > w {
+			code |= right
 		}
-		if math.Abs(x-x1) < 0.5 && math.Abs(y-y1) < 0.5 {
+		if y < 0 {
+			code |= top
+		} else if y > h {
+			code |= bottom
+		}
+		return code
+	}
+
+	code0 := outCode(x0, y0)
+	code1 := outCode(x1, y1)
+
+	for {
+		if (code0 | code1) == 0 {
+			break
+		}
+		if (code0 & code1) != 0 {
+			return
+		}
+
+		var codeOut int
+		var x, y float64
+		if code0 != 0 {
+			codeOut = code0
+		} else {
+			codeOut = code1
+		}
+
+		dx := x1 - x0
+		dy := y1 - y0
+
+		if (codeOut & top) != 0 {
+			if dy == 0 {
+				return
+			}
+			x = x0 + dx*(0-y0)/dy
+			y = 0
+		} else if (codeOut & bottom) != 0 {
+			if dy == 0 {
+				return
+			}
+			x = x0 + dx*(h-y0)/dy
+			y = h
+		} else if (codeOut & right) != 0 {
+			if dx == 0 {
+				return
+			}
+			y = y0 + dy*(w-x0)/dx
+			x = w
+		} else {
+			if dx == 0 {
+				return
+			}
+			y = y0 + dy*(0-x0)/dx
+			x = 0
+		}
+
+		if codeOut == code0 {
+			x0, y0 = x, y
+			code0 = outCode(x0, y0)
+		} else {
+			x1, y1 = x, y
+			code1 = outCode(x1, y1)
+		}
+	}
+
+	x0i := int(math.Round(x0))
+	y0i := int(math.Round(y0))
+	x1i := int(math.Round(x1))
+	y1i := int(math.Round(y1))
+
+	dx := absInt(x1i - x0i)
+	dy := -absInt(y1i - y0i)
+	sx := 1
+	if x0i > x1i {
+		sx = -1
+	}
+	sy := 1
+	if y0i > y1i {
+		sy = -1
+	}
+	err := dx + dy
+
+	for {
+		if x0i >= 0 && y0i >= 0 && x0i < img.Bounds().Dx() && y0i < img.Bounds().Dy() {
+			img.SetRGBA(x0i, y0i, c)
+		}
+		if x0i == x1i && y0i == y1i {
 			break
 		}
 		e2 := 2 * err
-		if e2 > -dy {
-			err -= dy
-			x += sx
+		if e2 >= dy {
+			err += dy
+			x0i += sx
 		}
-		if e2 < dx {
+		if e2 <= dx {
 			err += dx
-			y += sy
+			y0i += sy
 		}
 	}
+}
+
+func absInt(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 func pointInRect(p geometry.Point, r geometry.Rect) bool {

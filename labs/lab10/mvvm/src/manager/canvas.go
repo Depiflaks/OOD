@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"vector-editor/src/geometry"
 	"vector-editor/src/history"
 	"vector-editor/src/model"
 )
@@ -11,7 +12,7 @@ type CanvasManager interface {
 
 	RegisterCanvas(canvas EditableCanvas)
 
-	NewShape(t model.ShapeType)
+	NewShape(t model.ShapeType, style geometry.Style)
 	Delete()
 	ClearSelection()
 }
@@ -41,9 +42,9 @@ func (m *canvasManager) ShapeManager() ShapeManager {
 	return m.shapeManager
 }
 
-func (m *canvasManager) NewShape(t model.ShapeType) {
+func (m *canvasManager) NewShape(t model.ShapeType, style geometry.Style) {
 	cmd := history.NewNewShapeCommand(
-		m.newCreateShapeFn(t),
+		m.newCreateShapeFn(t, style),
 		m.newMarkDeleteShapesFn(),
 		m.newRestoreShapesFn(),
 		m.newDeleteShapesFn(),
@@ -69,9 +70,9 @@ func (m *canvasManager) Delete() {
 	m.history.AppendAndExecute(cmd)
 }
 
-func (m *canvasManager) newCreateShapeFn(t model.ShapeType) history.CreateShapeFn {
+func (m *canvasManager) newCreateShapeFn(t model.ShapeType, style geometry.Style) history.CreateShapeFn {
 	return func() model.ShapeId {
-		return m.canvas.GetCanvas().NewShape(t)
+		return m.canvas.GetCanvas().NewShape(t, style)
 	}
 }
 
