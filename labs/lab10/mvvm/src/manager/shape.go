@@ -1,13 +1,19 @@
 package manager
 
 import (
+	"image/color"
 	"vector-editor/src/geometry"
 	"vector-editor/src/history"
 	"vector-editor/src/model"
 )
 
+type ShapeManagerObserver interface {
+	OnSelectionChange(style geometry.Style, count int)
+}
+
 type ShapeManager interface {
 	AppendToSelection(s EditableShape, withCtrl bool)
+	SetSelectedShapes(newSelected map[model.ShapeId]EditableShape)
 	IsSelected(s EditableShape) bool
 	GetSelectedShapeIds() []model.ShapeId
 	ClearSelection()
@@ -19,11 +25,14 @@ type ShapeManager interface {
 	StopDragging()
 	StartResizing()
 	StopResizing()
+
+	AddObserver(o ShapeManagerObserver)
 }
 
 type shapeManager struct {
-	history  history.History
-	selected map[model.ShapeId]EditableShape
+	observers []ShapeManagerObserver
+	history   history.History
+	selected  map[model.ShapeId]EditableShape
 }
 
 func NewShapeManager(history history.History) ShapeManager {
@@ -33,6 +42,15 @@ func NewShapeManager(history history.History) ShapeManager {
 	}
 }
 
+func (m *shapeManager) AddObserver(o ShapeManagerObserver) {
+	m.observers = append(m.observers, o)
+}
+
+func (m *shapeManager) SetSelectedShapes(newSelected map[model.ShapeId]EditableShape) {
+	m.selected = newSelected
+	m.notifySelectionChanged()
+}
+
 func (m *shapeManager) AppendToSelection(s EditableShape, withCtrl bool) {
 	if !withCtrl {
 		m.ClearSelection()
@@ -40,6 +58,7 @@ func (m *shapeManager) AppendToSelection(s EditableShape, withCtrl bool) {
 	id := s.GetShape().GetShapeId()
 
 	m.selected[id] = s
+	m.notifySelectionChanged()
 }
 
 func (m *shapeManager) IsSelected(s EditableShape) bool {
@@ -137,6 +156,7 @@ func (m *shapeManager) ClearSelection() {
 	}(selected)
 
 	m.selected = make(map[model.ShapeId]EditableShape)
+	m.notifySelectionChanged()
 }
 
 func snapshotSelected(src map[model.ShapeId]EditableShape) map[model.ShapeId]EditableShape {
@@ -153,6 +173,7 @@ func (m *shapeManager) newMoveShapesFn() history.MoveShapesFn {
 		for _, s := range selected {
 			s.GetShape().Move(delta)
 		}
+		m.SetSelectedShapes(selected)
 	}
 }
 
@@ -166,5 +187,57 @@ func (m *shapeManager) newResizeShapesFn() history.ResizeShapesFn {
 			}
 			s.GetShape().UpdateRect(r.Position, r.Size)
 		}
+		m.SetSelectedShapes(selected)
+	}
+}
+
+func (m *shapeManager) notifySelectionChanged() {
+	var common geometry.Style
+
+	first := true
+	var fill *color.Color
+	var stroke *color.Color
+
+	eqColorPtr := func(a, b *color.Color) bool {
+		if a == nil && b == nil {
+			return true
+		}
+		if a == nil || b == nil {
+			return false
+		}
+		if *a == nil && *b == nil {
+			return true
+		}
+		if *a == nil || *b == nil {
+			return false
+		}
+		ra, ga, ba, aa := (*a).RGBA()
+		rb, gb, bb, ab := (*b).RGBA()
+		return ra == rb && ga == gb && ba == bb && aa == ab
+	}
+
+	for _, es := range m.selected {
+		st := es.GetShape().GetStyle()
+
+		if first {
+			fill = st.Fill
+			stroke = st.Stroke
+			first = false
+			continue
+		}
+
+		if !eqColorPtr(fill, st.Fill) {
+			fill = nil
+		}
+		if !eqColorPtr(stroke, st.Stroke) {
+			stroke = nil
+		}
+	}
+
+	common.Fill = fill
+	common.Stroke = stroke
+
+	for _, o := range m.observers {
+		o.OnSelectionChange(common, len(m.selected))
 	}
 }

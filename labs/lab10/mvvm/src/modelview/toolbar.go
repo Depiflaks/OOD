@@ -26,9 +26,11 @@ type toolbarModelView struct {
 func NewToolbarModelView(
 	canvasManager manager.CanvasManager,
 ) ToolbarModelView {
-	return &toolbarModelView{
+	tmv := &toolbarModelView{
 		manager: canvasManager,
 	}
+	canvasManager.ShapeManager().AddObserver(tmv)
+	return tmv
 }
 
 func (t *toolbarModelView) NewTriangle(style geometry.Style) {
@@ -64,4 +66,10 @@ func (t *toolbarModelView) SetBorderColor(c color.Color) {
 func (t *toolbarModelView) LoadImage(path string) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (t *toolbarModelView) OnSelectionChange(style geometry.Style, count int) {
+	for _, o := range t.observers {
+		o.OnSelectionChange(style, count)
+	}
 }

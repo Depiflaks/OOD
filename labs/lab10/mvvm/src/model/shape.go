@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"vector-editor/src/geometry"
 )
 
@@ -73,7 +72,6 @@ func (s *shape) UpdateRect(p geometry.Point, b geometry.Bounds) {
 		b.Width == s.size.Width && b.Height == s.size.Height {
 		return
 	}
-	fmt.Println("model rect update", s.id)
 	s.position = p
 	s.size = b
 	for _, o := range s.observers {
