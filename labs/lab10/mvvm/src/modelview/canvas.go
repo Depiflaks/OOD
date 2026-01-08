@@ -17,13 +17,13 @@ type CanvasModelView interface {
 
 type canvasModelView struct {
 	observers []CanvasModelViewObserver
-	canvas    *model.Canvas
+	canvas    model.Canvas
 	manager   manager.CanvasManager
 	shapes    map[model.ShapeId]ShapeModelView
 }
 
 func NewCanvasModelView(
-	canvas *model.Canvas,
+	canvas model.Canvas,
 	canvasManager manager.CanvasManager,
 ) CanvasModelView {
 	canvasMV := &canvasModelView{
@@ -60,7 +60,7 @@ func (c *canvasModelView) SetBackground(color color.Color) {
 	// TODO: метод изменения фона
 }
 
-func (c *canvasModelView) GetCanvas() *model.Canvas {
+func (c *canvasModelView) GetCanvas() model.Canvas {
 	return c.canvas
 }
 

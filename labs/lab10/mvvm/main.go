@@ -17,13 +17,13 @@ func main() {
 	a := app.New()
 
 	// model
-	canvasModel := model.NewCanvas()
+	workspaceModel := model.NewWorkspaceModel()
 
 	// manager
 	workspaceManager := manager.NewWorkspaceManager()
 
 	// modelview
-	wsMV := modelview.NewWorkspaceModelView(workspaceManager, canvasModel)
+	wsMV := modelview.NewWorkspaceModelView(workspaceManager, workspaceModel)
 
 	files := view.FileActions{
 		Open:   func() {},

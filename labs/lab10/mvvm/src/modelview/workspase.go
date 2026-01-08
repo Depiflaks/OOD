@@ -12,10 +12,15 @@ type WorkspaceModelView interface {
 	Undo()
 	Redo()
 
+	Save()
+	SaveAs(path string)
+	Open(path string)
+
 	AddObserver(o WorkspaceModelViewObserver)
 }
 
 type workspaceModelView struct {
+	workspace        model.Workspace
 	workspaceManager manager.WorkspaceManager
 	canvas           CanvasModelView
 	toolbar          *ToolbarModelView
@@ -24,13 +29,26 @@ type workspaceModelView struct {
 
 func NewWorkspaceModelView(
 	workspaceManager manager.WorkspaceManager,
-	canvas *model.Canvas,
+	workspace model.Workspace,
 ) WorkspaceModelView {
 	return &workspaceModelView{
 		workspaceManager: workspaceManager,
-		canvas:           NewCanvasModelView(canvas, workspaceManager.CanvasManager()),
+		workspace:        workspace,
+		canvas:           NewCanvasModelView(workspace.Canvas(), workspaceManager.CanvasManager()),
 		toolbar:          NewToolbarModelView(workspaceManager.CanvasManager()),
 	}
+}
+
+func (w *workspaceModelView) Save() {
+	w.workspace.Save()
+}
+
+func (w *workspaceModelView) SaveAs(path string) {
+	w.workspace.SaveAs(path)
+}
+
+func (w *workspaceModelView) Open(path string) {
+	w.workspace.Open(path)
 }
 
 func (w *workspaceModelView) Canvas() CanvasModelView {
