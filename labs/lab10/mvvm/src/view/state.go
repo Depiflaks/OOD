@@ -2,95 +2,65 @@ package view
 
 import "vector-editor/src/geometry"
 
-type IdleViewState struct {
-	c *CanvasView
+type IdleState struct {
+	c CanvasView
 }
 
-func (s *IdleViewState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
+func (s *IdleState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
 	shape.Select(ctrl)
-	s.c.setState(s.c.selected)
-	s.c.invalidate()
-}
-
-func (s *IdleViewState) OnEmptyClick(e mouseEvent, ctrl bool) {
-	s.c.clearSelection()
-	s.c.setState(s.c.idle)
-}
-
-func (s *IdleViewState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
-
-func (s *IdleViewState) OnMouseMove(e mouseEvent) {}
-
-func (s *IdleViewState) OnMouseUp(e mouseEvent) {}
-
-type SelectedViewState struct {
-	c *CanvasView
-}
-
-func (s *SelectedViewState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
-	if !shape.IsSelected() || ctrl {
-		shape.Select(ctrl)
-	}
-	shape.StartDragging()
-	s.c.dragging.Begin(e, shape)
 	s.c.setState(s.c.dragging)
-	s.c.invalidate()
 }
 
-func (s *SelectedViewState) OnEmptyClick(e mouseEvent, ctrl bool) {
-	s.c.clearSelection()
-	s.c.setState(s.c.idle)
+func (s *IdleState) OnEmptyClick(e mouseEvent, ctrl bool) {
+	s.c.ClearSelection()
 }
 
-func (s *SelectedViewState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {
-	shape.StartResizing()
-	s.c.resizing.Begin(e, shape, marker)
-	s.c.setState(s.c.resizing)
-	s.c.invalidate()
-}
+func (s *IdleState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
 
-func (s *SelectedViewState) OnMouseMove(e mouseEvent) {}
+func (s *IdleState) OnMouseMove(e mouseEvent) {}
 
-func (s *SelectedViewState) OnMouseUp(e mouseEvent) {}
+func (s *IdleState) OnMouseUp(e mouseEvent) {}
 
-type DraggingViewState struct {
-	c *CanvasView
+// Dragging
+
+type DraggingState struct {
+	c CanvasView
 
 	active     *ShapeView
 	startMouse geometry.Point
 }
 
-func (s *DraggingViewState) Begin(e mouseEvent, active *ShapeView) {
+func (s *DraggingState) Begin(e mouseEvent, active *ShapeView) {
 	s.active = active
 	s.startMouse = e.Pos
 }
 
-func (s *DraggingViewState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
+func (s *DraggingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
 
-func (s *DraggingViewState) OnEmptyClick(e mouseEvent, ctrl bool) {}
+func (s *DraggingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
 
-func (s *DraggingViewState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
+func (s *DraggingState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
 
-func (s *DraggingViewState) OnMouseMove(e mouseEvent) {
+func (s *DraggingState) OnMouseMove(e mouseEvent) {
 	if s.active == nil {
 		return
 	}
 	d := geometry.Vector{X: e.Pos.X - s.startMouse.X, Y: e.Pos.Y - s.startMouse.Y}
 	s.active.Drag(d)
-	s.c.invalidate()
+	s.c.Invalidate()
 }
 
-func (s *DraggingViewState) OnMouseUp(e mouseEvent) {
+func (s *DraggingState) OnMouseUp(e mouseEvent) {
 	if s.active != nil {
 		s.active.StopDragging()
 	}
 	s.active = nil
 	s.c.setState(s.c.selected)
-	s.c.invalidate()
+	s.c.Invalidate()
 }
 
-type ResizingViewState struct {
-	c *CanvasView
+type ResizingState struct {
+	c CanvasView
 
 	active     *ShapeView
 	marker     ResizeMarker
@@ -98,20 +68,20 @@ type ResizingViewState struct {
 	startSel   geometry.Rect
 }
 
-func (s *ResizingViewState) Begin(e mouseEvent, active *ShapeView, marker ResizeMarker) {
+func (s *ResizingState) Begin(e mouseEvent, active *ShapeView, marker ResizeMarker) {
 	s.active = active
 	s.marker = marker
 	s.startMouse = e.Pos
 	s.startSel = s.c.selectionRect()
 }
 
-func (s *ResizingViewState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
+func (s *ResizingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
 
-func (s *ResizingViewState) OnEmptyClick(e mouseEvent, ctrl bool) {}
+func (s *ResizingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
 
-func (s *ResizingViewState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
+func (s *ResizingState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
 
-func (s *ResizingViewState) OnMouseMove(e mouseEvent) {
+func (s *ResizingState) OnMouseMove(e mouseEvent) {
 	if s.active == nil {
 		return
 	}
@@ -165,14 +135,14 @@ func (s *ResizingViewState) OnMouseMove(e mouseEvent) {
 	}
 
 	s.active.Resize(deltaTL, scale)
-	s.c.invalidate()
+	s.c.Invalidate()
 }
 
-func (s *ResizingViewState) OnMouseUp(e mouseEvent) {
+func (s *ResizingState) OnMouseUp(e mouseEvent) {
 	if s.active != nil {
 		s.active.StopResizing()
 	}
 	s.active = nil
 	s.c.setState(s.c.selected)
-	s.c.invalidate()
+	s.c.Invalidate()
 }

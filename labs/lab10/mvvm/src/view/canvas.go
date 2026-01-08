@@ -38,7 +38,14 @@ type State interface {
 	OnMouseUp(e mouseEvent)
 }
 
-type CanvasView struct {
+type CanvasView interface {
+	SetState(s State)
+	ClearSelection()
+	DeleteSelection()
+	Invalidate()
+}
+
+type canvasView struct {
 	widget.BaseWidget
 
 	mv modelview.CanvasModelView
@@ -51,10 +58,9 @@ type CanvasView struct {
 	img    *image.RGBA
 	raster *canvas.Raster
 
-	idle     *IdleViewState
-	selected *SelectedViewState
-	dragging *DraggingViewState
-	resizing *ResizingViewState
+	idle     *IdleState
+	dragging *DraggingState
+	resizing *ResizingState
 	current  State
 
 	lastSize fyne.Size
@@ -62,8 +68,8 @@ type CanvasView struct {
 	dirty bool
 }
 
-func NewCanvasView(mv modelview.CanvasModelView) *CanvasView {
-	c := &CanvasView{
+func NewCanvasView(mv modelview.CanvasModelView) CanvasView {
+	c := &canvasView{
 		mv:     mv,
 		bg:     color.White,
 		shapes: make(map[model.ShapeId]*ShapeView),
@@ -71,10 +77,9 @@ func NewCanvasView(mv modelview.CanvasModelView) *CanvasView {
 	}
 	c.ExtendBaseWidget(c)
 
-	c.idle = &IdleViewState{c: c}
-	c.selected = &SelectedViewState{c: c}
-	c.dragging = &DraggingViewState{c: c}
-	c.resizing = &ResizingViewState{c: c}
+	c.idle = &IdleState{c: c}
+	c.dragging = &DraggingState{c: c}
+	c.resizing = &ResizingState{c: c}
 	c.current = c.idle
 
 	mv.AddObserver(c)
@@ -82,7 +87,7 @@ func NewCanvasView(mv modelview.CanvasModelView) *CanvasView {
 	return c
 }
 
-func (c *CanvasView) CreateRenderer() fyne.WidgetRenderer {
+func (c *canvasView) CreateRenderer() fyne.WidgetRenderer {
 
 	c.raster = canvas.NewRaster(func(w, h int) image.Image {
 		if c.img == nil || c.img.Bounds().Dx() != w || c.img.Bounds().Dy() != h {
@@ -99,14 +104,14 @@ func (c *CanvasView) CreateRenderer() fyne.WidgetRenderer {
 	return &canvasViewRenderer{c: c, objs: objs}
 }
 
-func (c *CanvasView) ensureBuffer(sz fyne.Size) {
+func (c *canvasView) ensureBuffer(sz fyne.Size) {
 	w := int(math.Max(1, float64(sz.Width)))
 	h := int(math.Max(1, float64(sz.Height)))
 	c.img = image.NewRGBA(image.Rect(0, 0, w, h))
 	c.dirty = true
 }
 
-func (c *CanvasView) redraw() {
+func (c *canvasView) redraw() {
 	if c.img == nil {
 		return
 	}
@@ -123,7 +128,7 @@ func (c *CanvasView) redraw() {
 	}
 }
 
-func (c *CanvasView) OnShapesChanged(ids []model.ShapeId) {
+func (c *canvasView) OnShapesChanged(ids []model.ShapeId) {
 	// TODO: что за хуета здесь творится?
 	for _, id := range ids {
 		if _, ok := c.shapes[id]; ok {
@@ -141,9 +146,7 @@ func (c *CanvasView) OnShapesChanged(ids []model.ShapeId) {
 	c.Refresh()
 }
 
-func (c *CanvasView) Tapped(ev *fyne.PointEvent) {}
-
-func (c *CanvasView) MouseDown(ev *desktop.MouseEvent) {
+func (c *canvasView) MouseDown(ev *desktop.MouseEvent) {
 	ctrl := ev.Modifier == fyne.KeyModifierControl
 	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
 	me := mouseEvent{Pos: p, Ctrl: ctrl}
@@ -163,45 +166,41 @@ func (c *CanvasView) MouseDown(ev *desktop.MouseEvent) {
 	c.current.OnEmptyClick(me, ctrl)
 }
 
-func (c *CanvasView) MouseUp(ev *desktop.MouseEvent) {
+func (c *canvasView) MouseUp(ev *desktop.MouseEvent) {
 	ctrl := ev.Modifier == fyne.KeyModifierControl
 	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
 	c.current.OnMouseUp(mouseEvent{Pos: p, Ctrl: ctrl})
 }
 
-func (c *CanvasView) MouseMoved(ev *desktop.MouseEvent) {
+func (c *canvasView) MouseMoved(ev *desktop.MouseEvent) {
 	ctrl := ev.Modifier == fyne.KeyModifierControl
 	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
 	c.current.OnMouseMove(mouseEvent{Pos: p, Ctrl: ctrl})
 }
 
-func (c *CanvasView) Dragged(ev *fyne.DragEvent) {}
-
-func (c *CanvasView) DragEnd() {}
-
-func (c *CanvasView) setState(s State) {
+func (c *canvasView) SetState(s State) {
 	c.current = s
 }
 
-func (c *CanvasView) clearSelection() {
+func (c *canvasView) ClearSelection() {
 	c.mv.ClearSelection()
 	// TODO: здесь не должно быть обновления
 	c.dirty = true
 	c.Refresh()
 }
 
-func (c *CanvasView) deleteSelection() {
+func (c *canvasView) DeleteSelection() {
 	c.mv.Delete()
 	c.dirty = true
 	c.Refresh()
 }
 
-func (c *CanvasView) invalidate() {
+func (c *canvasView) Invalidate() {
 	c.dirty = true
 	c.Refresh()
 }
 
-func (c *CanvasView) hitTestShape(p geometry.Point) *ShapeView {
+func (c *canvasView) hitTestShape(p geometry.Point) *ShapeView {
 	for i := len(c.drawOrder) - 1; i >= 0; i-- {
 		id := c.drawOrder[i]
 		sv := c.shapes[id]
@@ -218,7 +217,7 @@ func (c *CanvasView) hitTestShape(p geometry.Point) *ShapeView {
 	return nil
 }
 
-func (c *CanvasView) hitTestHandles(p geometry.Point) (*ShapeView, ResizeMarker, bool) {
+func (c *canvasView) hitTestHandles(p geometry.Point) (*ShapeView, ResizeMarker, bool) {
 	for i := len(c.drawOrder) - 1; i >= 0; i-- {
 		id := c.drawOrder[i]
 		sv := c.shapes[id]
@@ -236,7 +235,7 @@ func (c *CanvasView) hitTestHandles(p geometry.Point) (*ShapeView, ResizeMarker,
 	return nil, 0, false
 }
 
-func (c *CanvasView) selectionRect() geometry.Rect {
+func (c *canvasView) selectionRect() geometry.Rect {
 	first := true
 	var r geometry.Rect
 	for _, id := range c.drawOrder {
@@ -262,7 +261,7 @@ func (c *CanvasView) selectionRect() geometry.Rect {
 }
 
 type canvasViewRenderer struct {
-	c    *CanvasView
+	c    *canvasView
 	objs []fyne.CanvasObject
 }
 

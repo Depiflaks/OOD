@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"vector-editor/src/geometry"
 
@@ -48,16 +49,34 @@ func main() {
 
 	// test
 	toolbarMV.NewRectangle()
-	sh := canvasMV.GetShape(0)
-	sh.StartResizing()
-	sh.Resize(geometry.Vector{
+	toolbarMV.NewRectangle()
+	sh1 := canvasMV.GetShape(0)
+	sh2 := canvasMV.GetShape(1)
+	sh1.Select(false)
+	sh1.StartDragging()
+	fmt.Println(sh1.GetPosition().X, sh1.GetPosition().Y)
+	sh1.Drag(geometry.Vector{
+		X: 100,
+		Y: 150,
+	})
+	fmt.Println(sh1.GetPosition().X, sh1.GetPosition().Y)
+	sh1.StopDragging()
+
+	sh2.Select(true)
+	sh1.StartDragging()
+	sh2.StartDragging()
+	fmt.Println(sh2.GetPosition().X, sh2.GetPosition().Y)
+	sh2.Drag(geometry.Vector{
 		X: 10,
 		Y: 10,
-	}, geometry.Scale{
-		ScaleX: 1.1,
-		ScaleY: 1.1,
 	})
-	canvasMV.GetShape(0)
 
+	fmt.Println(sh1.GetPosition().X, sh1.GetPosition().Y)
+	fmt.Println(sh2.GetPosition().X, sh2.GetPosition().Y)
+
+	sh1.StopDragging()
+	sh2.StopDragging()
+
+	canvasMV.ClearSelection()
 	a.Run()
 }

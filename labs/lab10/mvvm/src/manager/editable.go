@@ -6,7 +6,6 @@ import (
 	"vector-editor/src/model"
 )
 
-// TODO: разобраться с перемещениями объектов
 type EditableShape interface {
 	ViewEvents
 

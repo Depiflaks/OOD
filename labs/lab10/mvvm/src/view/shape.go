@@ -13,17 +13,17 @@ import (
 
 type ShapeView struct {
 	mv     modelview.ShapeModelView
-	canvas *CanvasView
+	canvas CanvasView
 }
 
-func NewShapeView(mv modelview.ShapeModelView, canvas *CanvasView) *ShapeView {
+func NewShapeView(mv modelview.ShapeModelView, canvas CanvasView) *ShapeView {
 	s := &ShapeView{mv: mv, canvas: canvas}
 	mv.AddObserver(s)
 	return s
 }
 
 func (s *ShapeView) Update() {
-	s.canvas.invalidate()
+	s.canvas.Invalidate()
 }
 
 func (s *ShapeView) IsDeleted() bool {
@@ -161,15 +161,7 @@ func clampi(v, lo, hi int) int {
 }
 
 func drawRect(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, stroke color.RGBA) {
-	x0 := int(math.Round(pos.X))
-	y0 := int(math.Round(pos.Y))
-	x1 := int(math.Round(pos.X + b.Width))
-	y1 := int(math.Round(pos.Y + b.Height))
-
-	x0 = clampi(x0, 0, img.Bounds().Dx())
-	y0 = clampi(y0, 0, img.Bounds().Dy())
-	x1 = clampi(x1, 0, img.Bounds().Dx())
-	y1 = clampi(y1, 0, img.Bounds().Dy())
+	x0, y0, x1, y1 := getShapeBounds(img, pos, b)
 
 	if fill.A != 0 && x1 > x0 && y1 > y0 {
 		draw.Draw(img, image.Rect(x0, y0, x1, y1), &image.Uniform{fill}, image.Point{}, draw.Over)
@@ -195,16 +187,7 @@ func drawEllipse(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, s
 	if b.Width <= 0 || b.Height <= 0 {
 		return
 	}
-
-	x0 := int(math.Floor(pos.X))
-	y0 := int(math.Floor(pos.Y))
-	x1 := int(math.Ceil(pos.X + b.Width))
-	y1 := int(math.Ceil(pos.Y + b.Height))
-
-	x0 = clampi(x0, 0, img.Bounds().Dx())
-	y0 = clampi(y0, 0, img.Bounds().Dy())
-	x1 = clampi(x1, 0, img.Bounds().Dx())
-	y1 = clampi(y1, 0, img.Bounds().Dy())
+	x0, y0, x1, y1 := getShapeBounds(img, pos, b)
 
 	cx := pos.X + b.Width/2
 	cy := pos.Y + b.Height/2
@@ -227,6 +210,19 @@ func drawEllipse(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, s
 			}
 		}
 	}
+}
+
+func getShapeBounds(img *image.RGBA, pos geometry.Point, b geometry.Bounds) (int, int, int, int) {
+	x0 := int(math.Floor(pos.X))
+	y0 := int(math.Floor(pos.Y))
+	x1 := int(math.Ceil(pos.X + b.Width))
+	y1 := int(math.Ceil(pos.Y + b.Height))
+
+	x0 = clampi(x0, 0, img.Bounds().Dx())
+	y0 = clampi(y0, 0, img.Bounds().Dy())
+	x1 = clampi(x1, 0, img.Bounds().Dx())
+	y1 = clampi(y1, 0, img.Bounds().Dy())
+	return x0, y0, x1, y1
 }
 
 func drawTriangle(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, stroke color.RGBA) {
