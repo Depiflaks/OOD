@@ -68,6 +68,9 @@ func (s *shapeModelView) UpdateRect(position geometry.Point, bounds geometry.Bou
 }
 
 func (s *shapeModelView) UpdateStyle(style geometry.Style) {
+	if style.Image != nil {
+		s.style.Image = style.Image
+	}
 	if style.Fill != nil {
 		s.style.Fill = style.Fill
 	}

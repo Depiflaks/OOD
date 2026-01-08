@@ -61,7 +61,7 @@ func (c *canvas) GetShape(id ShapeId) Shape {
 }
 
 func (c *canvas) DeleteShapes(ids []ShapeId) {
-	fmt.Println("real Delete")
+	fmt.Println("real delete")
 	for _, id := range ids {
 		delete(c.shapes, id)
 	}

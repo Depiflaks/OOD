@@ -40,6 +40,8 @@ type shape struct {
 	size      geometry.Bounds
 	style     geometry.Style
 	observers []ShapeObserver
+
+	storage FileStorage
 }
 
 func NewShape(
@@ -51,6 +53,7 @@ func NewShape(
 		shapeType: t,
 		position:  geometry.Point{X: 100, Y: 100},
 		size:      geometry.Bounds{Width: 60, Height: 120},
+		storage:   NewStorage(),
 	}
 }
 
@@ -92,6 +95,13 @@ func (s *shape) Move(v geometry.Vector) {
 }
 
 func (s *shape) SetStyle(st geometry.Style) {
+	if st.Image != nil {
+		if s.style.Image != nil {
+			s.storage.delete(*s.style.Image)
+		}
+		newPath := s.storage.store(*st.Image)
+		s.style.Image = &newPath
+	}
 	if st.Fill != nil {
 		s.style.Fill = st.Fill
 	}

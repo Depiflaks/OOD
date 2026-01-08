@@ -4,7 +4,9 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"io"
 	"math"
+	"vector-editor/src/file"
 
 	"vector-editor/src/geometry"
 	"vector-editor/src/model"
@@ -126,7 +128,17 @@ func (s *ShapeView) Draw(img *image.RGBA) {
 
 	switch s.mv.GetShapeType() {
 	case model.Rect:
-		drawRect(img, pos, b, fill, stroke)
+		if s.mv.GetStyle().Image == nil {
+			drawRect(img, pos, b, fill, stroke)
+		} else {
+			drawRectImagePerimeter(
+				img,
+				pos,
+				b,
+				file.Open(*s.mv.GetStyle().Image),
+				stroke,
+			)
+		}
 	case model.Ellipse:
 		drawEllipse(img, pos, b, fill, stroke)
 	case model.Triangle:
@@ -169,7 +181,13 @@ func clampi(v, lo, hi int) int {
 	return v
 }
 
-func drawRect(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, stroke color.RGBA) {
+func drawRect(
+	img *image.RGBA,
+	pos geometry.Point,
+	b geometry.Bounds,
+	fill,
+	stroke color.RGBA,
+) {
 	x0, y0, x1, y1 := getShapeBounds(img, pos, b)
 
 	if fill.A != 0 && x1 > x0 && y1 > y0 {
@@ -189,6 +207,99 @@ func drawRect(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, stro
 				img.SetRGBA(x1-1, y, stroke)
 			}
 		}
+	}
+}
+
+func drawRectImagePerimeter(
+	imgDst *image.RGBA,
+	pos geometry.Point,
+	b geometry.Bounds,
+	rc io.ReadCloser,
+	stroke color.RGBA,
+) {
+	if imgDst == nil || rc == nil || stroke.A == 0 {
+		if rc != nil {
+			_ = rc.Close()
+		}
+		return
+	}
+	defer func() { _ = rc.Close() }()
+
+	tex, _, err := image.Decode(rc)
+	if err != nil || tex == nil {
+		return
+	}
+
+	x0, y0, x1, y1 := getShapeBounds(imgDst, pos, b)
+	if x1 <= x0 || y1 <= y0 {
+		return
+	}
+
+	w := x1 - x0
+	h := y1 - y0
+	if w <= 0 || h <= 0 {
+		return
+	}
+
+	perim := 2*(w+h) - 4
+	if perim <= 0 {
+		return
+	}
+
+	tb := tex.Bounds()
+	tw := tb.Dx()
+	th := tb.Dy()
+	if tw <= 0 || th <= 0 {
+		return
+	}
+
+	sample := func(u float64) color.RGBA {
+		if u < 0 || u >= 1 {
+			u = u - math.Floor(u)
+		}
+		tx := tb.Min.X + int(u*float64(tw-1))
+		ty := tb.Min.Y + th/2
+		r, g, b, a := tex.At(tx, ty).RGBA()
+		return color.RGBA{
+			R: uint8(r >> 8),
+			G: uint8(g >> 8),
+			B: uint8(b >> 8),
+			A: uint8(a >> 8),
+		}
+	}
+
+	set := func(x, y int, c color.RGBA) {
+		if x >= 0 && y >= 0 &&
+			x < imgDst.Bounds().Dx() &&
+			y < imgDst.Bounds().Dy() {
+			imgDst.SetRGBA(x, y, c)
+		}
+	}
+
+	t := 0
+
+	for x := x0; x < x1; x++ {
+		u := float64(t) / float64(perim)
+		set(x, y0, sample(u))
+		t++
+	}
+
+	for y := y0 + 1; y < y1-1; y++ {
+		u := float64(t) / float64(perim)
+		set(x1-1, y, sample(u))
+		t++
+	}
+
+	for x := x1 - 1; x >= x0; x-- {
+		u := float64(t) / float64(perim)
+		set(x, y1-1, sample(u))
+		t++
+	}
+
+	for y := y1 - 2; y >= y0+1; y-- {
+		u := float64(t) / float64(perim)
+		set(x0, y, sample(u))
+		t++
 	}
 }
 

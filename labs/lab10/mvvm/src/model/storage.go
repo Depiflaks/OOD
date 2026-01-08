@@ -1,4 +1,4 @@
-package image
+package model
 
 import (
 	"fmt"
@@ -8,18 +8,19 @@ import (
 	"time"
 )
 
-type Storage interface {
-	Store(localPath string) string
+type FileStorage interface {
+	store(localPath string) string
+	delete(path string)
 }
 
 type storage struct {
 }
 
-func NewStorage() Storage {
+func NewStorage() FileStorage {
 	return &storage{}
 }
 
-func (s *storage) Store(localPath string) string {
+func (s *storage) store(localPath string) string {
 	tmpDir := ".tmp"
 	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
 		panic(err)
@@ -45,4 +46,8 @@ func (s *storage) Store(localPath string) string {
 	}
 
 	return dstPath
+}
+
+func (s *storage) delete(path string) {
+	_ = os.Remove(path)
 }
