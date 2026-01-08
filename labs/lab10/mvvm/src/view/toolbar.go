@@ -26,6 +26,9 @@ type toolbarView struct {
 	fillPreview   *canvas.Rectangle
 	strokePreview *canvas.Rectangle
 	btnImage      *widget.Button
+
+	defaultFill   color.RGBA
+	defaultStroke color.RGBA
 }
 
 func NewToolbarView(
@@ -42,6 +45,8 @@ func NewToolbarView(
 			Fill:   func() *color.Color { var c color.Color = defaultFill; return &c }(),
 			Stroke: func() *color.Color { var c color.Color = defaultStroke; return &c }(),
 		},
+		defaultFill:   defaultFill,
+		defaultStroke: defaultStroke,
 	}
 
 	btnRect := widget.NewButton("Rect", func() { mv.NewRectangle(view.curStyle) })
@@ -129,19 +134,42 @@ func (t *toolbarView) Object() fyne.CanvasObject {
 }
 
 func (t *toolbarView) OnSelectionChange(style geometry.Style, selectedCount int) {
-	t.curStyle = style
+	normalized := style
 
-	if style.Fill == nil {
-		t.fillPreview.FillColor = color.Transparent
-	} else {
-		t.fillPreview.FillColor = *style.Fill
+	if normalized.Fill == nil {
+		c := color.Color(t.defaultFill)
+		normalized.Fill = &c
 	}
-	t.fillPreview.Refresh()
+	if normalized.Stroke == nil {
+		c := color.Color(t.defaultStroke)
+		normalized.Stroke = &c
+	}
 
-	if style.Stroke == nil {
-		t.strokePreview.FillColor = color.Transparent
-	} else {
-		t.strokePreview.FillColor = *style.Stroke
+	t.curStyle = normalized
+
+	{
+		if t.curStyle.Fill == nil {
+			t.fillPreview.FillColor = t.defaultFill
+		} else if rgba, ok := (*t.curStyle.Fill).(color.RGBA); ok {
+			t.fillPreview.FillColor = rgba
+		} else {
+			r, g, b, a := (*t.curStyle.Fill).RGBA()
+			t.fillPreview.FillColor = color.RGBA{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8), uint8(a >> 8)}
+		}
+		t.fillPreview.Refresh()
 	}
-	t.strokePreview.Refresh()
+
+	{
+		if t.curStyle.Stroke == nil {
+			t.strokePreview.FillColor = t.defaultStroke
+		} else if rgba, ok := (*t.curStyle.Stroke).(color.RGBA); ok {
+			t.strokePreview.FillColor = rgba
+		} else {
+			r, g, b, a := (*t.curStyle.Stroke).RGBA()
+			t.strokePreview.FillColor = color.RGBA{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8), uint8(a >> 8)}
+		}
+		t.strokePreview.Refresh()
+	}
+
+	_ = selectedCount
 }

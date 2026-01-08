@@ -1,7 +1,6 @@
 package modelview
 
 import (
-	"fmt"
 	"image/color"
 	"vector-editor/src/geometry"
 	"vector-editor/src/manager"
@@ -50,7 +49,6 @@ func (t *toolbarModelView) NewImage(path string) {
 	style := geometry.Style{
 		Image: &path,
 	}
-	fmt.Println("Image")
 	t.manager.NewShape(model.Rect, style)
 }
 

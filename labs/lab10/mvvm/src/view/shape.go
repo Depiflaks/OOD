@@ -11,6 +11,8 @@ import (
 	"vector-editor/src/geometry"
 	"vector-editor/src/model"
 	"vector-editor/src/modelview"
+
+	xdraw "golang.org/x/image/draw"
 )
 
 type ShapeView struct {
@@ -131,12 +133,11 @@ func (s *ShapeView) Draw(img *image.RGBA) {
 		if s.mv.GetStyle().Image == nil {
 			drawRect(img, pos, b, fill, stroke)
 		} else {
-			drawRectImagePerimeter(
+			drawRectImage(
 				img,
 				pos,
 				b,
 				file.Open(*s.mv.GetStyle().Image),
-				stroke,
 			)
 		}
 	case model.Ellipse:
@@ -210,14 +211,13 @@ func drawRect(
 	}
 }
 
-func drawRectImagePerimeter(
+func drawRectImage(
 	imgDst *image.RGBA,
 	pos geometry.Point,
 	b geometry.Bounds,
 	rc io.ReadCloser,
-	stroke color.RGBA,
 ) {
-	if imgDst == nil || rc == nil || stroke.A == 0 {
+	if imgDst == nil || rc == nil {
 		if rc != nil {
 			_ = rc.Close()
 		}
@@ -225,8 +225,8 @@ func drawRectImagePerimeter(
 	}
 	defer func() { _ = rc.Close() }()
 
-	tex, _, err := image.Decode(rc)
-	if err != nil || tex == nil {
+	srcImg, _, err := image.Decode(rc)
+	if err != nil || srcImg == nil {
 		return
 	}
 
@@ -235,72 +235,60 @@ func drawRectImagePerimeter(
 		return
 	}
 
-	w := x1 - x0
-	h := y1 - y0
+	dstRectWorld := image.Rect(x0, y0, x1, y1)
+	sb := srcImg.Bounds()
+	sw, sh := sb.Dx(), sb.Dy()
+	if sw <= 0 || sh <= 0 {
+		return
+	}
+
+	dw, dh := dstRectWorld.Dx(), dstRectWorld.Dy()
+	if dw <= 0 || dh <= 0 {
+		return
+	}
+
+	targetWorld := dstRectWorld
+	targetClip, srcSub, ok := clipDstAndMapSrc(targetWorld, imgDst.Bounds(), sb)
+	if !ok {
+		return
+	}
+
+	xdraw.CatmullRom.Scale(imgDst, targetClip, srcImg, srcSub, draw.Over, nil)
+}
+
+func clipDstAndMapSrc(dstWorld, dstBounds, srcBounds image.Rectangle) (dstClip image.Rectangle, srcSub image.Rectangle, ok bool) {
+	dstClip = dstWorld.Intersect(dstBounds)
+	if dstClip.Empty() {
+		return image.Rectangle{}, image.Rectangle{}, false
+	}
+
+	w := float64(dstWorld.Dx())
+	h := float64(dstWorld.Dy())
 	if w <= 0 || h <= 0 {
-		return
+		return image.Rectangle{}, image.Rectangle{}, false
 	}
 
-	perim := 2*(w+h) - 4
-	if perim <= 0 {
-		return
+	leftFrac := float64(dstClip.Min.X-dstWorld.Min.X) / w
+	rightFrac := float64(dstWorld.Max.X-dstClip.Max.X) / w
+	topFrac := float64(dstClip.Min.Y-dstWorld.Min.Y) / h
+	botFrac := float64(dstWorld.Max.Y-dstClip.Max.Y) / h
+
+	sx0 := float64(srcBounds.Min.X) + leftFrac*float64(srcBounds.Dx())
+	sx1 := float64(srcBounds.Max.X) - rightFrac*float64(srcBounds.Dx())
+	sy0 := float64(srcBounds.Min.Y) + topFrac*float64(srcBounds.Dy())
+	sy1 := float64(srcBounds.Max.Y) - botFrac*float64(srcBounds.Dy())
+
+	x0 := int(math.Floor(sx0))
+	y0 := int(math.Floor(sy0))
+	x1 := int(math.Ceil(sx1))
+	y1 := int(math.Ceil(sy1))
+
+	srcSub = image.Rect(x0, y0, x1, y1).Intersect(srcBounds)
+	if srcSub.Empty() {
+		return image.Rectangle{}, image.Rectangle{}, false
 	}
 
-	tb := tex.Bounds()
-	tw := tb.Dx()
-	th := tb.Dy()
-	if tw <= 0 || th <= 0 {
-		return
-	}
-
-	sample := func(u float64) color.RGBA {
-		if u < 0 || u >= 1 {
-			u = u - math.Floor(u)
-		}
-		tx := tb.Min.X + int(u*float64(tw-1))
-		ty := tb.Min.Y + th/2
-		r, g, b, a := tex.At(tx, ty).RGBA()
-		return color.RGBA{
-			R: uint8(r >> 8),
-			G: uint8(g >> 8),
-			B: uint8(b >> 8),
-			A: uint8(a >> 8),
-		}
-	}
-
-	set := func(x, y int, c color.RGBA) {
-		if x >= 0 && y >= 0 &&
-			x < imgDst.Bounds().Dx() &&
-			y < imgDst.Bounds().Dy() {
-			imgDst.SetRGBA(x, y, c)
-		}
-	}
-
-	t := 0
-
-	for x := x0; x < x1; x++ {
-		u := float64(t) / float64(perim)
-		set(x, y0, sample(u))
-		t++
-	}
-
-	for y := y0 + 1; y < y1-1; y++ {
-		u := float64(t) / float64(perim)
-		set(x1-1, y, sample(u))
-		t++
-	}
-
-	for x := x1 - 1; x >= x0; x-- {
-		u := float64(t) / float64(perim)
-		set(x, y1-1, sample(u))
-		t++
-	}
-
-	for y := y1 - 2; y >= y0+1; y-- {
-		u := float64(t) / float64(perim)
-		set(x0, y, sample(u))
-		t++
-	}
+	return dstClip, srcSub, true
 }
 
 func drawEllipse(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, stroke color.RGBA) {
