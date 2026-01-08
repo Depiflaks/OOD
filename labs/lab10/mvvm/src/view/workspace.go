@@ -12,7 +12,7 @@ type WorkspaceView struct {
 	window fyne.Window
 
 	toolbar *ToolbarView
-	canvas  *CanvasView
+	canvas  CanvasView
 
 	files  FileActions
 	colors ColorActions

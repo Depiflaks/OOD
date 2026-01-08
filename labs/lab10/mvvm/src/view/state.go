@@ -2,64 +2,79 @@ package view
 
 import "vector-editor/src/geometry"
 
-type IdleState struct {
+type idleState struct {
 	c CanvasView
 }
 
-func (s *IdleState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
-	shape.Select(ctrl)
-	s.c.setState(s.c.dragging)
+func NewIdleState(c CanvasView) State {
+	return &idleState{c: c}
 }
 
-func (s *IdleState) OnEmptyClick(e mouseEvent, ctrl bool) {
+func (s *idleState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
+	shape.Select(ctrl)
+	s.c.SetDraggingState(e, shape)
+}
+
+func (s *idleState) OnEmptyClick(e mouseEvent, ctrl bool) {
 	s.c.ClearSelection()
 }
 
-func (s *IdleState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
+func (s *idleState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
 
-func (s *IdleState) OnMouseMove(e mouseEvent) {}
+func (s *idleState) OnMouseMove(e mouseEvent) {}
 
-func (s *IdleState) OnMouseUp(e mouseEvent) {}
+func (s *idleState) OnMouseUp(e mouseEvent) {}
 
 // Dragging
 
-type DraggingState struct {
+func NewDraggingState(c CanvasView, e mouseEvent, active *ShapeView) State {
+	return &draggingState{
+		c:          c,
+		active:     active,
+		startMouse: e.Pos,
+	}
+}
+
+type draggingState struct {
 	c CanvasView
 
 	active     *ShapeView
 	startMouse geometry.Point
 }
 
-func (s *DraggingState) Begin(e mouseEvent, active *ShapeView) {
-	s.active = active
-	s.startMouse = e.Pos
-}
+func (s *draggingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
 
-func (s *DraggingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
+func (s *draggingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
 
-func (s *DraggingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
+func (s *draggingState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
 
-func (s *DraggingState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
-
-func (s *DraggingState) OnMouseMove(e mouseEvent) {
+func (s *draggingState) OnMouseMove(e mouseEvent) {
 	if s.active == nil {
 		return
 	}
 	d := geometry.Vector{X: e.Pos.X - s.startMouse.X, Y: e.Pos.Y - s.startMouse.Y}
 	s.active.Drag(d)
-	s.c.Invalidate()
 }
 
-func (s *DraggingState) OnMouseUp(e mouseEvent) {
+func (s *draggingState) OnMouseUp(e mouseEvent) {
 	if s.active != nil {
 		s.active.StopDragging()
 	}
 	s.active = nil
-	s.c.setState(s.c.selected)
-	s.c.Invalidate()
+	s.c.SetIdleState()
 }
 
-type ResizingState struct {
+func NewResizingState(c CanvasView, e mouseEvent, active *ShapeView, marker ResizeMarker) State {
+	return &resizingState{
+		c:          c,
+		active:     active,
+		marker:     marker,
+		startMouse: e.Pos,
+		startSel:   c.SelectionRect(),
+	}
+}
+
+type resizingState struct {
 	c CanvasView
 
 	active     *ShapeView
@@ -68,20 +83,13 @@ type ResizingState struct {
 	startSel   geometry.Rect
 }
 
-func (s *ResizingState) Begin(e mouseEvent, active *ShapeView, marker ResizeMarker) {
-	s.active = active
-	s.marker = marker
-	s.startMouse = e.Pos
-	s.startSel = s.c.selectionRect()
-}
+func (s *resizingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
 
-func (s *ResizingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
+func (s *resizingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
 
-func (s *ResizingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
+func (s *resizingState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
 
-func (s *ResizingState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
-
-func (s *ResizingState) OnMouseMove(e mouseEvent) {
+func (s *resizingState) OnMouseMove(e mouseEvent) {
 	if s.active == nil {
 		return
 	}
@@ -135,14 +143,11 @@ func (s *ResizingState) OnMouseMove(e mouseEvent) {
 	}
 
 	s.active.Resize(deltaTL, scale)
-	s.c.Invalidate()
 }
 
-func (s *ResizingState) OnMouseUp(e mouseEvent) {
+func (s *resizingState) OnMouseUp(e mouseEvent) {
 	if s.active != nil {
 		s.active.StopResizing()
 	}
-	s.active = nil
-	s.c.setState(s.c.selected)
-	s.c.Invalidate()
+	s.c.SetIdleState()
 }

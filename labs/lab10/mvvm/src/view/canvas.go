@@ -39,10 +39,15 @@ type State interface {
 }
 
 type CanvasView interface {
-	SetState(s State)
+	fyne.CanvasObject
+
+	SetIdleState()
+	SetDraggingState(e mouseEvent, active *ShapeView)
+	SetResizingState(e mouseEvent, active *ShapeView, marker ResizeMarker)
 	ClearSelection()
 	DeleteSelection()
 	Invalidate()
+	SelectionRect() geometry.Rect
 }
 
 type canvasView struct {
@@ -58,14 +63,23 @@ type canvasView struct {
 	img    *image.RGBA
 	raster *canvas.Raster
 
-	idle     *IdleState
-	dragging *DraggingState
-	resizing *ResizingState
-	current  State
+	current State
 
 	lastSize fyne.Size
 
 	dirty bool
+}
+
+func (c *canvasView) SetIdleState() {
+	c.current = NewIdleState(c)
+}
+
+func (c *canvasView) SetDraggingState(e mouseEvent, active *ShapeView) {
+	c.current = NewDraggingState(c, e, active)
+}
+
+func (c *canvasView) SetResizingState(e mouseEvent, active *ShapeView, marker ResizeMarker) {
+	c.current = NewResizingState(c, e, active, marker)
 }
 
 func NewCanvasView(mv modelview.CanvasModelView) CanvasView {
@@ -77,10 +91,7 @@ func NewCanvasView(mv modelview.CanvasModelView) CanvasView {
 	}
 	c.ExtendBaseWidget(c)
 
-	c.idle = &IdleState{c: c}
-	c.dragging = &DraggingState{c: c}
-	c.resizing = &ResizingState{c: c}
-	c.current = c.idle
+	c.current = NewIdleState(c)
 
 	mv.AddObserver(c)
 
@@ -235,7 +246,7 @@ func (c *canvasView) hitTestHandles(p geometry.Point) (*ShapeView, ResizeMarker,
 	return nil, 0, false
 }
 
-func (c *canvasView) selectionRect() geometry.Rect {
+func (c *canvasView) SelectionRect() geometry.Rect {
 	first := true
 	var r geometry.Rect
 	for _, id := range c.drawOrder {
