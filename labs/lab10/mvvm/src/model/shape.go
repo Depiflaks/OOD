@@ -51,13 +51,13 @@ func NewShape(
 	id ShapeId,
 	style geometry.Style,
 ) Shape {
-	if style.Image != nil && t != Rect {
+	if style.BackgroundImagePath != nil && t != Rect {
 		panic("Приложение поддерживает только прямоугольные картинки")
 	}
 	storage := NewStorage()
-	if style.Image != nil {
-		newPath := storage.store(*style.Image)
-		style.Image = &newPath
+	if style.BackgroundImagePath != nil {
+		newPath := storage.store(*style.BackgroundImagePath)
+		style.BackgroundImagePath = &newPath
 	}
 	return &shape{
 		id:        id,
@@ -84,8 +84,8 @@ func WithBounds(b geometry.Bounds) ShapeOption {
 }
 
 func (s *shape) Dispose() {
-	if s.style.Image != nil {
-		s.storage.delete(*s.style.Image)
+	if s.style.BackgroundImagePath != nil {
+		s.storage.delete(*s.style.BackgroundImagePath)
 	}
 }
 
@@ -113,12 +113,12 @@ func (s *shape) Move(v geometry.Vector) {
 }
 
 func (s *shape) SetStyle(st geometry.Style) {
-	if st.Image != nil {
-		if s.style.Image != nil {
-			s.storage.delete(*s.style.Image)
+	if st.BackgroundImagePath != nil {
+		if s.style.BackgroundImagePath != nil {
+			s.storage.delete(*s.style.BackgroundImagePath)
 		}
-		newPath := s.storage.store(*st.Image)
-		s.style.Image = &newPath
+		newPath := s.storage.store(*st.BackgroundImagePath)
+		s.style.BackgroundImagePath = &newPath
 		// TODO: предусмотреть замену изображений
 		panic("Пока что замена изображений не предусмотрена")
 	}

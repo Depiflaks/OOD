@@ -130,14 +130,14 @@ func (s *ShapeView) Draw(img *image.RGBA) {
 
 	switch s.mv.GetShapeType() {
 	case model.Rect:
-		if s.mv.GetStyle().Image == nil {
+		if s.mv.GetStyle().BackgroundImagePath == nil {
 			drawRect(img, pos, b, fill, stroke)
 		} else {
 			drawRectImage(
 				img,
 				pos,
 				b,
-				file.Open(*s.mv.GetStyle().Image),
+				file.Open(*s.mv.GetStyle().BackgroundImagePath),
 			)
 		}
 	case model.Ellipse:

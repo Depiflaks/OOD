@@ -47,7 +47,7 @@ func (t *toolbarModelView) NewEllipse(style geometry.Style) {
 
 func (t *toolbarModelView) NewImage(path string) {
 	style := geometry.Style{
-		Image: &path,
+		BackgroundImagePath: &path,
 	}
 	t.manager.NewShape(model.Rect, style)
 }

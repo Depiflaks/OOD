@@ -83,7 +83,7 @@ func (m *canvasManager) SetStyle(newStyle geometry.Style) {
 		return
 	}
 
-	if newStyle.Image != nil && len(m.shapeManager.GetSelectedShapeIds()) != 1 {
+	if newStyle.BackgroundImagePath != nil && len(m.shapeManager.GetSelectedShapeIds()) != 1 {
 		return
 	}
 
