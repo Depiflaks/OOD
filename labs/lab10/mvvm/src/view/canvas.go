@@ -149,16 +149,20 @@ func (c *canvasView) redraw() {
 }
 
 func (c *canvasView) OnShapesChanged(ids []model.ShapeId) {
-	// TODO: что за хуета здесь творится?
 	for _, id := range ids {
+		shape := c.mv.GetShape(id)
+
+		if shape == nil {
+			if _, ok := c.shapes[id]; ok {
+				delete(c.shapes, id)
+			}
+			continue
+		}
+
 		if _, ok := c.shapes[id]; ok {
 			continue
 		}
-		sm := c.mv.GetShape(id)
-		if sm == nil {
-			continue
-		}
-		sv := NewShapeView(sm, c)
+		sv := NewShapeView(shape, c)
 		c.shapes[id] = sv
 		c.drawOrder = append(c.drawOrder, id)
 	}

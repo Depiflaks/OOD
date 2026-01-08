@@ -23,6 +23,7 @@ type Shape interface {
 	UpdateRect(p geometry.Point, b geometry.Bounds)
 	Move(v geometry.Vector)
 	SetStyle(st geometry.Style)
+
 	AddObserver(o ShapeObserver)
 
 	GetBounds() geometry.Bounds

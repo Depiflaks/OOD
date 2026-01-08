@@ -41,11 +41,16 @@ func NewCanvasModelView(
 
 func (c *canvasModelView) OnShapesChanged(ids []model.ShapeId) {
 	for _, id := range ids {
-		if _, ok := c.shapes[id]; ok {
+		shape := c.canvas.GetShape(id)
+
+		if shape == nil {
+			if _, ok := c.shapes[id]; ok {
+				delete(c.shapes, id)
+			}
 			continue
 		}
-		shape := c.canvas.GetShape(id)
-		if shape == nil {
+
+		if _, ok := c.shapes[id]; ok {
 			continue
 		}
 		c.shapes[id] = c.newShapeMV(shape)
