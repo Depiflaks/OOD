@@ -36,6 +36,7 @@ type State interface {
 	OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker)
 	OnMouseMove(e mouseEvent)
 	OnMouseUp(e mouseEvent)
+	OnMouseLeave()
 }
 
 type CanvasView interface {
@@ -191,7 +192,9 @@ func (c *canvasView) MouseMoved(ev *desktop.MouseEvent) {
 	c.current.OnMouseMove(mouseEvent{Pos: p, Ctrl: ctrl})
 }
 
-func (c *canvasView) MouseOut() {}
+func (c *canvasView) MouseOut() {
+	c.current.OnMouseLeave()
+}
 
 func (c *canvasView) SetState(s State) {
 	c.current = s
@@ -199,15 +202,10 @@ func (c *canvasView) SetState(s State) {
 
 func (c *canvasView) ClearSelection() {
 	c.mv.ClearSelection()
-	// TODO: здесь не должно быть обновления
-	c.dirty = true
-	c.Refresh()
 }
 
 func (c *canvasView) DeleteSelection() {
 	c.mv.Delete()
-	c.dirty = true
-	c.Refresh()
 }
 
 func (c *canvasView) Invalidate() {

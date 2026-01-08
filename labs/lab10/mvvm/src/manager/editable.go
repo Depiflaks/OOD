@@ -12,6 +12,7 @@ type EditableShape interface {
 	GetShape() model.Shape
 	Move(delta geometry.Vector)
 	Scale(delta geometry.Vector, scale geometry.Scale)
+	Notify()
 }
 
 type ViewEvents interface {

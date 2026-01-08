@@ -6,19 +6,36 @@ import (
 	"vector-editor/src/model"
 )
 
-type ShapeManager struct {
+type ShapeManager interface {
+	AppendToSelection(s EditableShape, withCtrl bool)
+	IsSelected(s EditableShape) bool
+	GetSelectedShapeIds() []model.ShapeId
+	ClearSelection()
+
+	Drag(delta geometry.Vector, isDragging bool)
+	Resize(delta geometry.Vector, scale geometry.Scale, isResizing bool)
+
+	StartDragging()
+	StopDragging()
+	StartResizing()
+	StopResizing()
+
+	SetStyle(newStyle geometry.Style)
+}
+
+type shapeManager struct {
 	history  *history.History
 	selected map[model.ShapeId]EditableShape
 }
 
-func NewShapeManager(history *history.History) *ShapeManager {
-	return &ShapeManager{
+func NewShapeManager(history *history.History) ShapeManager {
+	return &shapeManager{
 		history:  history,
 		selected: make(map[model.ShapeId]EditableShape),
 	}
 }
 
-func (m *ShapeManager) AppendToSelection(s EditableShape, withCtrl bool) {
+func (m *shapeManager) AppendToSelection(s EditableShape, withCtrl bool) {
 	if !withCtrl {
 		m.ClearSelection()
 	}
@@ -27,13 +44,13 @@ func (m *ShapeManager) AppendToSelection(s EditableShape, withCtrl bool) {
 	m.selected[id] = s
 }
 
-func (m *ShapeManager) IsSelected(s EditableShape) bool {
+func (m *shapeManager) IsSelected(s EditableShape) bool {
 	id := s.GetShape().GetShapeId()
 	_, ok := m.selected[id]
 	return ok
 }
 
-func (m *ShapeManager) GetSelectedShapeIds() []model.ShapeId {
+func (m *shapeManager) GetSelectedShapeIds() []model.ShapeId {
 	ids := make([]model.ShapeId, 0, len(m.selected))
 	for id := range m.selected {
 		ids = append(ids, id)
@@ -41,7 +58,7 @@ func (m *ShapeManager) GetSelectedShapeIds() []model.ShapeId {
 	return ids
 }
 
-func (m *ShapeManager) Drag(delta geometry.Vector, isDragging bool) {
+func (m *shapeManager) Drag(delta geometry.Vector, isDragging bool) {
 	if !isDragging {
 		cmd := history.NewMoveShapesCommand(
 			m.newMoveShapesFn(), delta)
@@ -52,7 +69,7 @@ func (m *ShapeManager) Drag(delta geometry.Vector, isDragging bool) {
 	}
 }
 
-func (m *ShapeManager) Resize(
+func (m *shapeManager) Resize(
 	delta geometry.Vector,
 	scale geometry.Scale,
 	isResizing bool,
@@ -88,35 +105,43 @@ func (m *ShapeManager) Resize(
 	}
 }
 
-func (m *ShapeManager) StartDragging() {
+func (m *shapeManager) StartDragging() {
 	for _, s := range m.selected {
 		s.StartDragging()
 	}
 }
 
-func (m *ShapeManager) StopDragging() {
+func (m *shapeManager) StopDragging() {
 	for _, s := range m.selected {
 		s.StopDragging()
 	}
 }
 
-func (m *ShapeManager) StartResizing() {
+func (m *shapeManager) StartResizing() {
 	for _, s := range m.selected {
 		s.StartResizing()
 	}
 }
 
-func (m *ShapeManager) StopResizing() {
+func (m *shapeManager) StopResizing() {
 	for _, s := range m.selected {
 		s.StopResizing()
 	}
 }
 
-func (m *ShapeManager) ClearSelection() {
+func (m *shapeManager) ClearSelection() {
+	selected := m.selected
+
+	defer func(sel map[model.ShapeId]EditableShape) {
+		for _, s := range sel {
+			s.Notify()
+		}
+	}(selected)
+
 	m.selected = make(map[model.ShapeId]EditableShape)
 }
 
-func (m *ShapeManager) SetStyle(newStyle geometry.Style) {
+func (m *shapeManager) SetStyle(newStyle geometry.Style) {
 	prevStyles := make(map[model.ShapeId]geometry.Style)
 	newStyles := make(map[model.ShapeId]geometry.Style)
 	for id, s := range m.selected {
@@ -127,26 +152,45 @@ func (m *ShapeManager) SetStyle(newStyle geometry.Style) {
 	m.history.AppendAndExecute(cmd)
 }
 
-func (m *ShapeManager) newMoveShapesFn() history.MoveShapesFn {
+func snapshotSelected(src map[model.ShapeId]EditableShape) map[model.ShapeId]EditableShape {
+	dst := make(map[model.ShapeId]EditableShape, len(src))
+	for id, s := range src {
+		dst[id] = s
+	}
+	return dst
+}
+
+func (m *shapeManager) newMoveShapesFn() history.MoveShapesFn {
+	selected := snapshotSelected(m.selected)
 	return func(delta geometry.Vector) {
-		for _, s := range m.selected {
+		for _, s := range selected {
 			s.GetShape().Move(delta)
 		}
 	}
 }
 
-func (m *ShapeManager) newResizeShapesFn() history.ResizeShapesFn {
+func (m *shapeManager) newResizeShapesFn() history.ResizeShapesFn {
+	selected := snapshotSelected(m.selected)
 	return func(rects map[model.ShapeId]geometry.Rect) {
-		for id, s := range m.selected {
-			s.GetShape().UpdateRect(rects[id].Position, rects[id].Size)
+		for id, s := range selected {
+			r, ok := rects[id]
+			if !ok {
+				continue
+			}
+			s.GetShape().UpdateRect(r.Position, r.Size)
 		}
 	}
 }
 
-func (m *ShapeManager) newSetStyleFn() history.SetStyleFn {
+func (m *shapeManager) newSetStyleFn() history.SetStyleFn {
+	selected := snapshotSelected(m.selected)
 	return func(styles map[model.ShapeId]geometry.Style) {
-		for id, s := range m.selected {
-			s.GetShape().SetStyle(styles[id])
+		for id, s := range selected {
+			st, ok := styles[id]
+			if !ok {
+				continue
+			}
+			s.GetShape().SetStyle(st)
 		}
 	}
 }

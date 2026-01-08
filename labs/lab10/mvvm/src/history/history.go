@@ -1,18 +1,24 @@
 package history
 
-type History struct {
+type History interface {
+	AppendAndExecute(cmd Command)
+	Undo()
+	Redo()
+}
+
+type commandHistory struct {
 	commands []Command
 	cursor   int
 	limit    int
 }
 
-func NewHistory(limit int) *History {
-	return &History{
+func NewHistory(limit int) History {
+	return &commandHistory{
 		limit: limit,
 	}
 }
 
-func (h *History) AppendAndExecute(cmd Command) {
+func (h *commandHistory) AppendAndExecute(cmd Command) {
 	if h.cursor < len(h.commands) {
 		h.dispose(h.commands[h.cursor:])
 		h.commands = h.commands[:h.cursor]
@@ -29,7 +35,7 @@ func (h *History) AppendAndExecute(cmd Command) {
 	}
 }
 
-func (h *History) Undo() {
+func (h *commandHistory) Undo() {
 	if h.cursor == 0 {
 		return
 	}
@@ -37,7 +43,7 @@ func (h *History) Undo() {
 	h.commands[h.cursor].Unexecute()
 }
 
-func (h *History) Redo() {
+func (h *commandHistory) Redo() {
 	if h.cursor == len(h.commands) {
 		return
 	}
@@ -45,7 +51,7 @@ func (h *History) Redo() {
 	h.cursor++
 }
 
-func (h *History) dispose(cmds []Command) {
+func (h *commandHistory) dispose(cmds []Command) {
 	for _, c := range cmds {
 		if d, ok := c.(Disposable); ok {
 			d.Dispose()

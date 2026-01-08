@@ -12,6 +12,8 @@ func NewIdleState(c CanvasView) State {
 	return &idleState{c: c}
 }
 
+func (s *idleState) OnMouseLeave() {}
+
 func (s *idleState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
 	if !shape.IsSelected() {
 		shape.Select(ctrl)
@@ -23,7 +25,9 @@ func (s *idleState) OnEmptyClick(e mouseEvent, ctrl bool) {
 	s.c.ClearSelection()
 }
 
-func (s *idleState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {}
+func (s *idleState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker) {
+	s.c.SetResizingState(e, shape, marker)
+}
 
 func (s *idleState) OnMouseMove(e mouseEvent) {}
 
@@ -45,6 +49,13 @@ type draggingState struct {
 
 	active     *ShapeView
 	startMouse geometry.Point
+}
+
+func (s *draggingState) OnMouseLeave() {
+	if s.active != nil {
+		s.active.StopDragging()
+	}
+	s.c.SetIdleState()
 }
 
 func (s *draggingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
@@ -94,6 +105,13 @@ type resizingState struct {
 	startSel   geometry.Rect
 }
 
+func (s *resizingState) OnMouseLeave() {
+	if s.active != nil {
+		s.active.StopResizing()
+	}
+	s.c.SetIdleState()
+}
+
 func (s *resizingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
 
 func (s *resizingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
@@ -105,6 +123,11 @@ func (s *resizingState) OnMouseMove(e mouseEvent) {
 		return
 	}
 
+	scale, deltaTL := s.findScaleAndDirection(e)
+	s.active.Resize(deltaTL, scale)
+}
+
+func (s *resizingState) findScaleAndDirection(e mouseEvent) (geometry.Scale, geometry.Vector) {
 	dm := geometry.Vector{X: e.Pos.X - s.startMouse.X, Y: e.Pos.Y - s.startMouse.Y}
 
 	left := s.startSel.Position.X
@@ -133,10 +156,10 @@ func (s *resizingState) OnMouseMove(e mouseEvent) {
 	}
 
 	if newRight-newLeft < 1 {
-		newRight = newLeft + 1
+		newRight = newLeft + 20
 	}
 	if newBottom-newTop < 1 {
-		newBottom = newTop + 1
+		newBottom = newTop + 20
 	}
 
 	newSel := geometry.Rect{
@@ -152,8 +175,7 @@ func (s *resizingState) OnMouseMove(e mouseEvent) {
 		X: newSel.Position.X - s.startSel.Position.X,
 		Y: newSel.Position.Y - s.startSel.Position.Y,
 	}
-
-	s.active.Resize(deltaTL, scale)
+	return scale, deltaTL
 }
 
 func (s *resizingState) OnMouseUp(e mouseEvent) {

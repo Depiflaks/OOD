@@ -6,9 +6,10 @@ import (
 )
 
 type CanvasManager interface {
-	History() *history.History
+	History() history.History
+	ShapeManager() ShapeManager
+
 	RegisterCanvas(canvas EditableCanvas)
-	ShapeManager() *ShapeManager
 
 	NewShape(t model.ShapeType)
 	Delete()
@@ -18,26 +19,26 @@ type CanvasManager interface {
 type canvasManager struct {
 	history      history.History
 	canvas       EditableCanvas
-	shapeManager *ShapeManager
+	shapeManager ShapeManager
 }
 
 func NewCanvasManager() CanvasManager {
-	h := history.History{}
+	h := history.NewHistory(10)
 	return &canvasManager{
 		history:      h,
 		shapeManager: NewShapeManager(&h),
 	}
 }
 
-func (m *canvasManager) History() *history.History {
-	return &m.history
+func (m *canvasManager) History() history.History {
+	return m.history
 }
 
 func (m *canvasManager) RegisterCanvas(canvas EditableCanvas) {
 	m.canvas = canvas
 }
 
-func (m *canvasManager) ShapeManager() *ShapeManager {
+func (m *canvasManager) ShapeManager() ShapeManager {
 	return m.shapeManager
 }
 
