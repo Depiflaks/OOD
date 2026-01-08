@@ -31,8 +31,9 @@ type NewShapeCommand struct {
 	restore    RestoreShapesFn
 	delete     DeleteShapesFn
 
-	id         model.ShapeId
-	isExecuted bool
+	id                  model.ShapeId
+	isExecuted          bool
+	isExecutedFirstTime bool
 }
 
 func NewNewShapeCommand(
@@ -50,7 +51,12 @@ func NewNewShapeCommand(
 }
 
 func (c *NewShapeCommand) Execute() {
-	c.id = c.create()
+	if c.isExecutedFirstTime {
+		c.restore([]model.ShapeId{c.id})
+	} else {
+		c.id = c.create()
+		c.isExecutedFirstTime = true
+	}
 	c.isExecuted = true
 }
 
@@ -58,11 +64,12 @@ func (c *NewShapeCommand) Unexecute() {
 	if !c.isExecuted {
 		return
 	}
+	c.isExecuted = false
 	c.markDelete([]model.ShapeId{c.id})
 }
 
 func (c *NewShapeCommand) Dispose() {
-	if !c.isExecuted {
+	if c.isExecuted {
 		return
 	}
 	c.delete([]model.ShapeId{c.id})
@@ -100,14 +107,14 @@ func (c *DeleteShapeCommand) Unexecute() {
 	if !c.isExecuted {
 		return
 	}
+	c.isExecuted = false
 	c.restore(c.ids)
 }
 
 func (c *DeleteShapeCommand) Dispose() {
-	if !c.isExecuted {
-		return
+	if c.isExecuted {
+		c.delete(c.ids)
 	}
-	c.delete(c.ids)
 }
 
 type MoveShapesCommand struct {

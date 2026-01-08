@@ -107,7 +107,6 @@ func (m *canvasManager) newCreateShapeFn(t model.ShapeType, style geometry.Style
 func (m *canvasManager) newMarkDeleteShapesFn() history.MarkDeleteShapesFn {
 	return func(ids []model.ShapeId) {
 		m.canvas.MarkDeleted(ids)
-		m.shapeManager.ClearSelection()
 	}
 }
 
@@ -122,7 +121,6 @@ func (m *canvasManager) newRestoreShapesFn() history.RestoreShapesFn {
 func (m *canvasManager) newDeleteShapesFn() history.DeleteShapesFn {
 	return func(ids []model.ShapeId) {
 		m.canvas.GetCanvas().DeleteShapes(ids)
-		m.shapeManager.ClearSelection()
 	}
 }
 

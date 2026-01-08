@@ -61,6 +61,8 @@ func (w *workspaceView) installShortcuts() {
 			w.workspaceMV.Undo()
 		case fyne.KeyU:
 			w.workspaceMV.Redo()
+		case fyne.KeyDelete:
+			w.workspaceMV.Delete()
 		}
 	})
 }

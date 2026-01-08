@@ -29,6 +29,7 @@ func (h *commandHistory) AppendAndExecute(cmd Command) {
 	h.cursor++
 
 	if h.limit > 0 && len(h.commands) > h.limit {
+		h.dispose(h.commands[:1])
 		h.commands = h.commands[1:]
 		h.cursor--
 	}

@@ -16,6 +16,8 @@ type WorkspaceModelView interface {
 	SaveAs(path string)
 	Open(path string)
 
+	Delete()
+
 	AddObserver(o WorkspaceModelViewObserver)
 }
 
@@ -37,6 +39,10 @@ func NewWorkspaceModelView(
 		canvas:           NewCanvasModelView(workspace.Canvas(), workspaceManager.CanvasManager()),
 		toolbar:          NewToolbarModelView(workspaceManager.CanvasManager()),
 	}
+}
+
+func (w *workspaceModelView) Delete() {
+	w.workspaceManager.Delete()
 }
 
 func (w *workspaceModelView) Save() {
