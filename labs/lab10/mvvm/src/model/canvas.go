@@ -45,8 +45,7 @@ func (c *canvas) NewShape(t ShapeType, style geometry.Style) ShapeId {
 	defer func() {
 		c.nextId += 1
 	}()
-	shape := NewShape(t, c.nextId)
-	shape.SetStyle(style)
+	shape := NewShape(t, c.nextId, style)
 	c.shapes[shape.GetShapeId()] = shape
 	c.notifyShapesChanged([]ShapeId{shape.GetShapeId()})
 	return c.nextId

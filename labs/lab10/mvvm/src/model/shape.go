@@ -31,6 +31,8 @@ type Shape interface {
 	GetStyle() geometry.Style
 	GetShapeId() ShapeId
 	GetShapeType() ShapeType
+
+	Dispose()
 }
 
 type shape struct {
@@ -47,13 +49,23 @@ type shape struct {
 func NewShape(
 	t ShapeType,
 	id ShapeId,
+	style geometry.Style,
 ) Shape {
+	if style.Image != nil && t != Rect {
+		panic("Приложение поддерживает только прямоугольные картинки")
+	}
+	storage := NewStorage()
+	if style.Image != nil {
+		newPath := storage.store(*style.Image)
+		style.Image = &newPath
+	}
 	return &shape{
 		id:        id,
 		shapeType: t,
 		position:  geometry.Point{X: 100, Y: 100},
 		size:      geometry.Bounds{Width: 60, Height: 120},
-		storage:   NewStorage(),
+		storage:   storage,
+		style:     style,
 	}
 }
 
@@ -68,6 +80,12 @@ func WithPosition(p geometry.Point) ShapeOption {
 func WithBounds(b geometry.Bounds) ShapeOption {
 	return func(s *shape) {
 		s.size = b
+	}
+}
+
+func (s *shape) Dispose() {
+	if s.style.Image != nil {
+		s.storage.delete(*s.style.Image)
 	}
 }
 
@@ -101,6 +119,8 @@ func (s *shape) SetStyle(st geometry.Style) {
 		}
 		newPath := s.storage.store(*st.Image)
 		s.style.Image = &newPath
+		// TODO: предусмотреть замену изображений
+		panic("Пока что замена изображений не предусмотрена")
 	}
 	if st.Fill != nil {
 		s.style.Fill = st.Fill
