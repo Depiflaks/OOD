@@ -32,13 +32,15 @@ func NewToolbarView(
 	win fyne.Window,
 	mv modelview.ToolbarModelView,
 	files FileActions,
-	colors ColorActions,
 ) ToolbarView {
+	defaultFill := color.RGBA{R: 255, G: 3, B: 34, A: 255}
+	defaultStroke := color.RGBA{R: 0, G: 0, B: 0, A: 255}
+
 	view := &toolbarView{
 		mv: mv,
 		curStyle: geometry.Style{
-			Fill:   nil,
-			Stroke: nil,
+			Fill:   func() *color.Color { var c color.Color = defaultFill; return &c }(),
+			Stroke: func() *color.Color { var c color.Color = defaultStroke; return &c }(),
 		},
 	}
 
@@ -46,10 +48,10 @@ func NewToolbarView(
 	btnEllipse := widget.NewButton("Ellipse", func() { mv.NewEllipse(view.curStyle) })
 	btnTriangle := widget.NewButton("Triangle", func() { mv.NewTriangle(view.curStyle) })
 
-	view.fillPreview = canvas.NewRectangle(color.Transparent)
+	view.fillPreview = canvas.NewRectangle(defaultFill)
 	view.fillPreview.SetMinSize(fyne.NewSize(24, 24))
 
-	view.strokePreview = canvas.NewRectangle(color.Transparent)
+	view.strokePreview = canvas.NewRectangle(defaultStroke)
 	view.strokePreview.SetMinSize(fyne.NewSize(24, 24))
 
 	btnFill := widget.NewButton("Fill", func() {
@@ -73,7 +75,7 @@ func NewToolbarView(
 			view.strokePreview.FillColor = c
 			view.strokePreview.Refresh()
 
-			mv.SetFillColor(c)
+			mv.SetBorderColor(c)
 		}, win)
 		d.Show()
 	})

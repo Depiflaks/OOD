@@ -68,12 +68,6 @@ func WithBounds(b geometry.Bounds) ShapeOption {
 	}
 }
 
-func WithStyle(st geometry.Style) ShapeOption {
-	return func(s *shape) {
-		s.SetStyle(st)
-	}
-}
-
 func (s *shape) UpdateRect(p geometry.Point, b geometry.Bounds) {
 	if p.X == s.position.X && p.Y == s.position.Y &&
 		b.Width == s.size.Width && b.Height == s.size.Height {

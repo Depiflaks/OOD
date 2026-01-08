@@ -69,6 +69,9 @@ func (s *draggingState) OnMouseMove(e mouseEvent) {
 		return
 	}
 	d := s.findDelta(e)
+	if d.X < 5 && d.Y < 5 {
+		return
+	}
 	s.active.Drag(d)
 }
 

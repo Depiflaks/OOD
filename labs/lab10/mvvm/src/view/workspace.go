@@ -38,7 +38,7 @@ func NewWorkspaceView(
 		workspaceMV: mv,
 	}
 
-	w.toolbar = NewToolbarView(w.window, mv.Toolbar(), files, colors)
+	w.toolbar = NewToolbarView(w.window, mv.Toolbar(), files)
 	w.canvas = NewCanvasView(mv.Canvas())
 
 	content := container.NewBorder(w.toolbar.Object(), nil, nil, nil, w.canvas)

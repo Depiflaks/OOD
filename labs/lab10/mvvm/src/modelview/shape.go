@@ -68,8 +68,12 @@ func (s *shapeModelView) UpdateRect(position geometry.Point, bounds geometry.Bou
 }
 
 func (s *shapeModelView) UpdateStyle(style geometry.Style) {
-	s.style = style
-	s.manager.SetStyle(style)
+	if style.Fill != nil {
+		s.style.Fill = style.Fill
+	}
+	if style.Stroke != nil {
+		s.style.Stroke = style.Stroke
+	}
 	s.Notify()
 }
 

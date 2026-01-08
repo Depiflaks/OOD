@@ -1,5 +1,7 @@
 package history
 
+import "fmt"
+
 type History interface {
 	AppendAndExecute(cmd Command)
 	Undo()
@@ -25,11 +27,11 @@ func (h *commandHistory) AppendAndExecute(cmd Command) {
 	}
 
 	cmd.Execute()
+	fmt.Println("command")
 	h.commands = append(h.commands, cmd)
 	h.cursor++
 
 	if h.limit > 0 && len(h.commands) > h.limit {
-		h.dispose(h.commands[:1])
 		h.commands = h.commands[1:]
 		h.cursor--
 	}
