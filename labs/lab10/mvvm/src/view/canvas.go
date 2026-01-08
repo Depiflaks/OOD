@@ -183,11 +183,15 @@ func (c *canvasView) MouseUp(ev *desktop.MouseEvent) {
 	c.current.OnMouseUp(mouseEvent{Pos: p, Ctrl: ctrl})
 }
 
+func (c *canvasView) MouseIn(ev *desktop.MouseEvent) {}
+
 func (c *canvasView) MouseMoved(ev *desktop.MouseEvent) {
 	ctrl := ev.Modifier == fyne.KeyModifierControl
 	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
 	c.current.OnMouseMove(mouseEvent{Pos: p, Ctrl: ctrl})
 }
+
+func (c *canvasView) MouseOut() {}
 
 func (c *canvasView) SetState(s State) {
 	c.current = s

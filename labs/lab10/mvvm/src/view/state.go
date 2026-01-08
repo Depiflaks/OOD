@@ -1,6 +1,8 @@
 package view
 
-import "vector-editor/src/geometry"
+import (
+	"vector-editor/src/geometry"
+)
 
 type idleState struct {
 	c CanvasView
@@ -11,7 +13,9 @@ func NewIdleState(c CanvasView) State {
 }
 
 func (s *idleState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
-	shape.Select(ctrl)
+	if !shape.IsSelected() {
+		shape.Select(ctrl)
+	}
 	s.c.SetDraggingState(e, shape)
 }
 
@@ -28,6 +32,7 @@ func (s *idleState) OnMouseUp(e mouseEvent) {}
 // Dragging
 
 func NewDraggingState(c CanvasView, e mouseEvent, active *ShapeView) State {
+	active.StartDragging()
 	return &draggingState{
 		c:          c,
 		active:     active,
@@ -52,19 +57,25 @@ func (s *draggingState) OnMouseMove(e mouseEvent) {
 	if s.active == nil {
 		return
 	}
-	d := geometry.Vector{X: e.Pos.X - s.startMouse.X, Y: e.Pos.Y - s.startMouse.Y}
+	d := s.findDelta(e)
 	s.active.Drag(d)
+}
+
+func (s *draggingState) findDelta(e mouseEvent) geometry.Vector {
+	return geometry.Vector{X: e.Pos.X - s.startMouse.X, Y: e.Pos.Y - s.startMouse.Y}
 }
 
 func (s *draggingState) OnMouseUp(e mouseEvent) {
 	if s.active != nil {
 		s.active.StopDragging()
+		s.OnMouseMove(e)
 	}
 	s.active = nil
 	s.c.SetIdleState()
 }
 
 func NewResizingState(c CanvasView, e mouseEvent, active *ShapeView, marker ResizeMarker) State {
+	active.StartResizing()
 	return &resizingState{
 		c:          c,
 		active:     active,
@@ -148,6 +159,7 @@ func (s *resizingState) OnMouseMove(e mouseEvent) {
 func (s *resizingState) OnMouseUp(e mouseEvent) {
 	if s.active != nil {
 		s.active.StopResizing()
+		s.OnMouseMove(e)
 	}
 	s.c.SetIdleState()
 }

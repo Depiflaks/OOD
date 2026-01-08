@@ -144,6 +144,7 @@ func (s *shapeModelView) IsDeleted() bool {
 
 func (s *shapeModelView) Select(withCtrl bool) {
 	s.manager.AppendToSelection(s, withCtrl)
+	s.notify()
 }
 
 func (s *shapeModelView) Drag(delta geometry.Vector) {

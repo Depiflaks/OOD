@@ -74,6 +74,10 @@ func WithStyle(st geometry.Style) ShapeOption {
 }
 
 func (s *shape) UpdateRect(p geometry.Point, b geometry.Bounds) {
+	if p.X == s.position.X && p.Y == s.position.Y &&
+		b.Width == s.size.Width && b.Height == s.size.Height {
+		return
+	}
 	s.position = p
 	s.size = b
 	for _, o := range s.observers {
@@ -82,6 +86,9 @@ func (s *shape) UpdateRect(p geometry.Point, b geometry.Bounds) {
 }
 
 func (s *shape) Move(v geometry.Vector) {
+	if v.X == 0 && v.Y == 0 {
+		return
+	}
 	s.position.X += v.X
 	s.position.Y += v.Y
 	for _, o := range s.observers {
