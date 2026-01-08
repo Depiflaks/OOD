@@ -15,7 +15,12 @@ type ToolbarView struct {
 	obj fyne.CanvasObject
 }
 
-func NewToolbarView(win fyne.Window, mv *modelview.ToolbarModelView, files FileActions, colors ColorActions) *ToolbarView {
+func NewToolbarView(
+	win fyne.Window,
+	mv *modelview.ToolbarModelView,
+	files FileActions,
+	colors ColorActions,
+) *ToolbarView {
 	btnRect := widget.NewButton("Rect", func() { mv.NewRectangle() })
 	btnEllipse := widget.NewButton("Ellipse", func() { mv.NewEllipse() })
 	btnTriangle := widget.NewButton("Triangle", func() { mv.NewTriangle() })

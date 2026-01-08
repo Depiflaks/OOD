@@ -22,8 +22,7 @@ type canvasManager struct {
 	shapeManager ShapeManager
 }
 
-func NewCanvasManager() CanvasManager {
-	h := history.NewHistory(10)
+func NewCanvasManager(h history.History) CanvasManager {
 	return &canvasManager{
 		history:      h,
 		shapeManager: NewShapeManager(&h),

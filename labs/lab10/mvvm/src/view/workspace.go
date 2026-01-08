@@ -7,7 +7,13 @@ import (
 	"fyne.io/fyne/v2/container"
 )
 
-type WorkspaceView struct {
+type WorkspaceView interface {
+	Show()
+}
+
+type workspaceView struct {
+	workspaceMV modelview.WorkspaceModelView
+
 	app    fyne.App
 	window fyne.Window
 
@@ -20,15 +26,16 @@ type WorkspaceView struct {
 
 func NewWorkspaceView(
 	a fyne.App,
-	mv *modelview.WorkspaceModelView,
+	mv modelview.WorkspaceModelView,
 	files FileActions,
 	colors ColorActions,
-) *WorkspaceView {
-	w := &WorkspaceView{
-		app:    a,
-		window: a.NewWindow("Vector Editor"),
-		files:  files,
-		colors: colors,
+) WorkspaceView {
+	w := &workspaceView{
+		app:         a,
+		window:      a.NewWindow("Vector Editor"),
+		files:       files,
+		colors:      colors,
+		workspaceMV: mv,
 	}
 
 	w.toolbar = NewToolbarView(w.window, mv.Toolbar(), files, colors)
@@ -38,9 +45,29 @@ func NewWorkspaceView(
 	w.window.SetContent(content)
 	w.window.Resize(fyne.NewSize(1024, 768))
 
+	w.installShortcuts()
+
 	return w
 }
 
-func (w *WorkspaceView) Show() {
+func (w *workspaceView) Show() {
 	w.window.Show()
+}
+
+func (w *workspaceView) installShortcuts() {
+	c := w.window.Canvas()
+
+	c.SetOnTypedKey(func(ev *fyne.KeyEvent) {
+		switch ev.Name {
+		case fyne.KeyZ:
+			if c.ModifierKey() == fyne.KeyModifierControl {
+				w.workspaceMV.Undo()
+			}
+
+		case fyne.KeyX:
+			if c.ModifierKey() == (fyne.KeyModifierControl | fyne.KeyModifierShift) {
+				w.workspaceMV.Redo()
+			}
+		}
+	})
 }

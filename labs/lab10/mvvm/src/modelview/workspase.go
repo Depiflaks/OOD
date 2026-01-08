@@ -1,29 +1,54 @@
 package modelview
 
-type WorkspaceModelView struct {
-	canvas    CanvasModelView
-	toolbar   *ToolbarModelView
-	observers []WorkspaceModelViewObserver
+import (
+	"vector-editor/src/manager"
+	"vector-editor/src/model"
+)
+
+type WorkspaceModelView interface {
+	Canvas() CanvasModelView
+	Toolbar() *ToolbarModelView
+
+	Undo()
+	Redo()
+
+	AddObserver(o WorkspaceModelViewObserver)
+}
+
+type workspaceModelView struct {
+	workspaceManager manager.WorkspaceManager
+	canvas           CanvasModelView
+	toolbar          *ToolbarModelView
+	observers        []WorkspaceModelViewObserver
 }
 
 func NewWorkspaceModelView(
-	canvas CanvasModelView,
-	toolbar *ToolbarModelView,
-) *WorkspaceModelView {
-	return &WorkspaceModelView{
-		canvas:  canvas,
-		toolbar: toolbar,
+	workspaceManager manager.WorkspaceManager,
+	canvas *model.Canvas,
+) WorkspaceModelView {
+	return &workspaceModelView{
+		workspaceManager: workspaceManager,
+		canvas:           NewCanvasModelView(canvas, workspaceManager.CanvasManager()),
+		toolbar:          NewToolbarModelView(workspaceManager.CanvasManager()),
 	}
 }
 
-func (w *WorkspaceModelView) Canvas() CanvasModelView {
+func (w *workspaceModelView) Canvas() CanvasModelView {
 	return w.canvas
 }
 
-func (w *WorkspaceModelView) Toolbar() *ToolbarModelView {
+func (w *workspaceModelView) Toolbar() *ToolbarModelView {
 	return w.toolbar
 }
 
-func (w *WorkspaceModelView) AddObserver(o WorkspaceModelViewObserver) {
+func (w *workspaceModelView) AddObserver(o WorkspaceModelViewObserver) {
 	w.observers = append(w.observers, o)
+}
+
+func (w *workspaceModelView) Undo() {
+	w.workspaceManager.Undo()
+}
+
+func (w *workspaceModelView) Redo() {
+	w.workspaceManager.Redo()
 }
