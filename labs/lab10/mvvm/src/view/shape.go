@@ -132,10 +132,19 @@ func (s *ShapeView) Draw(img *image.RGBA) {
 	case model.Triangle:
 		drawTriangle(img, pos, b, fill, stroke)
 	}
+}
 
-	if s.mv.IsSelected() {
-		drawSelection(img, pos, b)
-	}
+func (s *ShapeView) DrawSelection(img *image.RGBA) {
+	stroke := color.RGBA{0, 120, 255, 255}
+	handle := 8.0
+	pos := s.mv.GetPosition()
+	b := s.mv.GetBounds()
+	drawRect(img, pos, b, color.RGBA{0, 0, 0, 0}, stroke)
+
+	drawRect(img, pos, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
+	drawRect(img, geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
+	drawRect(img, geometry.Point{X: pos.X, Y: pos.Y + b.Height - handle}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
+	drawRect(img, geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y + b.Height - handle}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
 }
 
 func (s *ShapeView) handleSize() float64 {
@@ -282,18 +291,6 @@ func drawTriangle(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, 
 		drawLine(img, bx, by, cx, cy, stroke)
 		drawLine(img, cx, cy, ax, ay, stroke)
 	}
-}
-
-func drawSelection(img *image.RGBA, pos geometry.Point, b geometry.Bounds) {
-	stroke := color.RGBA{0, 120, 255, 255}
-	handle := 8.0
-
-	drawRect(img, pos, b, color.RGBA{0, 0, 0, 0}, stroke)
-
-	drawRect(img, pos, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
-	drawRect(img, geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
-	drawRect(img, geometry.Point{X: pos.X, Y: pos.Y + b.Height - handle}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
-	drawRect(img, geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y + b.Height - handle}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
 }
 
 func drawLine(img *image.RGBA, x0, y0, x1, y1 float64, c color.RGBA) {

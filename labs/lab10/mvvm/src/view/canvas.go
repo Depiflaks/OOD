@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/draw"
 	"math"
+	"sync"
 
 	"vector-editor/src/geometry"
 	"vector-editor/src/model"
@@ -64,7 +65,9 @@ type canvasView struct {
 
 	lastSize fyne.Size
 
-	dirty bool
+	dirty   bool
+	refresh bool
+	mu      sync.Mutex
 }
 
 func (c *canvasView) OnBackgroundChanged() {
@@ -131,10 +134,17 @@ func (c *canvasView) redraw() {
 	for _, id := range c.drawOrder {
 		sv := c.shapes[id]
 		if sv == nil || sv.IsDeleted() {
-			// TODO: почему nil?
 			continue
 		}
 		sv.Draw(c.img)
+	}
+
+	for _, id := range c.drawOrder {
+		sv := c.shapes[id]
+		if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
+			continue
+		}
+		sv.DrawSelection(c.img)
 	}
 }
 
@@ -152,8 +162,7 @@ func (c *canvasView) OnShapesChanged(ids []model.ShapeId) {
 		c.shapes[id] = sv
 		c.drawOrder = append(c.drawOrder, id)
 	}
-	c.dirty = true
-	c.Refresh()
+	c.Invalidate()
 }
 
 func (c *canvasView) MouseDown(ev *desktop.MouseEvent) {
@@ -207,7 +216,14 @@ func (c *canvasView) DeleteSelection() {
 }
 
 func (c *canvasView) Invalidate() {
+	c.mu.Lock()
+	if c.dirty {
+		c.mu.Unlock()
+		return
+	}
 	c.dirty = true
+	c.mu.Unlock()
+
 	c.Refresh()
 }
 
