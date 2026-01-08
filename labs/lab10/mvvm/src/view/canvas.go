@@ -2,7 +2,6 @@ package view
 
 import (
 	"image"
-	"image/color"
 	"image/draw"
 	"math"
 
@@ -55,8 +54,6 @@ type canvasView struct {
 
 	mv modelview.CanvasModelView
 
-	bg color.Color
-
 	shapes    map[model.ShapeId]*ShapeView
 	drawOrder []model.ShapeId
 
@@ -68,6 +65,10 @@ type canvasView struct {
 	lastSize fyne.Size
 
 	dirty bool
+}
+
+func (c *canvasView) OnBackgroundChanged() {
+	c.Invalidate()
 }
 
 func (c *canvasView) SetIdleState() {
@@ -85,7 +86,6 @@ func (c *canvasView) SetResizingState(e mouseEvent, active *ShapeView, marker Re
 func NewCanvasView(mv modelview.CanvasModelView) CanvasView {
 	c := &canvasView{
 		mv:     mv,
-		bg:     color.White,
 		shapes: make(map[model.ShapeId]*ShapeView),
 		dirty:  true,
 	}
@@ -99,7 +99,6 @@ func NewCanvasView(mv modelview.CanvasModelView) CanvasView {
 }
 
 func (c *canvasView) CreateRenderer() fyne.WidgetRenderer {
-
 	c.raster = canvas.NewRaster(func(w, h int) image.Image {
 		if c.img == nil || c.img.Bounds().Dx() != w || c.img.Bounds().Dy() != h {
 			c.ensureBuffer(c.Size())
@@ -127,7 +126,7 @@ func (c *canvasView) redraw() {
 		return
 	}
 
-	draw.Draw(c.img, c.img.Bounds(), &image.Uniform{C: c.bg}, image.Point{}, draw.Src)
+	draw.Draw(c.img, c.img.Bounds(), &image.Uniform{C: c.mv.GetBackgroundColor()}, image.Point{}, draw.Src)
 
 	for _, id := range c.drawOrder {
 		sv := c.shapes[id]

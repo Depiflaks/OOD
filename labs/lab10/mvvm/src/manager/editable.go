@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"image/color"
 	"vector-editor/src/geometry"
 	"vector-editor/src/model"
 )
@@ -23,7 +22,6 @@ type ViewEvents interface {
 }
 
 type EditableCanvas interface {
-	SetBackground(color color.Color)
 	GetCanvas() model.Canvas
 	MarkDeleted([]model.ShapeId)
 	Restore([]model.ShapeId)

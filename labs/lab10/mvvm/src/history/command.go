@@ -1,6 +1,7 @@
 package history
 
 import (
+	"image/color"
 	"vector-editor/src/geometry"
 	"vector-editor/src/model"
 )
@@ -18,6 +19,7 @@ type CreateShapeFn func() model.ShapeId
 type MarkDeleteShapesFn func(ids []model.ShapeId)
 type RestoreShapesFn func(ids []model.ShapeId)
 type DeleteShapesFn func(ids []model.ShapeId)
+type SetBackgroundColorFn func(color color.Color)
 
 type MoveShapesFn func(delta geometry.Vector)
 type ResizeShapesFn func(rects map[model.ShapeId]geometry.Rect)

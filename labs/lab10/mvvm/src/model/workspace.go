@@ -220,8 +220,8 @@ func (w *workspaceModel) Open(path string) {
 	}
 	w.canvas = c
 
-	// notify about loaded shapes
+	// notifyShapesChanged about loaded shapes
 	if len(changed) > 0 {
-		c.notify(changed)
+		c.notifyShapesChanged(changed)
 	}
 }

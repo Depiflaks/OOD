@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"image/color"
 	"vector-editor/src/geometry"
 	"vector-editor/src/modelview"
@@ -9,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -53,15 +55,13 @@ func NewToolbarView(
 
 	btnFill := widget.NewButton("Fill", func() {
 		d := dialog.NewColorPicker("Fill", "Select fill color", func(c color.Color) {
-			var cc color.Color = c
+			var cc = c
 			view.curStyle.Fill = &cc
 
 			view.fillPreview.FillColor = c
 			view.fillPreview.Refresh()
 
-			if colors.SetFill != nil {
-				colors.SetFill(c)
-			}
+			// TODO: вызов метода обновления стиля
 		}, win)
 		d.Show()
 	})
@@ -74,15 +74,25 @@ func NewToolbarView(
 			view.strokePreview.FillColor = c
 			view.strokePreview.Refresh()
 
-			if colors.SetStroke != nil {
-				colors.SetStroke(c)
-			}
+			// TODO: вызов метода обновления стиля
 		}, win)
 		d.Show()
 	})
 
-	view.btnImage = widget.NewButton("Load Image", func() {
-		// TODO: import image
+	view.btnImage = widget.NewButton("Load background Image", func() {
+		d := dialog.NewFileOpen(func(rc fyne.URIReadCloser, err error) {
+			if err != nil || rc == nil {
+				return
+			}
+			path := rc.URI().Path()
+			_ = rc.Close()
+
+			fmt.Println(path)
+			// TODO: вызов метода вставки картинки
+		}, win)
+
+		d.SetFilter(storage.NewExtensionFileFilter([]string{".png", ".jpg", ".jpeg", ".bmp"}))
+		d.Show()
 	})
 	view.btnImage.Hide()
 
@@ -122,10 +132,8 @@ func (t *toolbarView) Object() fyne.CanvasObject {
 }
 
 func (t *toolbarView) OnSelectionChange(style geometry.Style, selectedCount int) {
-	// 2) обновляем текущие значения инпутов и превью из стиля выделения
 	t.curStyle = style
 
-	// fill
 	if style.Fill == nil {
 		t.fillPreview.FillColor = color.Transparent
 	} else {

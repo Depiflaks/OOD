@@ -13,13 +13,15 @@ type CanvasModelView interface {
 	Delete()
 
 	AddObserver(o CanvasModelViewObserver)
+	GetBackgroundColor() color.Color
 }
 
 type canvasModelView struct {
-	observers []CanvasModelViewObserver
-	canvas    model.Canvas
-	manager   manager.CanvasManager
-	shapes    map[model.ShapeId]ShapeModelView
+	observers  []CanvasModelViewObserver
+	canvas     model.Canvas
+	manager    manager.CanvasManager
+	background color.Color
+	shapes     map[model.ShapeId]ShapeModelView
 }
 
 func NewCanvasModelView(
@@ -27,9 +29,10 @@ func NewCanvasModelView(
 	canvasManager manager.CanvasManager,
 ) CanvasModelView {
 	canvasMV := &canvasModelView{
-		canvas:  canvas,
-		manager: canvasManager,
-		shapes:  make(map[model.ShapeId]ShapeModelView),
+		canvas:     canvas,
+		manager:    canvasManager,
+		shapes:     make(map[model.ShapeId]ShapeModelView),
+		background: canvas.GetBackground(),
 	}
 	canvasMV.manager.RegisterCanvas(canvasMV)
 	canvasMV.GetCanvas().AddObserver(canvasMV)
@@ -56,8 +59,15 @@ func (c *canvasModelView) newShapeMV(shape model.Shape) ShapeModelView {
 	return NewShapeModelView(shape, c.manager.ShapeManager())
 }
 
-func (c *canvasModelView) SetBackground(color color.Color) {
-	// TODO: метод изменения фона
+func (c *canvasModelView) OnBackgroundChanged() {
+	c.background = c.canvas.GetBackground()
+	for _, o := range c.observers {
+		o.OnBackgroundChanged()
+	}
+}
+
+func (c *canvasModelView) GetBackgroundColor() color.Color {
+	return c.background
 }
 
 func (c *canvasModelView) GetCanvas() model.Canvas {

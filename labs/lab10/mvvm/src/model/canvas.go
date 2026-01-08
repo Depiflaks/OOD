@@ -7,6 +7,7 @@ import (
 
 type CanvasObserver interface {
 	OnShapesChanged(ids []ShapeId)
+	OnBackgroundChanged()
 }
 
 type Canvas interface {
@@ -16,6 +17,9 @@ type Canvas interface {
 	Shapes() map[ShapeId]Shape
 	DeleteShapes(ids []ShapeId)
 	AddObserver(o CanvasObserver)
+
+	SetBackground(color color.Color)
+	GetBackground() color.Color
 }
 
 type canvas struct {
@@ -43,7 +47,7 @@ func (c *canvas) NewShape(t ShapeType, style geometry.Style) ShapeId {
 	shape := NewShape(t, c.nextId)
 	shape.SetStyle(style)
 	c.shapes[shape.GetShapeId()] = shape
-	c.notify([]ShapeId{shape.GetShapeId()})
+	c.notifyShapesChanged([]ShapeId{shape.GetShapeId()})
 	return c.nextId
 }
 
@@ -59,15 +63,30 @@ func (c *canvas) DeleteShapes(ids []ShapeId) {
 	for _, id := range ids {
 		delete(c.shapes, id)
 	}
-	c.notify(ids)
+	c.notifyShapesChanged(ids)
 }
 
 func (c *canvas) AddObserver(o CanvasObserver) {
 	c.observers = append(c.observers, o)
 }
 
-func (c *canvas) notify(ids []ShapeId) {
+func (c *canvas) SetBackground(color color.Color) {
+	c.background = color
+	c.notifyBackgroundChanged()
+}
+
+func (c *canvas) GetBackground() color.Color {
+	return c.background
+}
+
+func (c *canvas) notifyShapesChanged(ids []ShapeId) {
 	for _, o := range c.observers {
 		o.OnShapesChanged(ids)
+	}
+}
+
+func (c *canvas) notifyBackgroundChanged() {
+	for _, o := range c.observers {
+		o.OnBackgroundChanged()
 	}
 }

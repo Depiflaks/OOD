@@ -12,6 +12,7 @@ type WorkspaceModelViewObserver interface {
 
 type CanvasModelViewObserver interface {
 	OnShapesChanged(ids []model.ShapeId)
+	OnBackgroundChanged()
 }
 
 type ShapeModelViewObserver interface {

@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"image/color"
 	"vector-editor/src/geometry"
 	"vector-editor/src/history"
 	"vector-editor/src/model"
@@ -15,6 +16,7 @@ type CanvasManager interface {
 	NewShape(t model.ShapeType, style geometry.Style)
 	Delete()
 	ClearSelection()
+	SetStyle(style geometry.Style)
 }
 
 type canvasManager struct {
@@ -70,6 +72,14 @@ func (m *canvasManager) Delete() {
 	m.history.AppendAndExecute(cmd)
 }
 
+func (m *canvasManager) SetStyle(style geometry.Style) {
+	if len(m.shapeManager.GetSelectedShapeIds()) == 0 {
+		m.canvas.SetBackground(*style.Fill)
+	}
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m *canvasManager) newCreateShapeFn(t model.ShapeType, style geometry.Style) history.CreateShapeFn {
 	return func() model.ShapeId {
 		return m.canvas.GetCanvas().NewShape(t, style)
@@ -91,5 +101,11 @@ func (m *canvasManager) newRestoreShapesFn() history.RestoreShapesFn {
 func (m *canvasManager) newDeleteShapesFn() history.DeleteShapesFn {
 	return func(ids []model.ShapeId) {
 		m.canvas.GetCanvas().DeleteShapes(ids)
+	}
+}
+
+func (m *canvasManager) newSetBackgroundColorFn() history.SetBackgroundColorFn {
+	return func(color color.Color) {
+		m.canvas.GetCanvas().SetBackground(color)
 	}
 }
