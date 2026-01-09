@@ -36,7 +36,7 @@ func (w *workspaceModel) Canvas() Canvas {
 
 func (w *workspaceModel) Save() {
 	if w.sourcePath == "" {
-		panic("Save(): sourcePath is empty; call SaveAs(path) first")
+		return
 	}
 	w.SaveAs(w.sourcePath)
 }
@@ -82,7 +82,7 @@ func (w *workspaceModel) SaveAs(path string) {
 		xs := xmlShape{
 			ID:   int64(sh.GetShapeId()),
 			Type: shapeTypeToString(sh.GetShapeType()),
-			Pos: xmlPoint{
+			Position: xmlPoint{
 				X: float32(sh.GetPosition().X),
 				Y: float32(sh.GetPosition().Y),
 			},
@@ -90,7 +90,7 @@ func (w *workspaceModel) SaveAs(path string) {
 				W: float32(sh.GetBounds().Width),
 				H: float32(sh.GetBounds().Height),
 			},
-			Sty: styleToXML(st),
+			Style: styleToXML(st),
 		}
 		xw.Shapes = append(xw.Shapes, xs)
 	}
@@ -133,28 +133,26 @@ func (w *workspaceModel) Open(path string) {
 
 	c.SetBackground(fromRGBA8(xw.Background))
 
-	cc, _ := c.(*canvas)
-
-	cc.shapes = make(map[ShapeId]Shape, len(xw.Shapes))
 	for _, xs := range xw.Shapes {
-		st := styleFromXML(xs.Sty)
-		if st.BackgroundImagePath != nil {
-			abs := filepath.Join(dir, *st.BackgroundImagePath)
-			st.BackgroundImagePath = &abs
+		style := styleFromXML(xs.Style)
+		t := shapeTypeFromString(xs.Type)
+		c.NewShape(t, style)
+		if style.BackgroundImagePath != nil {
+			abs := filepath.Join(dir, *style.BackgroundImagePath)
+			style.BackgroundImagePath = &abs
 		}
 
 		id := ShapeId(xs.ID)
-		t := shapeTypeFromString(xs.Type)
 
-		sh := NewShape(t, id, st)
+		sh := NewShape(t, id, style)
 		sh.UpdateRect(
-			geometry.Point{X: float64(xs.Pos.X), Y: float64(xs.Pos.Y)},
+			geometry.Point{X: float64(xs.Position.X), Y: float64(xs.Position.Y)},
 			geometry.Bounds{Width: float64(xs.Size.W), Height: float64(xs.Size.H)},
 		)
-		cc.shapes[id] = sh
+		//cc.shapes[id] = sh
 	}
 
-	cc.nextId = ShapeId(xw.NextID)
+	//cc.nextId = ShapeId(xw.NextID)
 
 	w.canvas = c
 	w.sourcePath = xmlPath

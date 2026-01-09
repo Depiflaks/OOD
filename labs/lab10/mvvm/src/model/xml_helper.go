@@ -20,11 +20,11 @@ type xmlWorkspace struct {
 }
 
 type xmlShape struct {
-	ID   int64     `xml:"id,attr"`
-	Type string    `xml:"type,attr"`
-	Pos  xmlPoint  `xml:"position"`
-	Size xmlBounds `xml:"bounds"`
-	Sty  xmlStyle  `xml:"style"`
+	ID       int64     `xml:"id,attr"`
+	Type     string    `xml:"type,attr"`
+	Position xmlPoint  `xml:"positionition"`
+	Size     xmlBounds `xml:"bounds"`
+	Style    xmlStyle  `xml:"stylele"`
 }
 
 type xmlPoint struct {

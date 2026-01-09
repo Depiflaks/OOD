@@ -85,7 +85,7 @@ func NewToolbarView(
 		d.Show()
 	})
 
-	view.btnImage = widget.NewButton("BackgroundImagePath", func() {
+	view.btnImage = widget.NewButton("Image", func() {
 		d := dialog.NewFileOpen(func(rc fyne.URIReadCloser, err error) {
 			if err != nil || rc == nil {
 				return
