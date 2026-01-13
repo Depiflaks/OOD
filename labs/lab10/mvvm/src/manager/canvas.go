@@ -2,9 +2,9 @@ package manager
 
 import (
 	"image/color"
-	"vector-editor/src/geometry"
+	"vector-editor/src/draw"
 	"vector-editor/src/history"
-	"vector-editor/src/model"
+	"vector-editor/src/types"
 )
 
 type CanvasManager interface {
@@ -13,10 +13,10 @@ type CanvasManager interface {
 
 	RegisterCanvas(canvas EditableCanvas)
 
-	NewShape(t model.ShapeType, style geometry.Style)
+	NewShape(t types.ShapeType, style draw.Style)
 	Delete()
 	ClearSelection()
-	SetStyle(style geometry.Style)
+	SetStyle(style draw.Style)
 }
 
 type canvasManager struct {
@@ -44,7 +44,7 @@ func (m *canvasManager) ShapeManager() ShapeManager {
 	return m.shapeManager
 }
 
-func (m *canvasManager) NewShape(t model.ShapeType, style geometry.Style) {
+func (m *canvasManager) NewShape(t types.ShapeType, style draw.Style) {
 	cmd := history.NewNewShapeCommand(
 		m.newCreateShapeFn(t, style),
 		m.newMarkDeleteShapesFn(),
@@ -72,7 +72,7 @@ func (m *canvasManager) Delete() {
 	m.history.AppendAndExecute(cmd)
 }
 
-func (m *canvasManager) SetStyle(newStyle geometry.Style) {
+func (m *canvasManager) SetStyle(newStyle draw.Style) {
 	if len(m.shapeManager.GetSelectedShapeIds()) == 0 && newStyle.Fill != nil {
 		cmd := history.NewSetBackgroundCommand(
 			m.newSetBackgroundColorFn(),
@@ -87,8 +87,8 @@ func (m *canvasManager) SetStyle(newStyle geometry.Style) {
 		return
 	}
 
-	prevStyles := make(map[model.ShapeId]geometry.Style)
-	newStyles := make(map[model.ShapeId]geometry.Style)
+	prevStyles := make(map[types.ShapeId]draw.Style)
+	newStyles := make(map[types.ShapeId]draw.Style)
 	for _, id := range m.shapeManager.GetSelectedShapeIds() {
 		s := m.canvas.GetCanvas().GetShape(id)
 		prevStyles[id] = s.GetStyle()
@@ -98,28 +98,28 @@ func (m *canvasManager) SetStyle(newStyle geometry.Style) {
 	m.history.AppendAndExecute(cmd)
 }
 
-func (m *canvasManager) newCreateShapeFn(t model.ShapeType, style geometry.Style) history.CreateShapeFn {
-	return func() model.ShapeId {
+func (m *canvasManager) newCreateShapeFn(t types.ShapeType, style draw.Style) history.CreateShapeFn {
+	return func() types.ShapeId {
 		return m.canvas.GetCanvas().NewShape(t, style)
 	}
 }
 
 func (m *canvasManager) newMarkDeleteShapesFn() history.MarkDeleteShapesFn {
-	return func(ids []model.ShapeId) {
+	return func(ids []types.ShapeId) {
 		m.canvas.MarkDeleted(ids)
 	}
 }
 
 func (m *canvasManager) newRestoreShapesFn() history.RestoreShapesFn {
 	selected := snapshotSelected(m.shapeManager.GetSelectedShapes())
-	return func(ids []model.ShapeId) {
+	return func(ids []types.ShapeId) {
 		m.canvas.Restore(ids)
 		m.shapeManager.SetSelectedShapes(selected)
 	}
 }
 
 func (m *canvasManager) newDeleteShapesFn() history.DeleteShapesFn {
-	return func(ids []model.ShapeId) {
+	return func(ids []types.ShapeId) {
 		m.canvas.GetCanvas().DeleteShapes(ids)
 	}
 }
@@ -132,7 +132,7 @@ func (m *canvasManager) newSetBackgroundColorFn() history.SetBackgroundColorFn {
 
 func (m *canvasManager) newSetStyleFn() history.SetStyleFn {
 	selected := snapshotSelected(m.shapeManager.GetSelectedShapes())
-	return func(styles map[model.ShapeId]geometry.Style) {
+	return func(styles map[types.ShapeId]draw.Style) {
 		for id, s := range selected {
 			st, ok := styles[id]
 			if !ok {

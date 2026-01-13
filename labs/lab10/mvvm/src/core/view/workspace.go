@@ -1,7 +1,7 @@
 package view
 
 import (
-	"vector-editor/src/modelview"
+	"vector-editor/src/core/modelview"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"

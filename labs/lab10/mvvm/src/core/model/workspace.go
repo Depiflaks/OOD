@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"vector-editor/src/geometry"
+	"vector-editor/src/types"
 )
 
 const workspaceFileName = "workspace.xml"
@@ -142,7 +143,7 @@ func (w *workspaceModel) Open(path string) {
 			style.BackgroundImagePath = &abs
 		}
 
-		id := ShapeId(xs.ID)
+		id := types.ShapeId(xs.ID)
 
 		sh := NewShape(t, id, style)
 		sh.UpdateRect(

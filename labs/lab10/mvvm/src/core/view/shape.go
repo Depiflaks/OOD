@@ -6,11 +6,11 @@ import (
 	"image/draw"
 	"io"
 	"math"
+	"vector-editor/src/core/modelview"
 	"vector-editor/src/file"
+	"vector-editor/src/types"
 
 	"vector-editor/src/geometry"
-	"vector-editor/src/model"
-	"vector-editor/src/modelview"
 
 	xdraw "golang.org/x/image/draw"
 )
@@ -66,9 +66,9 @@ func (s *ShapeView) Hit(p geometry.Point) bool {
 	pos := s.mv.GetPosition()
 	b := s.mv.GetBounds()
 	switch s.mv.GetShapeType() {
-	case model.Rect:
+	case types.Rect:
 		return p.X >= pos.X && p.X <= pos.X+b.Width && p.Y >= pos.Y && p.Y <= pos.Y+b.Height
-	case model.Ellipse:
+	case types.Ellipse:
 		if b.Width == 0 || b.Height == 0 {
 			return false
 		}
@@ -79,7 +79,7 @@ func (s *ShapeView) Hit(p geometry.Point) bool {
 		dx := (p.X - cx) / rx
 		dy := (p.Y - cy) / ry
 		return dx*dx+dy*dy <= 1.0
-	case model.Triangle:
+	case types.Triangle:
 		ax := pos.X + b.Width/2
 		ay := pos.Y
 		bx := pos.X
@@ -129,7 +129,7 @@ func (s *ShapeView) Draw(img *image.RGBA) {
 	stroke := rgbaFromPtr(s.mv.GetStyle().Stroke)
 
 	switch s.mv.GetShapeType() {
-	case model.Rect:
+	case types.Rect:
 		if s.mv.GetStyle().BackgroundImagePath == nil {
 			drawRect(img, pos, b, fill, stroke)
 		} else {
@@ -140,9 +140,9 @@ func (s *ShapeView) Draw(img *image.RGBA) {
 				file.Open(*s.mv.GetStyle().BackgroundImagePath),
 			)
 		}
-	case model.Ellipse:
+	case types.Ellipse:
 		drawEllipse(img, pos, b, fill, stroke)
-	case model.Triangle:
+	case types.Triangle:
 		drawTriangle(img, pos, b, fill, stroke)
 	}
 }

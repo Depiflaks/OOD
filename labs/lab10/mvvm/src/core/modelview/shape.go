@@ -1,9 +1,11 @@
 package modelview
 
 import (
+	"vector-editor/src/core/model"
+	"vector-editor/src/draw"
 	"vector-editor/src/geometry"
 	"vector-editor/src/manager"
-	"vector-editor/src/model"
+	"vector-editor/src/types"
 )
 
 // EditableShape
@@ -67,7 +69,7 @@ func (s *shapeModelView) UpdateRect(position geometry.Point, bounds geometry.Bou
 	s.Notify()
 }
 
-func (s *shapeModelView) UpdateStyle(style geometry.Style) {
+func (s *shapeModelView) UpdateStyle(style draw.Style) {
 	if style.BackgroundImagePath != nil {
 		s.style.BackgroundImagePath = style.BackgroundImagePath
 	}
@@ -93,8 +95,8 @@ type ShapeModelView interface {
 
 	GetBounds() geometry.Bounds
 	GetPosition() geometry.Point
-	GetStyle() geometry.Style
-	GetShapeType() model.ShapeType
+	GetStyle() draw.Style
+	GetShapeType() types.ShapeType
 
 	AddObserver(o ShapeModelViewObserver)
 }
@@ -106,8 +108,8 @@ type shapeModelView struct {
 
 	position  geometry.Point
 	size      geometry.Bounds
-	style     geometry.Style
-	shapeType model.ShapeType
+	style     draw.Style
+	shapeType types.ShapeType
 
 	isDragging bool
 	isResizing bool
@@ -174,11 +176,11 @@ func (s *shapeModelView) GetPosition() geometry.Point {
 	return s.position
 }
 
-func (s *shapeModelView) GetStyle() geometry.Style {
+func (s *shapeModelView) GetStyle() draw.Style {
 	return s.style
 }
 
-func (s *shapeModelView) GetShapeType() model.ShapeType {
+func (s *shapeModelView) GetShapeType() types.ShapeType {
 	return s.shapeType
 }
 

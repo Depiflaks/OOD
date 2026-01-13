@@ -2,8 +2,8 @@ package view
 
 import (
 	"image/color"
-	"vector-editor/src/geometry"
-	"vector-editor/src/modelview"
+	"vector-editor/src/core/modelview"
+	"vector-editor/src/draw"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -21,7 +21,7 @@ type toolbarView struct {
 	obj fyne.CanvasObject
 	mv  modelview.ToolbarModelView
 
-	curStyle geometry.Style
+	curStyle draw.Style
 
 	fillPreview   *canvas.Rectangle
 	strokePreview *canvas.Rectangle
@@ -41,7 +41,7 @@ func NewToolbarView(
 
 	view := &toolbarView{
 		mv: mv,
-		curStyle: geometry.Style{
+		curStyle: draw.Style{
 			Fill:   func() *color.Color { var c color.Color = defaultFill; return &c }(),
 			Stroke: func() *color.Color { var c color.Color = defaultStroke; return &c }(),
 		},
@@ -149,7 +149,7 @@ func (t *toolbarView) Object() fyne.CanvasObject {
 	return t.obj
 }
 
-func (t *toolbarView) OnSelectionChange(style geometry.Style, selectedCount int) {
+func (t *toolbarView) OnSelectionChange(style draw.Style, selectedCount int) {
 	normalized := style
 
 	if normalized.Fill == nil {

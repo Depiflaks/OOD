@@ -2,15 +2,15 @@ package modelview
 
 import (
 	"image/color"
-	"vector-editor/src/geometry"
+	"vector-editor/src/draw"
 	"vector-editor/src/manager"
-	"vector-editor/src/model"
+	"vector-editor/src/types"
 )
 
 type ToolbarModelView interface {
-	NewTriangle(style geometry.Style)
-	NewRectangle(style geometry.Style)
-	NewEllipse(style geometry.Style)
+	NewTriangle(style draw.Style)
+	NewRectangle(style draw.Style)
+	NewEllipse(style draw.Style)
 	AddObserver(o ToolbarModelViewObserver)
 
 	SetFillColor(c color.Color)
@@ -33,23 +33,23 @@ func NewToolbarModelView(
 	return tmv
 }
 
-func (t *toolbarModelView) NewTriangle(style geometry.Style) {
-	t.manager.NewShape(model.Triangle, style)
+func (t *toolbarModelView) NewTriangle(style draw.Style) {
+	t.manager.NewShape(types.Triangle, style)
 }
 
-func (t *toolbarModelView) NewRectangle(style geometry.Style) {
-	t.manager.NewShape(model.Rect, style)
+func (t *toolbarModelView) NewRectangle(style draw.Style) {
+	t.manager.NewShape(types.Rect, style)
 }
 
-func (t *toolbarModelView) NewEllipse(style geometry.Style) {
-	t.manager.NewShape(model.Ellipse, style)
+func (t *toolbarModelView) NewEllipse(style draw.Style) {
+	t.manager.NewShape(types.Ellipse, style)
 }
 
 func (t *toolbarModelView) NewImage(path string) {
-	style := geometry.Style{
+	style := draw.Style{
 		BackgroundImagePath: &path,
 	}
-	t.manager.NewShape(model.Rect, style)
+	t.manager.NewShape(types.Rect, style)
 }
 
 func (t *toolbarModelView) AddObserver(o ToolbarModelViewObserver) {
@@ -57,20 +57,20 @@ func (t *toolbarModelView) AddObserver(o ToolbarModelViewObserver) {
 }
 
 func (t *toolbarModelView) SetFillColor(c color.Color) {
-	t.manager.SetStyle(geometry.Style{
+	t.manager.SetStyle(draw.Style{
 		Fill:   &c,
 		Stroke: nil,
 	})
 }
 
 func (t *toolbarModelView) SetBorderColor(c color.Color) {
-	t.manager.SetStyle(geometry.Style{
+	t.manager.SetStyle(draw.Style{
 		Fill:   nil,
 		Stroke: &c,
 	})
 }
 
-func (t *toolbarModelView) OnSelectionChange(style geometry.Style, count int) {
+func (t *toolbarModelView) OnSelectionChange(style draw.Style, count int) {
 	for _, o := range t.observers {
 		o.OnSelectionChange(style, count)
 	}

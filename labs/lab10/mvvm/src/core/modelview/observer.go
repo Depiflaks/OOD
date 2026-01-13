@@ -1,8 +1,8 @@
 package modelview
 
 import (
-	"vector-editor/src/geometry"
-	"vector-editor/src/model"
+	"vector-editor/src/draw"
+	"vector-editor/src/types"
 )
 
 type WorkspaceModelViewObserver interface {
@@ -11,7 +11,7 @@ type WorkspaceModelViewObserver interface {
 }
 
 type CanvasModelViewObserver interface {
-	OnShapesChanged(ids []model.ShapeId)
+	OnShapesChanged(ids []types.ShapeId)
 	OnBackgroundChanged()
 }
 
@@ -20,5 +20,5 @@ type ShapeModelViewObserver interface {
 }
 
 type ToolbarModelViewObserver interface {
-	OnSelectionChange(style geometry.Style, selectedCount int)
+	OnSelectionChange(style draw.Style, selectedCount int)
 }

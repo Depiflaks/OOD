@@ -2,8 +2,9 @@ package history
 
 import (
 	"image/color"
+	"vector-editor/src/draw"
 	"vector-editor/src/geometry"
-	"vector-editor/src/model"
+	"vector-editor/src/types"
 )
 
 type Command interface {
@@ -15,15 +16,15 @@ type Disposable interface {
 	Dispose()
 }
 
-type CreateShapeFn func() model.ShapeId
-type MarkDeleteShapesFn func(ids []model.ShapeId)
-type RestoreShapesFn func(ids []model.ShapeId)
-type DeleteShapesFn func(ids []model.ShapeId)
+type CreateShapeFn func() types.ShapeId
+type MarkDeleteShapesFn func(ids []types.ShapeId)
+type RestoreShapesFn func(ids []types.ShapeId)
+type DeleteShapesFn func(ids []types.ShapeId)
 type SetBackgroundColorFn func(color color.Color)
 
 type MoveShapesFn func(delta geometry.Vector)
-type ResizeShapesFn func(rects map[model.ShapeId]geometry.Rect)
-type SetStyleFn func(styles map[model.ShapeId]geometry.Style)
+type ResizeShapesFn func(rects map[types.ShapeId]geometry.Rect)
+type SetStyleFn func(styles map[types.ShapeId]draw.Style)
 
 type NewShapeCommand struct {
 	create     CreateShapeFn
@@ -31,7 +32,7 @@ type NewShapeCommand struct {
 	restore    RestoreShapesFn
 	delete     DeleteShapesFn
 
-	id                  model.ShapeId
+	id                  types.ShapeId
 	isExecuted          bool
 	isExecutedFirstTime bool
 }
@@ -52,7 +53,7 @@ func NewNewShapeCommand(
 
 func (c *NewShapeCommand) Execute() {
 	if c.isExecutedFirstTime {
-		c.restore([]model.ShapeId{c.id})
+		c.restore([]types.ShapeId{c.id})
 	} else {
 		c.id = c.create()
 		c.isExecutedFirstTime = true
@@ -65,14 +66,14 @@ func (c *NewShapeCommand) Unexecute() {
 		return
 	}
 	c.isExecuted = false
-	c.markDelete([]model.ShapeId{c.id})
+	c.markDelete([]types.ShapeId{c.id})
 }
 
 func (c *NewShapeCommand) Dispose() {
 	if c.isExecuted {
 		return
 	}
-	c.delete([]model.ShapeId{c.id})
+	c.delete([]types.ShapeId{c.id})
 }
 
 type DeleteShapeCommand struct {
@@ -80,12 +81,12 @@ type DeleteShapeCommand struct {
 	restore    RestoreShapesFn
 	delete     DeleteShapesFn
 
-	ids        []model.ShapeId
+	ids        []types.ShapeId
 	isExecuted bool
 }
 
 func NewDeleteShapeCommand(
-	ids []model.ShapeId,
+	ids []types.ShapeId,
 	markDelete MarkDeleteShapesFn,
 	restore RestoreShapesFn,
 	delete DeleteShapesFn,
@@ -150,15 +151,15 @@ func (c *MoveShapesCommand) Unexecute() {
 
 type ResizeShapesCommand struct {
 	resize     ResizeShapesFn
-	newRects   map[model.ShapeId]geometry.Rect
-	curRects   map[model.ShapeId]geometry.Rect
+	newRects   map[types.ShapeId]geometry.Rect
+	curRects   map[types.ShapeId]geometry.Rect
 	isExecuted bool
 }
 
 func NewResizeShapesCommand(
 	resize ResizeShapesFn,
-	newRects map[model.ShapeId]geometry.Rect,
-	curRects map[model.ShapeId]geometry.Rect,
+	newRects map[types.ShapeId]geometry.Rect,
+	curRects map[types.ShapeId]geometry.Rect,
 ) *ResizeShapesCommand {
 	return &ResizeShapesCommand{
 		resize:   resize,
@@ -182,15 +183,15 @@ func (c *ResizeShapesCommand) Unexecute() {
 
 type SetStyleCommand struct {
 	setStyle   SetStyleFn
-	newStyles  map[model.ShapeId]geometry.Style
-	prevStyles map[model.ShapeId]geometry.Style
+	newStyles  map[types.ShapeId]draw.Style
+	prevStyles map[types.ShapeId]draw.Style
 	isExecuted bool
 }
 
 func NewSetStyleCommand(
 	setStyle SetStyleFn,
-	prevStyles map[model.ShapeId]geometry.Style,
-	newStyles map[model.ShapeId]geometry.Style,
+	prevStyles map[types.ShapeId]draw.Style,
+	newStyles map[types.ShapeId]draw.Style,
 ) *SetStyleCommand {
 	return &SetStyleCommand{
 		setStyle: setStyle,

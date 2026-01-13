@@ -8,7 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"vector-editor/src/geometry"
+	"vector-editor/src/draw"
+	"vector-editor/src/types"
 )
 
 type xmlWorkspace struct {
@@ -64,7 +65,7 @@ func fromRGBA8(x xmlRGBA) color.Color {
 	return color.RGBA{R: x.R, G: x.G, B: x.B, A: x.A}
 }
 
-func styleToXML(st geometry.Style) xmlStyle {
+func styleToXML(st draw.Style) xmlStyle {
 	var fill *xmlRGBA
 	if st.Fill != nil {
 		fillVal := toRGBA8(*st.Fill)
@@ -83,7 +84,7 @@ func styleToXML(st geometry.Style) xmlStyle {
 	return xmlStyle{Fill: fill, Stroke: stroke, Image: img}
 }
 
-func styleFromXML(x xmlStyle) geometry.Style {
+func styleFromXML(x xmlStyle) draw.Style {
 	var fill *color.Color
 	if x.Fill != nil {
 		c := fromRGBA8(*x.Fill)
@@ -101,7 +102,7 @@ func styleFromXML(x xmlStyle) geometry.Style {
 		s := *x.Image
 		img = &s
 	}
-	return geometry.Style{Fill: fill, Stroke: stroke, BackgroundImagePath: img}
+	return draw.Style{Fill: fill, Stroke: stroke, BackgroundImagePath: img}
 }
 
 func ensureDir(path string) {
@@ -136,7 +137,6 @@ func copyFile(src, dst string) {
 }
 
 func safeBaseName(p string) string {
-	// чтобы не было странных имен/папок внутри .sources
 	b := filepath.Base(p)
 	b = strings.ReplaceAll(b, string(os.PathSeparator), "_")
 	if b == "." || b == ".." || b == "" {
@@ -145,27 +145,27 @@ func safeBaseName(p string) string {
 	return b
 }
 
-func shapeTypeToString(t ShapeType) string {
+func shapeTypeToString(t types.ShapeType) string {
 	switch t {
-	case Rect:
+	case types.Rect:
 		return "rect"
-	case Ellipse:
+	case types.Ellipse:
 		return "ellipse"
-	case Triangle:
+	case types.Triangle:
 		return "triangle"
 	default:
 		return "unknown"
 	}
 }
 
-func shapeTypeFromString(s string) ShapeType {
+func shapeTypeFromString(s string) types.ShapeType {
 	switch strings.ToLower(s) {
 	case "rect":
-		return Rect
+		return types.Rect
 	case "ellipse":
-		return Ellipse
+		return types.Ellipse
 	case "triangle":
-		return Triangle
+		return types.Triangle
 	default:
 		panic(fmt.Errorf("unknown shape type: %q", s))
 	}

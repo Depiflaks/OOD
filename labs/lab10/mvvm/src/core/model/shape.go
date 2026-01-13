@@ -1,57 +1,49 @@
 package model
 
 import (
+	"vector-editor/src/draw"
 	"vector-editor/src/geometry"
+	"vector-editor/src/types"
 )
-
-type ShapeType int
-
-const (
-	Rect ShapeType = iota
-	Ellipse
-	Triangle
-)
-
-type ShapeId int64
 
 type ShapeObserver interface {
 	UpdateRect(position geometry.Point, bounds geometry.Bounds)
-	UpdateStyle(style geometry.Style)
+	UpdateStyle(style draw.Style)
 }
 
 type Shape interface {
 	UpdateRect(p geometry.Point, b geometry.Bounds)
 	Move(v geometry.Vector)
-	SetStyle(st geometry.Style)
+	SetStyle(st draw.Style)
 
 	AddObserver(o ShapeObserver)
 
 	GetBounds() geometry.Bounds
 	GetPosition() geometry.Point
-	GetStyle() geometry.Style
-	GetShapeId() ShapeId
-	GetShapeType() ShapeType
+	GetStyle() draw.Style
+	GetShapeId() types.ShapeId
+	GetShapeType() types.ShapeType
 
 	Dispose()
 }
 
 type shape struct {
-	id        ShapeId
-	shapeType ShapeType
+	id        types.ShapeId
+	shapeType types.ShapeType
 	position  geometry.Point
 	size      geometry.Bounds
-	style     geometry.Style
+	style     draw.Style
 	observers []ShapeObserver
 
 	storage FileStorage
 }
 
 func NewShape(
-	t ShapeType,
-	id ShapeId,
-	style geometry.Style,
+	t types.ShapeType,
+	id types.ShapeId,
+	style draw.Style,
 ) Shape {
-	if style.BackgroundImagePath != nil && t != Rect {
+	if style.BackgroundImagePath != nil && t != types.Rect {
 		panic("Приложение поддерживает только прямоугольные картинки")
 	}
 	storage := NewStorage()
@@ -112,7 +104,7 @@ func (s *shape) Move(v geometry.Vector) {
 	}
 }
 
-func (s *shape) SetStyle(st geometry.Style) {
+func (s *shape) SetStyle(st draw.Style) {
 	if st.BackgroundImagePath != nil {
 		if s.style.BackgroundImagePath != nil {
 			s.storage.delete(*s.style.BackgroundImagePath)
@@ -141,15 +133,15 @@ func (s *shape) GetPosition() geometry.Point {
 	return s.position
 }
 
-func (s *shape) GetStyle() geometry.Style {
+func (s *shape) GetStyle() draw.Style {
 	return s.style
 }
 
-func (s *shape) GetShapeId() ShapeId {
+func (s *shape) GetShapeId() types.ShapeId {
 	return s.id
 }
 
-func (s *shape) GetShapeType() ShapeType {
+func (s *shape) GetShapeType() types.ShapeType {
 	return s.shapeType
 }
 

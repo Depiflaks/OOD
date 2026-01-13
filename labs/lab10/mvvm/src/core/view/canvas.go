@@ -5,10 +5,10 @@ import (
 	"image/draw"
 	"math"
 	"sync"
+	"vector-editor/src/core/modelview"
+	"vector-editor/src/types"
 
 	"vector-editor/src/geometry"
-	"vector-editor/src/model"
-	"vector-editor/src/modelview"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -55,8 +55,8 @@ type canvasView struct {
 
 	mv modelview.CanvasModelView
 
-	shapes    map[model.ShapeId]*ShapeView
-	drawOrder []model.ShapeId
+	shapes    map[types.ShapeId]*ShapeView
+	drawOrder []types.ShapeId
 
 	img    *image.RGBA
 	raster *canvas.Raster
@@ -89,7 +89,7 @@ func (c *canvasView) SetResizingState(e mouseEvent, active *ShapeView, marker Re
 func NewCanvasView(mv modelview.CanvasModelView) CanvasView {
 	c := &canvasView{
 		mv:     mv,
-		shapes: make(map[model.ShapeId]*ShapeView),
+		shapes: make(map[types.ShapeId]*ShapeView),
 		dirty:  true,
 	}
 	c.ExtendBaseWidget(c)
@@ -148,7 +148,7 @@ func (c *canvasView) redraw() {
 	}
 }
 
-func (c *canvasView) OnShapesChanged(ids []model.ShapeId) {
+func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {
 	for _, id := range ids {
 		shape := c.mv.GetShape(id)
 

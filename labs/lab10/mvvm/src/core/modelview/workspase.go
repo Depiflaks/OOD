@@ -1,8 +1,8 @@
 package modelview
 
 import (
+	"vector-editor/src/core/model"
 	"vector-editor/src/manager"
-	"vector-editor/src/model"
 )
 
 type WorkspaceModelView interface {

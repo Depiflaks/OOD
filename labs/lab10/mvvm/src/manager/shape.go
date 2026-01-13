@@ -2,21 +2,22 @@ package manager
 
 import (
 	"image/color"
+	"vector-editor/src/draw"
 	"vector-editor/src/geometry"
 	"vector-editor/src/history"
-	"vector-editor/src/model"
+	"vector-editor/src/types"
 )
 
 type ShapeManagerObserver interface {
-	OnSelectionChange(style geometry.Style, count int)
+	OnSelectionChange(style draw.Style, count int)
 }
 
 type privateShapeManager interface {
 	ShapeManager
 
-	GetSelectedShapeIds() []model.ShapeId
-	GetSelectedShapes() map[model.ShapeId]EditableShape
-	SetSelectedShapes(newSelected map[model.ShapeId]EditableShape)
+	GetSelectedShapeIds() []types.ShapeId
+	GetSelectedShapes() map[types.ShapeId]EditableShape
+	SetSelectedShapes(newSelected map[types.ShapeId]EditableShape)
 	ClearSelection()
 }
 
@@ -38,13 +39,13 @@ type ShapeManager interface {
 type shapeManager struct {
 	observers []ShapeManagerObserver
 	history   history.History
-	selected  map[model.ShapeId]EditableShape
+	selected  map[types.ShapeId]EditableShape
 }
 
 func NewShapeManager(history history.History) privateShapeManager {
 	return &shapeManager{
 		history:  history,
-		selected: make(map[model.ShapeId]EditableShape),
+		selected: make(map[types.ShapeId]EditableShape),
 	}
 }
 
@@ -52,7 +53,7 @@ func (m *shapeManager) AddObserver(o ShapeManagerObserver) {
 	m.observers = append(m.observers, o)
 }
 
-func (m *shapeManager) SetSelectedShapes(newSelected map[model.ShapeId]EditableShape) {
+func (m *shapeManager) SetSelectedShapes(newSelected map[types.ShapeId]EditableShape) {
 	m.selected = newSelected
 	m.notifySelectionChanged()
 }
@@ -73,15 +74,15 @@ func (m *shapeManager) IsSelected(s EditableShape) bool {
 	return ok
 }
 
-func (m *shapeManager) GetSelectedShapeIds() []model.ShapeId {
-	ids := make([]model.ShapeId, 0, len(m.selected))
+func (m *shapeManager) GetSelectedShapeIds() []types.ShapeId {
+	ids := make([]types.ShapeId, 0, len(m.selected))
 	for id := range m.selected {
 		ids = append(ids, id)
 	}
 	return ids
 }
 
-func (m *shapeManager) GetSelectedShapes() map[model.ShapeId]EditableShape {
+func (m *shapeManager) GetSelectedShapes() map[types.ShapeId]EditableShape {
 	return m.selected
 }
 
@@ -102,8 +103,8 @@ func (m *shapeManager) Resize(
 	isResizing bool,
 ) {
 	if !isResizing {
-		newRects := map[model.ShapeId]geometry.Rect{}
-		curRects := map[model.ShapeId]geometry.Rect{}
+		newRects := map[types.ShapeId]geometry.Rect{}
+		curRects := map[types.ShapeId]geometry.Rect{}
 		for id, s := range m.selected {
 			curPos := s.GetShape().GetPosition()
 			curBounds := s.GetShape().GetBounds()
@@ -159,18 +160,18 @@ func (m *shapeManager) StopResizing() {
 func (m *shapeManager) ClearSelection() {
 	selected := m.selected
 
-	defer func(sel map[model.ShapeId]EditableShape) {
+	defer func(sel map[types.ShapeId]EditableShape) {
 		for _, s := range sel {
 			s.Notify()
 		}
 	}(selected)
 
-	m.selected = make(map[model.ShapeId]EditableShape)
+	m.selected = make(map[types.ShapeId]EditableShape)
 	m.notifySelectionChanged()
 }
 
-func snapshotSelected(src map[model.ShapeId]EditableShape) map[model.ShapeId]EditableShape {
-	dst := make(map[model.ShapeId]EditableShape, len(src))
+func snapshotSelected(src map[types.ShapeId]EditableShape) map[types.ShapeId]EditableShape {
+	dst := make(map[types.ShapeId]EditableShape, len(src))
 	for id, s := range src {
 		dst[id] = s
 	}
@@ -189,7 +190,7 @@ func (m *shapeManager) newMoveShapesFn() history.MoveShapesFn {
 
 func (m *shapeManager) newResizeShapesFn() history.ResizeShapesFn {
 	selected := snapshotSelected(m.selected)
-	return func(rects map[model.ShapeId]geometry.Rect) {
+	return func(rects map[types.ShapeId]geometry.Rect) {
 		for id, s := range selected {
 			r, ok := rects[id]
 			if !ok {
@@ -202,7 +203,7 @@ func (m *shapeManager) newResizeShapesFn() history.ResizeShapesFn {
 }
 
 func (m *shapeManager) notifySelectionChanged() {
-	var common geometry.Style
+	var common draw.Style
 
 	first := true
 	var fill *color.Color

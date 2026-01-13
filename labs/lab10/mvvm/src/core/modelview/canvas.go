@@ -2,12 +2,13 @@ package modelview
 
 import (
 	"image/color"
+	model2 "vector-editor/src/core/model"
 	"vector-editor/src/manager"
-	"vector-editor/src/model"
+	"vector-editor/src/types"
 )
 
 type CanvasModelView interface {
-	GetShape(id model.ShapeId) ShapeModelView
+	GetShape(id types.ShapeId) ShapeModelView
 
 	ClearSelection()
 	Delete()
@@ -18,20 +19,20 @@ type CanvasModelView interface {
 
 type canvasModelView struct {
 	observers  []CanvasModelViewObserver
-	canvas     model.Canvas
+	canvas     model2.Canvas
 	manager    manager.CanvasManager
 	background color.Color
-	shapes     map[model.ShapeId]ShapeModelView
+	shapes     map[types.ShapeId]ShapeModelView
 }
 
 func NewCanvasModelView(
-	canvas model.Canvas,
+	canvas model2.Canvas,
 	canvasManager manager.CanvasManager,
 ) CanvasModelView {
 	canvasMV := &canvasModelView{
 		canvas:     canvas,
 		manager:    canvasManager,
-		shapes:     make(map[model.ShapeId]ShapeModelView),
+		shapes:     make(map[types.ShapeId]ShapeModelView),
 		background: canvas.GetBackground(),
 	}
 	canvasMV.manager.RegisterCanvas(canvasMV)
@@ -39,7 +40,7 @@ func NewCanvasModelView(
 	return canvasMV
 }
 
-func (c *canvasModelView) OnShapesChanged(ids []model.ShapeId) {
+func (c *canvasModelView) OnShapesChanged(ids []types.ShapeId) {
 	for _, id := range ids {
 		shape := c.canvas.GetShape(id)
 
@@ -60,7 +61,7 @@ func (c *canvasModelView) OnShapesChanged(ids []model.ShapeId) {
 	}
 }
 
-func (c *canvasModelView) newShapeMV(shape model.Shape) ShapeModelView {
+func (c *canvasModelView) newShapeMV(shape model2.Shape) ShapeModelView {
 	return NewShapeModelView(shape, c.manager.ShapeManager())
 }
 
@@ -75,23 +76,23 @@ func (c *canvasModelView) GetBackgroundColor() color.Color {
 	return c.background
 }
 
-func (c *canvasModelView) GetCanvas() model.Canvas {
+func (c *canvasModelView) GetCanvas() model2.Canvas {
 	return c.canvas
 }
 
-func (c *canvasModelView) MarkDeleted(ids []model.ShapeId) {
+func (c *canvasModelView) MarkDeleted(ids []types.ShapeId) {
 	for _, id := range ids {
 		c.shapes[id].SetDeleted(true)
 	}
 }
 
-func (c *canvasModelView) Restore(ids []model.ShapeId) {
+func (c *canvasModelView) Restore(ids []types.ShapeId) {
 	for _, id := range ids {
 		c.shapes[id].SetDeleted(false)
 	}
 }
 
-func (c *canvasModelView) GetShape(id model.ShapeId) ShapeModelView {
+func (c *canvasModelView) GetShape(id types.ShapeId) ShapeModelView {
 	return c.shapes[id]
 }
 
