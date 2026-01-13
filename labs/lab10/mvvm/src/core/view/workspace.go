@@ -2,12 +2,28 @@ package view
 
 import (
 	"fmt"
+	"image"
+	"image/color"
 	"vector-editor/src/core/modelview"
 
 	"gioui.org/app"
+	"gioui.org/f32"
+	"gioui.org/font/gofont"
 	"gioui.org/io/event"
 	"gioui.org/io/key"
 	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
+	"gioui.org/text"
+	"gioui.org/widget"
+	"gioui.org/widget/material"
+	"gioui.org/x/colorpicker"
+)
+
+type (
+	C = layout.Context
+	D = layout.Dimensions
 )
 
 const (
