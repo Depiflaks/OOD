@@ -2,7 +2,10 @@ module vector-editor
 
 go 1.24.11
 
-require gioui.org v0.9.0
+require (
+	gioui.org v0.9.0
+	gioui.org/x v0.9.0
+)
 
 require (
 	gioui.org/shader v1.0.8 // indirect
