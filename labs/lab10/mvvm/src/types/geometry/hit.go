@@ -77,10 +77,6 @@ func pointInRect(p Point, r Rect) bool {
 		p.Y <= r.Position.Y+r.Size.Height
 }
 
-func sign(px, py, ax, ay, bx, by float64) float64 {
-	return (px-bx)*(ay-by) - (ax-bx)*(py-by)
-}
-
 func PointInTriangle(px, py, ax, ay, bx, by, cx, cy float64) bool {
 	d1 := sign(px, py, ax, ay, bx, by)
 	d2 := sign(px, py, bx, by, cx, cy)
@@ -90,4 +86,8 @@ func PointInTriangle(px, py, ax, ay, bx, by, cx, cy float64) bool {
 	hasPos := (d1 > 0) || (d2 > 0) || (d3 > 0)
 
 	return !(hasNeg && hasPos)
+}
+
+func sign(px, py, ax, ay, bx, by float64) float64 {
+	return (px-bx)*(ay-by) - (ax-bx)*(py-by)
 }
