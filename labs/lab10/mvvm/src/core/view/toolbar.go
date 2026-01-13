@@ -3,7 +3,7 @@ package view
 import (
 	"image/color"
 	"vector-editor/src/core/modelview"
-	"vector-editor/src/draw"
+	"vector-editor/src/types/draw"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"

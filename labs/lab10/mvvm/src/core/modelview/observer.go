@@ -1,8 +1,8 @@
 package modelview
 
 import (
-	"vector-editor/src/draw"
 	"vector-editor/src/types"
+	"vector-editor/src/types/draw"
 )
 
 type WorkspaceModelViewObserver interface {

@@ -2,9 +2,9 @@ package manager
 
 import (
 	"image/color"
-	"vector-editor/src/draw"
 	"vector-editor/src/history"
 	"vector-editor/src/types"
+	"vector-editor/src/types/draw"
 )
 
 type CanvasManager interface {

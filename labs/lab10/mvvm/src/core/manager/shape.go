@@ -2,10 +2,10 @@ package manager
 
 import (
 	"image/color"
-	"vector-editor/src/draw"
-	"vector-editor/src/geometry"
 	"vector-editor/src/history"
 	"vector-editor/src/types"
+	"vector-editor/src/types/draw"
+	"vector-editor/src/types/geometry"
 )
 
 type ShapeManagerObserver interface {

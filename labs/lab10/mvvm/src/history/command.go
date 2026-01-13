@@ -2,9 +2,9 @@ package history
 
 import (
 	"image/color"
-	"vector-editor/src/draw"
-	"vector-editor/src/geometry"
 	"vector-editor/src/types"
+	"vector-editor/src/types/draw"
+	"vector-editor/src/types/geometry"
 )
 
 type Command interface {

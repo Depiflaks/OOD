@@ -3,8 +3,8 @@ package model
 import (
 	"fmt"
 	"image/color"
-	"vector-editor/src/draw"
 	"vector-editor/src/types"
+	"vector-editor/src/types/draw"
 )
 
 type CanvasObserver interface {

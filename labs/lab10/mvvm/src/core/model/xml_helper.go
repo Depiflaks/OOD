@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"vector-editor/src/draw"
 	"vector-editor/src/types"
+	"vector-editor/src/types/draw"
 )
 
 type xmlWorkspace struct {

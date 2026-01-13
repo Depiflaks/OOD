@@ -1,11 +1,11 @@
 package modelview
 
 import (
+	manager2 "vector-editor/src/core/manager"
 	"vector-editor/src/core/model"
-	"vector-editor/src/draw"
-	"vector-editor/src/geometry"
-	"vector-editor/src/manager"
 	"vector-editor/src/types"
+	"vector-editor/src/types/draw"
+	"vector-editor/src/types/geometry"
 )
 
 // EditableShape
@@ -83,7 +83,7 @@ func (s *shapeModelView) UpdateStyle(style draw.Style) {
 }
 
 type ShapeModelView interface {
-	manager.ViewEvents
+	manager2.ViewEvents
 
 	IsDeleted() bool
 	IsSelected() bool
@@ -103,7 +103,7 @@ type ShapeModelView interface {
 
 type shapeModelView struct {
 	shape     model.Shape
-	manager   manager.ShapeManager
+	manager   manager2.ShapeManager
 	observers []ShapeModelViewObserver
 
 	position  geometry.Point
@@ -123,7 +123,7 @@ type shapeModelView struct {
 
 func NewShapeModelView(
 	shape model.Shape,
-	manager manager.ShapeManager,
+	manager manager2.ShapeManager,
 ) ShapeModelView {
 	mv := &shapeModelView{
 		shape:     shape,

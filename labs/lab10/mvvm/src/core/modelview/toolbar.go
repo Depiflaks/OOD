@@ -2,9 +2,9 @@ package modelview
 
 import (
 	"image/color"
-	"vector-editor/src/draw"
-	"vector-editor/src/manager"
+	"vector-editor/src/core/manager"
 	"vector-editor/src/types"
+	"vector-editor/src/types/draw"
 )
 
 type ToolbarModelView interface {

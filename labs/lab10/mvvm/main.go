@@ -2,13 +2,12 @@ package main
 
 import (
 	"image/color"
+	"vector-editor/src/core/manager"
 	"vector-editor/src/core/model"
 	"vector-editor/src/core/modelview"
 	"vector-editor/src/core/view"
 
 	"fyne.io/fyne/v2/app"
-
-	"vector-editor/src/manager"
 )
 
 func main() {

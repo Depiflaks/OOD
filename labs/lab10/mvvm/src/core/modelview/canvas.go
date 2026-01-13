@@ -2,8 +2,8 @@ package modelview
 
 import (
 	"image/color"
+	"vector-editor/src/core/manager"
 	model2 "vector-editor/src/core/model"
-	"vector-editor/src/manager"
 	"vector-editor/src/types"
 )
 

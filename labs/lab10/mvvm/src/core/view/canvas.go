@@ -7,22 +7,12 @@ import (
 	"sync"
 	"vector-editor/src/core/modelview"
 	"vector-editor/src/types"
-
-	"vector-editor/src/geometry"
+	"vector-editor/src/types/geometry"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/widget"
-)
-
-type ResizeMarker int
-
-const (
-	MarkerTopLeft ResizeMarker = iota
-	MarkerTopRight
-	MarkerBottomLeft
-	MarkerBottomRight
 )
 
 type mouseEvent struct {
@@ -33,7 +23,7 @@ type mouseEvent struct {
 type State interface {
 	OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool)
 	OnEmptyClick(e mouseEvent, ctrl bool)
-	OnResizeActivated(e mouseEvent, shape *ShapeView, marker ResizeMarker)
+	OnResizeActivated(e mouseEvent, shape *ShapeView, marker geometry.ResizeHandle)
 	OnMouseMove(e mouseEvent)
 	OnMouseUp(e mouseEvent)
 	OnMouseLeave()
@@ -44,7 +34,7 @@ type CanvasView interface {
 
 	SetIdleState()
 	SetDraggingState(e mouseEvent, active *ShapeView)
-	SetResizingState(e mouseEvent, active *ShapeView, marker ResizeMarker)
+	SetResizingState(e mouseEvent, active *ShapeView, marker geometry.ResizeHandle)
 	ClearSelection()
 	DeleteSelection()
 	Invalidate()
@@ -82,7 +72,7 @@ func (c *canvasView) SetDraggingState(e mouseEvent, active *ShapeView) {
 	c.current = NewDraggingState(c, e, active)
 }
 
-func (c *canvasView) SetResizingState(e mouseEvent, active *ShapeView, marker ResizeMarker) {
+func (c *canvasView) SetResizingState(e mouseEvent, active *ShapeView, marker geometry.ResizeHandle) {
 	c.current = NewResizingState(c, e, active, marker)
 }
 
@@ -174,7 +164,7 @@ func (c *canvasView) MouseDown(ev *desktop.MouseEvent) {
 	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
 	me := mouseEvent{Pos: p, Ctrl: ctrl}
 
-	shape, marker, hitMarker := c.hitTestHandles(p)
+	shape, marker, hitMarker := c.hitHandles(p)
 	if hitMarker {
 		c.current.OnResizeActivated(me, shape, marker)
 		return
@@ -248,7 +238,7 @@ func (c *canvasView) hitTestShape(p geometry.Point) *ShapeView {
 	return nil
 }
 
-func (c *canvasView) hitTestHandles(p geometry.Point) (*ShapeView, ResizeMarker, bool) {
+func (c *canvasView) hitHandles(p geometry.Point) (*ShapeView, geometry.ResizeHandle, bool) {
 	for i := len(c.drawOrder) - 1; i >= 0; i-- {
 		id := c.drawOrder[i]
 		sv := c.shapes[id]

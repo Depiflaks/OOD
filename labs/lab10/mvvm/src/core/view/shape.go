@@ -9,11 +9,12 @@ import (
 	"vector-editor/src/core/modelview"
 	"vector-editor/src/file"
 	"vector-editor/src/types"
-
-	"vector-editor/src/geometry"
+	"vector-editor/src/types/geometry"
 
 	xdraw "golang.org/x/image/draw"
 )
+
+const HandleSize = 10.0
 
 type ShapeView struct {
 	mv     modelview.ShapeModelView
@@ -65,56 +66,15 @@ func (s *ShapeView) Resize(delta geometry.Vector, scale geometry.Scale) {
 func (s *ShapeView) Hit(p geometry.Point) bool {
 	pos := s.mv.GetPosition()
 	b := s.mv.GetBounds()
-	switch s.mv.GetShapeType() {
-	case types.Rect:
-		return p.X >= pos.X && p.X <= pos.X+b.Width && p.Y >= pos.Y && p.Y <= pos.Y+b.Height
-	case types.Ellipse:
-		if b.Width == 0 || b.Height == 0 {
-			return false
-		}
-		cx := pos.X + b.Width/2
-		cy := pos.Y + b.Height/2
-		rx := b.Width / 2
-		ry := b.Height / 2
-		dx := (p.X - cx) / rx
-		dy := (p.Y - cy) / ry
-		return dx*dx+dy*dy <= 1.0
-	case types.Triangle:
-		ax := pos.X + b.Width/2
-		ay := pos.Y
-		bx := pos.X
-		by := pos.Y + b.Height
-		cx := pos.X + b.Width
-		cy := pos.Y + b.Height
-		return pointInTriangle(p.X, p.Y, ax, ay, bx, by, cx, cy)
-	default:
-		return false
-	}
+	t := s.mv.GetShapeType()
+	return geometry.HitShape(p, pos, b, t)
 }
 
-func (s *ShapeView) HitHandle(p geometry.Point) (ResizeMarker, bool) {
-	handle := s.handleSize()
+func (s *ShapeView) HitHandle(p geometry.Point) (geometry.ResizeHandle, bool) {
 	pos := s.mv.GetPosition()
 	b := s.mv.GetBounds()
 
-	tl := geometry.Rect{Position: pos, Size: geometry.Bounds{Width: handle, Height: handle}}
-	tr := geometry.Rect{Position: geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y}, Size: geometry.Bounds{Width: handle, Height: handle}}
-	bl := geometry.Rect{Position: geometry.Point{X: pos.X, Y: pos.Y + b.Height - handle}, Size: geometry.Bounds{Width: handle, Height: handle}}
-	br := geometry.Rect{Position: geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y + b.Height - handle}, Size: geometry.Bounds{Width: handle, Height: handle}}
-
-	if pointInRect(p, tl) {
-		return MarkerTopLeft, true
-	}
-	if pointInRect(p, tr) {
-		return MarkerTopRight, true
-	}
-	if pointInRect(p, bl) {
-		return MarkerBottomLeft, true
-	}
-	if pointInRect(p, br) {
-		return MarkerBottomRight, true
-	}
-	return 0, false
+	return geometry.HitHandle(p, pos, b, HandleSize)
 }
 
 func (s *ShapeView) Draw(img *image.RGBA) {
@@ -158,10 +118,6 @@ func (s *ShapeView) DrawSelection(img *image.RGBA) {
 	drawRect(img, geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
 	drawRect(img, geometry.Point{X: pos.X, Y: pos.Y + b.Height - handle}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
 	drawRect(img, geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y + b.Height - handle}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
-}
-
-func (s *ShapeView) handleSize() float64 {
-	return 8
 }
 
 func rgbaFromPtr(p *color.Color) color.RGBA {
@@ -379,7 +335,7 @@ func drawTriangle(img *image.RGBA, pos geometry.Point, b geometry.Bounds, fill, 
 		for xx := minX; xx < maxX; xx++ {
 			px := float64(xx) + 0.5
 			py := float64(yy) + 0.5
-			if fill.A != 0 && pointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
+			if fill.A != 0 && geometry.PointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
 				img.SetRGBA(xx, yy, fill)
 			}
 		}
@@ -527,26 +483,4 @@ func absInt(x int) int {
 		return -x
 	}
 	return x
-}
-
-func pointInRect(p geometry.Point, r geometry.Rect) bool {
-	return p.X >= r.Position.X &&
-		p.X <= r.Position.X+r.Size.Width &&
-		p.Y >= r.Position.Y &&
-		p.Y <= r.Position.Y+r.Size.Height
-}
-
-func sign(px, py, ax, ay, bx, by float64) float64 {
-	return (px-bx)*(ay-by) - (ax-bx)*(py-by)
-}
-
-func pointInTriangle(px, py, ax, ay, bx, by, cx, cy float64) bool {
-	d1 := sign(px, py, ax, ay, bx, by)
-	d2 := sign(px, py, bx, by, cx, cy)
-	d3 := sign(px, py, cx, cy, ax, ay)
-
-	hasNeg := (d1 < 0) || (d2 < 0) || (d3 < 0)
-	hasPos := (d1 > 0) || (d2 > 0) || (d3 > 0)
-
-	return !(hasNeg && hasPos)
 }

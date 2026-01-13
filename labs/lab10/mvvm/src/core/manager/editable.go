@@ -2,8 +2,8 @@ package manager
 
 import (
 	model2 "vector-editor/src/core/model"
-	"vector-editor/src/geometry"
 	"vector-editor/src/types"
+	"vector-editor/src/types/geometry"
 )
 
 type EditableShape interface {

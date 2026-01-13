@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"vector-editor/src/geometry"
 	"vector-editor/src/types"
+	"vector-editor/src/types/geometry"
 )
 
 const workspaceFileName = "workspace.xml"
