@@ -1,43 +1,45 @@
 package view
 
 import (
-	"log"
-	"os"
+	"fmt"
 	"vector-editor/src/core/modelview"
 
 	"gioui.org/app"
+	"gioui.org/io/event"
+	"gioui.org/io/key"
+	"gioui.org/layout"
+)
+
+const (
+	WindowWidth  = 1024
+	WindowHeight = 768
+	WindowTitle  = "Vertical Editor"
 )
 
 type WorkspaceView interface {
-	Show()
+	Run() error
 }
 
 type workspaceView struct {
 	workspaceMV modelview.WorkspaceModelView
 
-	toolbar ToolbarView
-	canvas  CanvasView
+	window *app.Window
+
+	//toolbar ToolbarView
+	//canvas  CanvasView
 }
 
 func NewWorkspaceView(
 	mv modelview.WorkspaceModelView,
+	window *app.Window,
 ) WorkspaceView {
-	go func() {
-		w := new(app.Window)
-		w.Option(app.Title("Vector Editor"), app.Size(400, 400))
-		if err := loop(w); err != nil {
-			log.Fatal(err)
-		}
-		os.Exit(0)
-	}()
-	app.Main()
-	w := &workspaceView{
-		app:         a,
-		window:      a.NewWindow("Vector Editor"),
+	window.Option(app.Title(WindowTitle), app.Size(WindowWidth, WindowHeight))
+	wv := &workspaceView{
 		workspaceMV: mv,
+		window:      window,
 	}
 
-	fileActions := FileActions{
+	_ = FileActions{
 		Open: func(path string) {
 			mv.Open(path)
 		},
@@ -49,31 +51,53 @@ func NewWorkspaceView(
 		},
 	}
 
-	w.toolbar = NewToolbarView(w.window, mv.Toolbar(), fileActions)
-	w.canvas = NewCanvasView(mv.Canvas())
+	//w.toolbar = NewToolbarView(w.window, mv.Toolbar(), fileActions)
+	//w.canvas = NewCanvasView(mv.Canvas())
 
-	content := container.NewBorder(w.toolbar.Object(), nil, nil, nil, w.canvas)
-	w.window.SetContent(content)
-	w.window.Resize(fyne.NewSize(1024, 768))
-
-	w.installShortcuts()
-
-	return w
+	return wv
 }
 
-func (w *workspaceView) Show() {
-	w.window.Show()
+func (v *workspaceView) Run() error {
+
 }
 
-func (w *workspaceView) installShortcuts() {
-	w.window.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
-		switch k.Name {
-		case fyne.KeyZ:
-			w.workspaceMV.Undo()
-		case fyne.KeyU:
-			w.workspaceMV.Redo()
-		case fyne.KeyDelete:
-			w.workspaceMV.Delete()
+func ProcessKeys(gtx layout.Context, tag event.Tag) {
+	for {
+		ev, ok := gtx.Event(key.Filter{Focus: tag})
+		if !ok {
+			break
 		}
-	})
+
+		if e, ok := ev.(key.Event); ok {
+			if e.State == key.Press {
+				switch e.Name {
+				case key.NameReturn, key.NameEnter:
+					fmt.Println("Нажат Enter")
+				case key.NameEscape:
+					fmt.Println("Нажат Escape")
+				case key.NameLeftArrow:
+					fmt.Println("Стрелка Влево")
+				case key.NameRightArrow:
+					fmt.Println("Стрелка Вправо")
+				case "Q", "q":
+					fmt.Println("Нажата буква Q")
+				default:
+					fmt.Printf("Нажата клавиша: %v\n", e.Name)
+				}
+			}
+		}
+	}
 }
+
+//func (v *workspaceView) installShortcuts() {
+//	v.window.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
+//		switch k.Name {
+//		case fyne.KeyZ:
+//			v.workspaceMV.Undo()
+//		case fyne.KeyU:
+//			v.workspaceMV.Redo()
+//		case fyne.KeyDelete:
+//			v.workspaceMV.Delete()
+//		}
+//	})
+//}
