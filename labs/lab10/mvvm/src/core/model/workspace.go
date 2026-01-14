@@ -147,8 +147,8 @@ func (w *workspaceModel) Open(path string) {
 
 		sh := NewShape(t, id, style)
 		sh.UpdateRect(
-			geometry.Point{X: float64(xs.Position.X), Y: float64(xs.Position.Y)},
-			geometry.Bounds{Width: float64(xs.Size.W), Height: float64(xs.Size.H)},
+			geometry.Point{X: int(xs.Position.X), Y: int(xs.Position.Y)},
+			geometry.Bounds{Width: int(xs.Size.W), Height: int(xs.Size.H)},
 		)
 		//cc.shapes[id] = sh
 	}

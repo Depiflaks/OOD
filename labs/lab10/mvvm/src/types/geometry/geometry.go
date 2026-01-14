@@ -32,13 +32,12 @@ func CalculateScale(
 	startBounds Bounds,
 ) (point Point, bounds Bounds) {
 	newBounds := Bounds{
-		Width:  startBounds.Width * scale.ScaleX,
-		Height: startBounds.Height * scale.ScaleY,
+		Width:  int(float64(startBounds.Width) * scale.ScaleX),
+		Height: int(float64(startBounds.Height) * scale.ScaleY),
 	}
 
-	const eps = 1e-9
-	dx0 := delta.X > -eps && delta.X < eps
-	dy0 := delta.Y > -eps && delta.Y < eps
+	dx0 := delta.X == 0
+	dy0 := delta.Y == 0
 
 	fixedTop := dy0
 	fixedLeft := dx0

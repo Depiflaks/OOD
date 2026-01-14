@@ -71,25 +71,22 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 	strokeWidth := float32(2.0)
 
 	rect := image.Rectangle{Max: size}
+	offset := op.Offset(pos).Push(gtx.Ops)
 
+	var strokePath clip.PathSpec
 	switch s.mv.GetShapeType() {
 
 	// TODO: оптимизировать
+	//TODO: общий тип - OP
 	case types.Rect:
 		cl := clip.Rect(rect)
 		paint.FillShape(gtx.Ops, fillColor, cl.Op())
-
-		strokePath := cl.Path()
-		strokeShape := clip.Stroke{Path: strokePath, Width: strokeWidth}.Op()
-		paint.FillShape(gtx.Ops, strokeColor, strokeShape)
+		strokePath = cl.Path()
 
 	case types.Ellipse:
 		cl := clip.Ellipse(rect)
 		paint.FillShape(gtx.Ops, fillColor, cl.Op(gtx.Ops))
-
-		strokePath := cl.Path(gtx.Ops)
-		strokeShape := clip.Stroke{Path: strokePath, Width: strokeWidth}.Op()
-		paint.FillShape(gtx.Ops, strokeColor, strokeShape)
+		strokePath = cl.Path(gtx.Ops)
 
 	case types.Triangle:
 		var path clip.Path
@@ -103,15 +100,13 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 		path.LineTo(f32.Pt(0, h))
 		path.Close()
 
-		spec := path.End()
+		strokePath = path.End()
+		cl := clip.Outline{Path: strokePath}.Op()
 
-		paint.FillShape(gtx.Ops, fillColor, clip.Outline{Path: spec}.Op())
-
-		strokeShape := clip.Stroke{Path: spec, Width: strokeWidth}.Op()
-		paint.FillShape(gtx.Ops, strokeColor, strokeShape)
+		paint.FillShape(gtx.Ops, fillColor, cl.Op())
 	}
-
-	offset := op.Offset(pos).Push(gtx.Ops)
+	strokeShape := clip.Stroke{Path: strokePath, Width: strokeWidth}.Op()
+	paint.FillShape(gtx.Ops, strokeColor, strokeShape)
 
 	// TODO: заменить на нормальную область
 	shapeRect := clip.Rect{Max: size}
@@ -181,17 +176,19 @@ func (s *shapeView) Resize(delta geometry.Vector, scale geometry.Scale) {
 }
 
 func (s *shapeView) Hit(p geometry.Point) bool {
-	pos := s.mv.GetPosition()
-	b := s.mv.GetBounds()
-	t := s.mv.GetShapeType()
-	return geometry.HitShape(p, pos, b, t)
+	//pos := s.mv.GetPosition()
+	//b := s.mv.GetBounds()
+	//t := s.mv.GetShapeType()
+	return false
+	//return geometry.HitShape(p, pos, b, t)
 }
 
 func (s *shapeView) HitHandle(p geometry.Point) (geometry.ResizeHandle, bool) {
-	pos := s.mv.GetPosition()
-	b := s.mv.GetBounds()
+	//pos := s.mv.GetPosition()
+	//b := s.mv.GetBounds()
 
-	return geometry.HitHandle(p, pos, b, HandleSize)
+	//return geometry.HitHandle(p, pos, b, HandleSize)
+	return geometry.HandleTopLeft, false
 }
 
 //func (s *shapeView) Draw(img *image.RGBA) {

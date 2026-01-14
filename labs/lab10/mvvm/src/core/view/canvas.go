@@ -152,8 +152,8 @@ func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {
 		if _, ok := c.shapes[id]; ok {
 			continue
 		}
-		//sv := NewShapeView(shape, c)
-		//c.shapes[id] = sv
+		sv := NewShapeView(shape, c)
+		c.shapes[id] = sv
 		c.drawOrder = append(c.drawOrder, id)
 	}
 	c.Invalidate()
