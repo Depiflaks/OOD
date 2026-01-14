@@ -7,18 +7,11 @@ import (
 	"vector-editor/src/core/modelview"
 
 	"gioui.org/app"
-	"gioui.org/f32"
-	"gioui.org/font/gofont"
 	"gioui.org/io/event"
 	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
-	"gioui.org/text"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"gioui.org/x/colorpicker"
 )
 
 type (
@@ -74,7 +67,35 @@ func NewWorkspaceView(
 }
 
 func (v *workspaceView) Run() error {
+	th := material.NewTheme()
+	th.Bg = color.NRGBA{R: 255, A: 255}
+	var ops op.Ops
 
+	for {
+		switch e := v.window.Event().(type) {
+		case app.DestroyEvent:
+			return e.Err
+		case app.FrameEvent:
+			gtx := app.NewContext(&ops, e)
+
+			layout.Stack{}.Layout(gtx,
+				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							// TODO: нарисовать toolbar
+							return layout.Dimensions{Size: image.Point{}}
+						}),
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							// TODO: нарисовать canvas
+							return layout.Dimensions{Size: image.Point{}}
+						}),
+					)
+				}),
+			)
+
+			e.Frame(gtx.Ops)
+		}
+	}
 }
 
 func ProcessKeys(gtx layout.Context, tag event.Tag) {
