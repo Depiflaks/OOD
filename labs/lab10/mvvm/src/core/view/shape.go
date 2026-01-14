@@ -1,84 +1,98 @@
 package view
 
-//
-//import (
-//	"image"
-//	"image/color"
-//	"image/draw"
-//	"io"
-//	"math"
-//	"vector-editor/src/core/modelview"
-//	"vector-editor/src/file"
-//	"vector-editor/src/types"
-//	"vector-editor/src/types/geometry"
-//
-//	xdraw "golang.org/x/image/draw"
-//)
-//
-//const HandleSize = 10.0
-//
-//type ShapeView struct {
-//	mv     modelview.ShapeModelView
-//	canvas CanvasView
-//}
-//
-//func NewShapeView(mv modelview.ShapeModelView, canvas CanvasView) *ShapeView {
-//	s := &ShapeView{mv: mv, canvas: canvas}
+import (
+	"image"
+	"vector-editor/src/core/modelview"
+	"vector-editor/src/types/geometry"
+)
+
+const HandleSize = 10.0
+
+type ShapeView interface {
+	Update()
+	IsDeleted() bool
+	IsSelected() bool
+	Select(ctrl bool)
+
+	GetPosition() geometry.Point
+	GetBounds() geometry.Bounds
+
+	StartDragging()
+	StopDragging()
+	Drag(delta geometry.Vector)
+
+	StartResizing()
+	StopResizing()
+	Resize(delta geometry.Vector, scale geometry.Scale)
+
+	Hit(p geometry.Point) bool
+	HitHandle(p geometry.Point) (geometry.ResizeHandle, bool)
+
+	Draw(img *image.RGBA)
+	DrawSelection(img *image.RGBA)
+}
+type shapeView struct {
+	mv     modelview.ShapeModelView
+	canvas CanvasView
+}
+
+//func NewShapeView(mv modelview.ShapeModelView, canvas CanvasView) ShapeView {
+//	s := &shapeView{mv: mv, canvas: canvas}
 //	mv.AddObserver(s)
 //	return s
 //}
 //
-//func (s *ShapeView) Update() {
+//func (s *shapeView) Update() {
 //	s.canvas.Invalidate()
 //}
 //
-//func (s *ShapeView) IsDeleted() bool {
+//func (s *shapeView) IsDeleted() bool {
 //	return s.mv.IsDeleted()
 //}
 //
-//func (s *ShapeView) IsSelected() bool {
+//func (s *shapeView) IsSelected() bool {
 //	return s.mv.IsSelected()
 //}
 //
-//func (s *ShapeView) GetPosition() geometry.Point {
+//func (s *shapeView) GetPosition() geometry.Point {
 //	return s.mv.GetPosition()
 //}
 //
-//func (s *ShapeView) GetBounds() geometry.Bounds {
+//func (s *shapeView) GetBounds() geometry.Bounds {
 //	return s.mv.GetBounds()
 //}
 //
-//func (s *ShapeView) Select(ctrl bool) {
+//func (s *shapeView) Select(ctrl bool) {
 //	s.mv.Select(ctrl)
 //}
 //
-//func (s *ShapeView) StartDragging() { s.mv.StartDragging() }
-//func (s *ShapeView) StopDragging()  { s.mv.StopDragging() }
-//func (s *ShapeView) Drag(delta geometry.Vector) {
+//func (s *shapeView) StartDragging() { s.mv.StartDragging() }
+//func (s *shapeView) StopDragging()  { s.mv.StopDragging() }
+//func (s *shapeView) Drag(delta geometry.Vector) {
 //	s.mv.Drag(delta)
 //}
 //
-//func (s *ShapeView) StartResizing() { s.mv.StartResizing() }
-//func (s *ShapeView) StopResizing()  { s.mv.StopResizing() }
-//func (s *ShapeView) Resize(delta geometry.Vector, scale geometry.Scale) {
+//func (s *shapeView) StartResizing() { s.mv.StartResizing() }
+//func (s *shapeView) StopResizing()  { s.mv.StopResizing() }
+//func (s *shapeView) Resize(delta geometry.Vector, scale geometry.Scale) {
 //	s.mv.Resize(delta, scale)
 //}
 //
-//func (s *ShapeView) Hit(p geometry.Point) bool {
+//func (s *shapeView) Hit(p geometry.Point) bool {
 //	pos := s.mv.GetPosition()
 //	b := s.mv.GetBounds()
 //	t := s.mv.GetShapeType()
 //	return geometry.HitShape(p, pos, b, t)
 //}
 //
-//func (s *ShapeView) HitHandle(p geometry.Point) (geometry.ResizeHandle, bool) {
+//func (s *shapeView) HitHandle(p geometry.Point) (geometry.ResizeHandle, bool) {
 //	pos := s.mv.GetPosition()
 //	b := s.mv.GetBounds()
 //
 //	return geometry.HitHandle(p, pos, b, HandleSize)
 //}
 //
-//func (s *ShapeView) Draw(img *image.RGBA) {
+//func (s *shapeView) Draw(img *image.RGBA) {
 //	if s.mv.IsDeleted() {
 //		return
 //	}
@@ -108,7 +122,7 @@ package view
 //	}
 //}
 //
-//func (s *ShapeView) DrawSelection(img *image.RGBA) {
+//func (s *shapeView) DrawSelection(img *image.RGBA) {
 //	stroke := color.RGBA{0, 120, 255, 255}
 //	handle := 8.0
 //	pos := s.mv.GetPosition()

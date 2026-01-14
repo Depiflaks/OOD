@@ -36,7 +36,7 @@ type workspaceView struct {
 	window *app.Window
 
 	toolbar ToolbarView
-	//canvas  CanvasView
+	canvas  CanvasView
 
 	locked bool
 }

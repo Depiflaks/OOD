@@ -41,6 +41,8 @@ const (
 	backgroundOption muxOption = "background"
 )
 
+const verticalSpace = 10
+
 type toolbarView struct {
 	window      *app.Window
 	mv          modelview.ToolbarModelView
@@ -112,73 +114,44 @@ func (t *toolbarView) Process(gtx layout.Context) layout.Dimensions {
 	paint.Fill(gtx.Ops, color.NRGBA{R: 255, G: 250, B: 240, A: 255})
 	areaStack.Pop()
 
-	layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx C) D {
+	return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx C) D {
 		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 			layout.Rigid(func(gtx C) D {
 				return t.drawShapeButtons(gtx)
 			}),
-			layout.Rigid(layout.Spacer{Width: unit.Dp(20)}.Layout),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(40)}.Layout),
 			layout.Rigid(func(gtx C) D {
 				return t.drawColorPickers(gtx)
 			}),
-
-			//layout.Rigid(func(gtx C) D {
-			//	return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx C) D {
-			//		return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
-			//			layout.Rigid(func(gtx C) D { return material.Button(th, &btnUndo, "Undo").Layout(gtx) }),
-			//			layout.Rigid(func(gtx C) D { return material.Button(th, &btnRedo, "Redo").Layout(gtx) }),
-			//			layout.Rigid(func(gtx C) D { return layout.Spacer{Width: unit.Dp(20)}.Layout(gtx) }),
-			//			layout.Rigid(func(gtx C) D { return material.Button(th, &btnSave, "Save").Layout(gtx) }),
-			//			layout.Rigid(func(gtx C) D { return material.Button(th, &btnSaveAs, "Save As").Layout(gtx) }),
-			//			layout.Rigid(func(gtx C) D { return material.Button(th, &btnOpen, "Open").Layout(gtx) }),
-			//		)
-			//	})
-			//}),
-			//
-			//layout.Flexed(1, func(gtx C) D {
-			//	size := gtx.Constraints.Max
-			//
-			//	defer clip.Rect{Max: size}.Push(gtx.Ops).Pop()
-			//
-			//	paint.Fill(gtx.Ops, color.NRGBA{R: 40, G: 40, B: 45, A: 255})
-			//
-			//	center := image.Pt(size.X, size.Y)
-			//	paint.FillShape(gtx.Ops,
-			//		color.NRGBA{R: 255, G: 255, B: 255, A: 50},
-			//		clip.Ellipse{Min: center.Sub(image.Pt(100, 100)), Max: center.Add(image.Pt(100, 100))}.Op(gtx.Ops),
-			//	)
-			//
-			//	return D{Size: size}
-			//}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(40)}.Layout),
+			layout.Rigid(func(gtx C) D {
+				return t.drawFileOperationButtons(gtx)
+			}),
 		)
 	})
-	//btnFill := widget.NewButton("Fill", func() {
-	//	d := dialog.NewColorPicker("Fill", "Select fill color", func(c color.Color) {
-	//		var cc = c
-	//		view.curStyle.Fill = &cc
-	//
-	//		view.fillPreview.FillColor = c
-	//		view.fillPreview.Refresh()
-	//
-	//		mv.SetFillColor(c)
-	//	}, window)
-	//	d.Show()
-	//})
-	//
-	//btnStroke := widget.NewButton("Stroke", func() {
-	//	d := dialog.NewColorPicker("Stroke", "Select stroke color", func(c color.Color) {
-	//		var cc = c
-	//		view.curStyle.Stroke = &cc
-	//
-	//		view.strokePreview.FillColor = c
-	//		view.strokePreview.Refresh()
-	//
-	//		mv.SetBorderColor(c)
-	//	}, window)
-	//	d.Show()
-	//})
-	//
-	return layout.Dimensions{}
+}
+
+func (t *toolbarView) drawFileOperationButtons(gtx layout.Context) layout.Dimensions {
+	return layout.Flex{
+		Axis:      layout.Vertical,
+		Spacing:   layout.SpaceBetween,
+		Alignment: layout.Middle,
+	}.Layout(gtx,
+		layout.Rigid(func(gtx C) D {
+			gtx.Constraints = layout.Exact(buttonSize)
+			return material.Button(t.buttonTheme, &t.btnSave, "Save").Layout(gtx)
+		}),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(verticalSpace)}.Layout),
+		layout.Rigid(func(gtx C) D {
+			gtx.Constraints = layout.Exact(buttonSize)
+			return material.Button(t.buttonTheme, &t.btnSaveAs, "SaveAs").Layout(gtx)
+		}),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(verticalSpace)}.Layout),
+		layout.Rigid(func(gtx C) D {
+			gtx.Constraints = layout.Exact(buttonSize)
+			return material.Button(t.buttonTheme, &t.btnOpen, "Open").Layout(gtx)
+		}),
+	)
 }
 
 func (t *toolbarView) drawShapeButtons(gtx layout.Context) layout.Dimensions {
@@ -191,12 +164,12 @@ func (t *toolbarView) drawShapeButtons(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints = layout.Exact(buttonSize)
 			return material.Button(t.buttonTheme, &t.btnRect, "Rect").Layout(gtx)
 		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(6)}.Layout),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(verticalSpace)}.Layout),
 		layout.Rigid(func(gtx C) D {
 			gtx.Constraints = layout.Exact(buttonSize)
 			return material.Button(t.buttonTheme, &t.btnTri, "Tri").Layout(gtx)
 		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(6)}.Layout),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(verticalSpace)}.Layout),
 		layout.Rigid(func(gtx C) D {
 			gtx.Constraints = layout.Exact(buttonSize)
 			return material.Button(t.buttonTheme, &t.btnOval, "Oval").Layout(gtx)
@@ -214,13 +187,13 @@ func (t *toolbarView) drawColorPickers(gtx layout.Context) layout.Dimensions {
 			return t.drawColorRow(gtx, "Fill", t.fill, &t.btnFill)
 		}),
 
-		layout.Rigid(layout.Spacer{Height: unit.Dp(6)}.Layout),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(verticalSpace)}.Layout),
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return t.drawColorRow(gtx, "Stroke", t.stroke, &t.btnStroke)
 		}),
 
-		layout.Rigid(layout.Spacer{Height: unit.Dp(6)}.Layout),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(verticalSpace)}.Layout),
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return t.drawColorRow(gtx, "Background", t.background, &t.btnBackground)
@@ -237,7 +210,14 @@ func (t *toolbarView) drawColorRow(
 		Axis: layout.Horizontal,
 	}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			square := image.Rectangle{Min: buttonSize}
+			gtx.Constraints = layout.Exact(buttonSize)
+			return material.Button(t.buttonTheme, btn, label).Layout(gtx)
+		}),
+
+		layout.Rigid(layout.Spacer{Width: unit.Dp(8)}.Layout),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			square := image.Rectangle{Max: buttonSize}
 
 			rr := clip.UniformRRect(square, 3)
 			paint.FillShape(gtx.Ops, col, rr.Op(gtx.Ops))
@@ -246,13 +226,6 @@ func (t *toolbarView) drawColorRow(
 			paint.FillShape(gtx.Ops, color.NRGBA{A: 50}, stroke.Op())
 
 			return layout.Dimensions{Size: rr.Rect.Size()}
-		}),
-
-		layout.Rigid(layout.Spacer{Width: unit.Dp(8)}.Layout),
-
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			gtx.Constraints = layout.Exact(buttonSize)
-			return material.Button(t.buttonTheme, btn, label).Layout(gtx)
 		}),
 	)
 }
