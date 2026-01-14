@@ -12,7 +12,7 @@ func NewIdleState(c CanvasView) State {
 
 func (s *idleState) OnMouseLeave() {}
 
-func (s *idleState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {
+func (s *idleState) OnShapeClick(e mouseEvent, shape ShapeView, ctrl bool) {
 	if !shape.IsSelected() {
 		shape.Select(ctrl)
 	}
@@ -23,7 +23,7 @@ func (s *idleState) OnEmptyClick(e mouseEvent, ctrl bool) {
 	s.c.ClearSelection()
 }
 
-func (s *idleState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker geometry.ResizeHandle) {
+func (s *idleState) OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle) {
 	s.c.SetResizingState(e, shape, marker)
 }
 
@@ -33,7 +33,7 @@ func (s *idleState) OnMouseUp(e mouseEvent) {}
 
 // Dragging
 
-func NewDraggingState(c CanvasView, e mouseEvent, active *ShapeView) State {
+func NewDraggingState(c CanvasView, e mouseEvent, active ShapeView) State {
 	active.StartDragging()
 	return &draggingState{
 		c:          c,
@@ -45,7 +45,7 @@ func NewDraggingState(c CanvasView, e mouseEvent, active *ShapeView) State {
 type draggingState struct {
 	c CanvasView
 
-	active     *ShapeView
+	active     ShapeView
 	startMouse geometry.Point
 }
 
@@ -56,11 +56,11 @@ func (s *draggingState) OnMouseLeave() {
 	s.c.SetIdleState()
 }
 
-func (s *draggingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
+func (s *draggingState) OnShapeClick(e mouseEvent, shape ShapeView, ctrl bool) {}
 
 func (s *draggingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
 
-func (s *draggingState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker geometry.ResizeHandle) {
+func (s *draggingState) OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle) {
 }
 
 func (s *draggingState) OnMouseMove(e mouseEvent) {
@@ -87,7 +87,7 @@ func (s *draggingState) OnMouseUp(e mouseEvent) {
 	s.c.SetIdleState()
 }
 
-func NewResizingState(c CanvasView, e mouseEvent, active *ShapeView, marker geometry.ResizeHandle) State {
+func NewResizingState(c CanvasView, e mouseEvent, active ShapeView, marker geometry.ResizeHandle) State {
 	active.StartResizing()
 	return &resizingState{
 		c:          c,
@@ -104,7 +104,7 @@ func NewResizingState(c CanvasView, e mouseEvent, active *ShapeView, marker geom
 type resizingState struct {
 	c CanvasView
 
-	active     *ShapeView
+	active     ShapeView
 	marker     geometry.ResizeHandle
 	startMouse geometry.Point
 	startSel   geometry.Rect
@@ -117,11 +117,11 @@ func (s *resizingState) OnMouseLeave() {
 	s.c.SetIdleState()
 }
 
-func (s *resizingState) OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool) {}
+func (s *resizingState) OnShapeClick(e mouseEvent, shape ShapeView, ctrl bool) {}
 
 func (s *resizingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
 
-func (s *resizingState) OnResizeActivated(e mouseEvent, shape *ShapeView, marker geometry.ResizeHandle) {
+func (s *resizingState) OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle) {
 }
 
 func (s *resizingState) OnMouseMove(e mouseEvent) {
@@ -173,8 +173,8 @@ func (s *resizingState) findScaleAndDirection(e mouseEvent) (geometry.Scale, geo
 		Size:     geometry.Bounds{Width: newRight - newLeft, Height: newBottom - newTop},
 	}
 
-	scaleX := newSel.Size.Width / s.startSel.Size.Width
-	scaleY := newSel.Size.Height / s.startSel.Size.Height
+	scaleX := float64(newSel.Size.Width) / float64(s.startSel.Size.Width)
+	scaleY := float64(newSel.Size.Height) / float64(s.startSel.Size.Height)
 	scale := geometry.Scale{ScaleX: scaleX, ScaleY: scaleY}
 
 	deltaTL := geometry.Vector{

@@ -1,10 +1,13 @@
 package view
 
 import (
-	"image"
-	"image/draw"
-	"math"
-	"sync"
+	"image/color"
+
+	"gioui.org/app"
+	"gioui.org/layout"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
+
 	"vector-editor/src/core/modelview"
 	"vector-editor/src/types"
 	"vector-editor/src/types/geometry"
@@ -16,36 +19,38 @@ type mouseEvent struct {
 }
 
 type State interface {
-	OnShapeClick(e mouseEvent, shape *ShapeView, ctrl bool)
+	OnShapeClick(e mouseEvent, shape ShapeView, ctrl bool)
 	OnEmptyClick(e mouseEvent, ctrl bool)
-	OnResizeActivated(e mouseEvent, shape *ShapeView, marker geometry.ResizeHandle)
+	OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle)
 	OnMouseMove(e mouseEvent)
 	OnMouseUp(e mouseEvent)
 	OnMouseLeave()
 }
 
-type CanvasView interface {
+type stateMachine interface {
 	SetIdleState()
-	SetDraggingState(e mouseEvent, active *ShapeView)
-	SetResizingState(e mouseEvent, active *ShapeView, marker geometry.ResizeHandle)
+	SetDraggingState(e mouseEvent, active ShapeView)
+	SetResizingState(e mouseEvent, active ShapeView, marker geometry.ResizeHandle)
+}
+
+type CanvasView interface {
+	stateMachine
+
+	Process(gtx layout.Context) layout.Dimensions
+
 	ClearSelection()
 	DeleteSelection()
 	Invalidate()
 }
 
 type canvasView struct {
-	mv modelview.CanvasModelView
+	window *app.Window
+	mv     modelview.CanvasModelView
 
-	shapes    map[types.ShapeId]*ShapeView
+	shapes    map[types.ShapeId]ShapeView
 	drawOrder []types.ShapeId
 
-	img *image.RGBA
-
 	current State
-
-	dirty   bool
-	refresh bool
-	mu      sync.Mutex
 }
 
 func (c *canvasView) OnBackgroundChanged() {
@@ -56,75 +61,82 @@ func (c *canvasView) SetIdleState() {
 	c.current = NewIdleState(c)
 }
 
-func (c *canvasView) SetDraggingState(e mouseEvent, active *ShapeView) {
+func (c *canvasView) SetDraggingState(e mouseEvent, active ShapeView) {
 	c.current = NewDraggingState(c, e, active)
 }
 
-func (c *canvasView) SetResizingState(e mouseEvent, active *ShapeView, marker geometry.ResizeHandle) {
+func (c *canvasView) SetResizingState(e mouseEvent, active ShapeView, marker geometry.ResizeHandle) {
 	c.current = NewResizingState(c, e, active, marker)
 }
 
-func NewCanvasView(mv modelview.CanvasModelView) CanvasView {
+func NewCanvasView(
+	window *app.Window,
+	mv modelview.CanvasModelView,
+) CanvasView {
 	c := &canvasView{
 		mv:     mv,
-		shapes: make(map[types.ShapeId]*ShapeView),
-		dirty:  true,
+		window: window,
+		shapes: make(map[types.ShapeId]ShapeView),
 	}
-	c.ExtendBaseWidget(c)
 
 	c.current = NewIdleState(c)
 
 	mv.AddObserver(c)
-
 	return c
 }
 
-func (c *canvasView) CreateRenderer() fyne.WidgetRenderer {
-	c.raster = canvas.NewRaster(func(w, h int) image.Image {
-		if c.img == nil || c.img.Bounds().Dx() != w || c.img.Bounds().Dy() != h {
-			c.ensureBuffer(c.Size())
-		}
-		if c.dirty {
-			c.redraw()
-			c.dirty = false
-		}
-		return c.img
-	})
-
-	objs := []fyne.CanvasObject{c.raster}
-	return &canvasViewRenderer{c: c, objs: objs}
-}
-
-func (c *canvasView) ensureBuffer(sz fyne.Size) {
-	w := int(math.Max(1, float64(sz.Width)))
-	h := int(math.Max(1, float64(sz.Height)))
-	c.img = image.NewRGBA(image.Rect(0, 0, w, h))
-	c.dirty = true
-}
-
-func (c *canvasView) redraw() {
-	if c.img == nil {
-		return
-	}
-
-	draw.Draw(c.img, c.img.Bounds(), &image.Uniform{C: c.mv.GetBackgroundColor()}, image.Point{}, draw.Src)
+func (c *canvasView) Process(gtx layout.Context) layout.Dimensions {
+	c.fillBackground(gtx)
 
 	for _, id := range c.drawOrder {
 		sv := c.shapes[id]
 		if sv == nil || sv.IsDeleted() {
 			continue
 		}
-		sv.Draw(c.img)
+		sv.Process(gtx)
 	}
 
-	for _, id := range c.drawOrder {
-		sv := c.shapes[id]
-		if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
-			continue
-		}
-		sv.DrawSelection(c.img)
-	}
+	//for _, id := range c.drawOrder {
+	//	sv := c.shapes[id]
+	//	if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
+	//		continue
+	//	}
+	//	sv.DrawSelection(c.img)
+	//}
+
+	return layout.Dimensions{Size: gtx.Constraints.Max}
 }
+
+func (c *canvasView) fillBackground(gtx layout.Context) {
+	background := c.mv.GetBackgroundColor()
+	clip.Rect{Max: gtx.Constraints.Max}.Push(gtx.Ops)
+	col := color.NRGBAModel.Convert(background).(color.NRGBA)
+	paint.Fill(gtx.Ops, col)
+}
+
+//func (c *canvasView) redraw() {
+//	if c.img == nil {
+//		return
+//	}
+//
+//	draw.Draw(c.img, c.img.Bounds(), &image.Uniform{C: c.mv.GetBackgroundColor()}, image.Point{}, draw.Src)
+//
+//	for _, id := range c.drawOrder {
+//		sv := c.shapes[id]
+//		if sv == nil || sv.IsDeleted() {
+//			continue
+//		}
+//		sv.Draw(c.img)
+//	}
+//
+//	for _, id := range c.drawOrder {
+//		sv := c.shapes[id]
+//		if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
+//			continue
+//		}
+//		sv.DrawSelection(c.img)
+//	}
+//}
 
 func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {
 	for _, id := range ids {
@@ -140,46 +152,46 @@ func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {
 		if _, ok := c.shapes[id]; ok {
 			continue
 		}
-		sv := NewShapeView(shape, c)
-		c.shapes[id] = sv
+		//sv := NewShapeView(shape, c)
+		//c.shapes[id] = sv
 		c.drawOrder = append(c.drawOrder, id)
 	}
 	c.Invalidate()
 }
 
-func (c *canvasView) MouseDown(ev *desktop.MouseEvent) {
-	ctrl := ev.Modifier == fyne.KeyModifierControl
-	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
-	me := mouseEvent{Pos: p, Ctrl: ctrl}
-
-	shape, marker, hitMarker := c.hitHandles(p)
-	if hitMarker {
-		c.current.OnResizeActivated(me, shape, marker)
-		return
-	}
-
-	shape = c.hitTestShape(p)
-	if shape != nil {
-		c.current.OnShapeClick(me, shape, ctrl)
-		return
-	}
-
-	c.current.OnEmptyClick(me, ctrl)
-}
-
-func (c *canvasView) MouseUp(ev *desktop.MouseEvent) {
-	ctrl := ev.Modifier == fyne.KeyModifierControl
-	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
-	c.current.OnMouseUp(mouseEvent{Pos: p, Ctrl: ctrl})
-}
-
-func (c *canvasView) MouseIn(ev *desktop.MouseEvent) {}
-
-func (c *canvasView) MouseMoved(ev *desktop.MouseEvent) {
-	ctrl := ev.Modifier == fyne.KeyModifierControl
-	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
-	c.current.OnMouseMove(mouseEvent{Pos: p, Ctrl: ctrl})
-}
+//func (c *canvasView) MouseDown(ev *desktop.MouseEvent) {
+//	ctrl := ev.Modifier == fyne.KeyModifierControl
+//	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
+//	me := mouseEvent{Pos: p, Ctrl: ctrl}
+//
+//	shape, marker, hitMarker := c.hitHandles(p)
+//	if hitMarker {
+//		c.current.OnResizeActivated(me, shape, marker)
+//		return
+//	}
+//
+//	shape = c.hitTestShape(p)
+//	if shape != nil {
+//		c.current.OnShapeClick(me, shape, ctrl)
+//		return
+//	}
+//
+//	c.current.OnEmptyClick(me, ctrl)
+//}
+//
+//func (c *canvasView) MouseUp(ev *desktop.MouseEvent) {
+//	ctrl := ev.Modifier == fyne.KeyModifierControl
+//	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
+//	c.current.OnMouseUp(mouseEvent{Pos: p, Ctrl: ctrl})
+//}
+//
+//func (c *canvasView) MouseIn(ev *desktop.MouseEvent) {}
+//
+//func (c *canvasView) MouseMoved(ev *desktop.MouseEvent) {
+//	ctrl := ev.Modifier == fyne.KeyModifierControl
+//	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
+//	c.current.OnMouseMove(mouseEvent{Pos: p, Ctrl: ctrl})
+//}
 
 func (c *canvasView) MouseOut() {
 	c.current.OnMouseLeave()
@@ -198,18 +210,10 @@ func (c *canvasView) DeleteSelection() {
 }
 
 func (c *canvasView) Invalidate() {
-	c.mu.Lock()
-	if c.dirty {
-		c.mu.Unlock()
-		return
-	}
-	c.dirty = true
-	c.mu.Unlock()
-
-	c.Refresh()
+	c.window.Invalidate()
 }
 
-func (c *canvasView) hitTestShape(p geometry.Point) *ShapeView {
+func (c *canvasView) hitTestShape(p geometry.Point) ShapeView {
 	for i := len(c.drawOrder) - 1; i >= 0; i-- {
 		id := c.drawOrder[i]
 		sv := c.shapes[id]
@@ -226,7 +230,7 @@ func (c *canvasView) hitTestShape(p geometry.Point) *ShapeView {
 	return nil
 }
 
-func (c *canvasView) hitHandles(p geometry.Point) (*ShapeView, geometry.ResizeHandle, bool) {
+func (c *canvasView) hitHandles(p geometry.Point) (ShapeView, geometry.ResizeHandle, bool) {
 	for i := len(c.drawOrder) - 1; i >= 0; i-- {
 		id := c.drawOrder[i]
 		sv := c.shapes[id]

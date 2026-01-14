@@ -2,7 +2,6 @@ package view
 
 import (
 	"fmt"
-	"image"
 	"image/color"
 
 	"gioui.org/app"
@@ -64,7 +63,7 @@ func NewWorkspaceView(
 	}
 
 	wv.toolbar = NewToolbarView(wv.window, mv.Toolbar(), fileActions, wv)
-	//w.canvas = NewCanvasView(mv.Canvas())
+	wv.canvas = NewCanvasView(wv.window, mv.Canvas())
 
 	return wv
 }
@@ -88,8 +87,7 @@ func (v *workspaceView) Run() error {
 							return v.toolbar.Process(gtx)
 						}),
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-							// TODO: нарисовать canvas
-							return layout.Dimensions{Size: image.Point{}}
+							return v.canvas.Process(gtx)
 						}),
 					)
 				}),

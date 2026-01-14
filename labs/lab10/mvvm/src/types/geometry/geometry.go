@@ -1,13 +1,13 @@
 package geometry
 
 type Vector struct {
-	X float64
-	Y float64
+	X int
+	Y int
 }
 
 type Point struct {
-	X float64
-	Y float64
+	X int
+	Y int
 }
 
 type Rect struct {
@@ -21,8 +21,8 @@ type Scale struct {
 }
 
 type Bounds struct {
-	Width  float64
-	Height float64
+	Width  int
+	Height int
 }
 
 func CalculateScale(

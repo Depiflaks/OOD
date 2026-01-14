@@ -246,7 +246,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 		go func() {
 			c, err := openColorPickerDialog()
 			if err == nil {
-				t.mv.SetBorderColor(c)
+				t.mv.SetFillColor(c)
 			}
 		}()
 	}
@@ -254,7 +254,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 		go func() {
 			c, err := openColorPickerDialog()
 			if err == nil {
-				t.mv.SetFillColor(c)
+				t.mv.SetBorderColor(c)
 			}
 		}()
 	}
@@ -327,7 +327,6 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 
 func (t *toolbarView) OnSelectionChange(style draw.Style, selectedCount int) {
 	normalized := style
-
 	if normalized.Fill == nil {
 		c := color.Color(defaultFill)
 		normalized.Fill = c
