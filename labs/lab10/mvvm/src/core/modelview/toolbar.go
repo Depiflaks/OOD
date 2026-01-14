@@ -58,7 +58,7 @@ func (t *toolbarModelView) AddObserver(o ToolbarModelViewObserver) {
 
 func (t *toolbarModelView) SetFillColor(c color.Color) {
 	t.manager.SetStyle(draw.Style{
-		Fill:   &c,
+		Fill:   c,
 		Stroke: nil,
 	})
 }
@@ -66,7 +66,7 @@ func (t *toolbarModelView) SetFillColor(c color.Color) {
 func (t *toolbarModelView) SetBorderColor(c color.Color) {
 	t.manager.SetStyle(draw.Style{
 		Fill:   nil,
-		Stroke: &c,
+		Stroke: c,
 	})
 }
 

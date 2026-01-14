@@ -35,7 +35,7 @@ type workspaceView struct {
 
 	window *app.Window
 
-	//toolbar ToolbarView
+	toolbar ToolbarView
 	//canvas  CanvasView
 }
 
@@ -49,7 +49,7 @@ func NewWorkspaceView(
 		window:      window,
 	}
 
-	_ = FileActions{
+	fileActions := FileActions{
 		Open: func(path string) {
 			mv.Open(path)
 		},
@@ -61,7 +61,7 @@ func NewWorkspaceView(
 		},
 	}
 
-	//w.toolbar = NewToolbarView(w.window, mv.Toolbar(), fileActions)
+	wv.toolbar = NewToolbarView(wv.window, mv.Toolbar(), fileActions)
 	//w.canvas = NewCanvasView(mv.Canvas())
 
 	return wv
@@ -83,8 +83,7 @@ func (v *workspaceView) Run() error {
 				layout.Expanded(func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							// TODO: нарисовать toolbar
-							return layout.Dimensions{Size: image.Point{}}
+							return v.toolbar.Process(gtx)
 						}),
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 							// TODO: нарисовать canvas

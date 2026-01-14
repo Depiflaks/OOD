@@ -206,24 +206,24 @@ func (m *shapeManager) notifySelectionChanged() {
 	var common draw.Style
 
 	first := true
-	var fill *color.Color
-	var stroke *color.Color
+	var fill color.Color
+	var stroke color.Color
 
-	eqColorPtr := func(a, b *color.Color) bool {
+	eqColorPtr := func(a, b color.Color) bool {
 		if a == nil && b == nil {
 			return true
 		}
 		if a == nil || b == nil {
 			return false
 		}
-		if *a == nil && *b == nil {
+		if a == nil && b == nil {
 			return true
 		}
-		if *a == nil || *b == nil {
+		if a == nil || b == nil {
 			return false
 		}
-		ra, ga, ba, aa := (*a).RGBA()
-		rb, gb, bb, ab := (*b).RGBA()
+		ra, ga, ba, aa := a.RGBA()
+		rb, gb, bb, ab := b.RGBA()
 		return ra == rb && ga == gb && ba == bb && aa == ab
 	}
 

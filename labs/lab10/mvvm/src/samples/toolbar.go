@@ -29,7 +29,6 @@ func ToolbarLoop(w *app.Window) error {
 
 	var (
 		btnRect, btnTri, btnOval    widget.Clickable
-		btnUndo, btnRedo            widget.Clickable
 		btnSave, btnSaveAs, btnOpen widget.Clickable
 	)
 
@@ -53,12 +52,6 @@ func ToolbarLoop(w *app.Window) error {
 			}
 			if btnOval.Clicked(gtx) {
 				fmt.Println("Create: Ellipse")
-			}
-			if btnUndo.Clicked(gtx) {
-				fmt.Println("Action: Undo")
-			}
-			if btnRedo.Clicked(gtx) {
-				fmt.Println("Action: Redo")
 			}
 			if btnSave.Clicked(gtx) {
 				fmt.Println("File: Save")

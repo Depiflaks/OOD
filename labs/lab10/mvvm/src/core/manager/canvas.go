@@ -77,7 +77,7 @@ func (m *canvasManager) SetStyle(newStyle draw.Style) {
 		cmd := history.NewSetBackgroundCommand(
 			m.newSetBackgroundColorFn(),
 			m.canvas.GetCanvas().GetBackground(),
-			*newStyle.Fill,
+			newStyle.Fill,
 		)
 		m.history.AppendAndExecute(cmd)
 		return

@@ -68,12 +68,12 @@ func fromRGBA8(x xmlRGBA) color.Color {
 func styleToXML(st draw.Style) xmlStyle {
 	var fill *xmlRGBA
 	if st.Fill != nil {
-		fillVal := toRGBA8(*st.Fill)
+		fillVal := toRGBA8(st.Fill)
 		fill = &fillVal
 	}
 	var stroke *xmlRGBA
 	if st.Stroke != nil {
-		strokeVal := toRGBA8(*st.Stroke)
+		strokeVal := toRGBA8(st.Stroke)
 		stroke = &strokeVal
 	}
 	var img *string
@@ -85,17 +85,15 @@ func styleToXML(st draw.Style) xmlStyle {
 }
 
 func styleFromXML(x xmlStyle) draw.Style {
-	var fill *color.Color
+	var fill color.Color
 	if x.Fill != nil {
 		c := fromRGBA8(*x.Fill)
-		cc := color.Color(c)
-		fill = &cc
+		fill = c
 	}
-	var stroke *color.Color
+	var stroke color.Color
 	if x.Stroke != nil {
 		c := fromRGBA8(*x.Stroke)
-		cc := color.Color(c)
-		stroke = &cc
+		stroke = c
 	}
 	var img *string
 	if x.Image != nil {
