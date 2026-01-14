@@ -37,6 +37,8 @@ type workspaceView struct {
 
 	toolbar ToolbarView
 	//canvas  CanvasView
+
+	locked bool
 }
 
 func NewWorkspaceView(
@@ -61,7 +63,7 @@ func NewWorkspaceView(
 		},
 	}
 
-	wv.toolbar = NewToolbarView(wv.window, mv.Toolbar(), fileActions)
+	wv.toolbar = NewToolbarView(wv.window, mv.Toolbar(), fileActions, wv)
 	//w.canvas = NewCanvasView(mv.Canvas())
 
 	return wv
@@ -138,3 +140,16 @@ func ProcessKeys(gtx layout.Context, tag event.Tag) {
 //		}
 //	})
 //}
+
+type Locker interface {
+	Lock()
+	Unlock()
+}
+
+func (v *workspaceView) Lock() {
+	v.locked = true
+}
+
+func (v *workspaceView) Unlock() {
+	v.locked = false
+}
