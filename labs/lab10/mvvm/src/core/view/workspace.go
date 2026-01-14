@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"vector-editor/src/core/modelview"
 
 	"gioui.org/app"
 	"gioui.org/io/event"
@@ -12,6 +11,8 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/widget/material"
+
+	"vector-editor/src/core/modelview"
 )
 
 type (

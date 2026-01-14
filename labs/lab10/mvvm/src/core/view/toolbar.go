@@ -1,12 +1,20 @@
 package view
 
+//import (
+//	"image/color"
+//	"vector-editor/src/core/modelview"
+//	"vector-editor/src/types/draw"
+//
+//	"gioui.org/app"
+//)
+//
 //type ToolbarView interface {
-//	Object() fyne.CanvasObject
+//	Process()
 //}
 //
 //type toolbarView struct {
-//	obj fyne.CanvasObject
-//	mv  modelview.ToolbarModelView
+//	window *app.Window
+//	mv     modelview.ToolbarModelView
 //
 //	curStyle draw.Style
 //
