@@ -2,6 +2,7 @@ package view
 
 import (
 	"image/color"
+	"strings"
 
 	"gioui.org/app"
 	"gioui.org/io/key"
@@ -61,7 +62,7 @@ func NewWorkspaceView(
 func (v *workspaceView) loadFileActions() {
 	v.fileActions = FileActions{
 		Open: func() {
-			path, err := openFileDialog("config", []string{"*.xml"})
+			path, err := openFileDialog("XML files", []string{"*.xml"})
 			if err == nil {
 				v.workspaceMV.Open(path)
 				v.window.Invalidate()
@@ -71,8 +72,11 @@ func (v *workspaceView) loadFileActions() {
 			v.workspaceMV.Save()
 		},
 		SaveAs: func() {
-			path, err := openFolderDialog()
+			path, err := saveFileDialog("XML files", []string{"*.xml"})
 			if err == nil {
+				if !strings.HasSuffix(path, ".xml") {
+					path += ".xml"
+				}
 				v.workspaceMV.SaveAs(path)
 				v.window.Invalidate()
 			}
@@ -89,6 +93,15 @@ func openFileDialog(name string, extensions []string) (string, error) {
 
 func openFolderDialog() (string, error) {
 	return zenity.SelectFile(zenity.Directory())
+}
+
+func saveFileDialog(name string, patterns []string) (string, error) {
+	return zenity.SelectFileSave(
+		zenity.FileFilters{
+			{Name: name, Patterns: patterns},
+		},
+		zenity.ConfirmOverwrite(),
+	)
 }
 
 func (v *workspaceView) Run() error {

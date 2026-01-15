@@ -97,6 +97,7 @@ type ShapeModelView interface {
 	GetPosition() geometry.Point
 	GetStyle() draw.Style
 	GetShapeType() types.ShapeType
+	GetShapeID() types.ShapeId
 
 	AddObserver(o ShapeModelViewObserver)
 }
@@ -183,6 +184,10 @@ func (s *shapeModelView) GetStyle() draw.Style {
 
 func (s *shapeModelView) GetShapeType() types.ShapeType {
 	return s.shapeType
+}
+
+func (s *shapeModelView) GetShapeID() types.ShapeId {
+	return s.shape.GetShapeId()
 }
 
 func (s *shapeModelView) AddObserver(o ShapeModelViewObserver) {

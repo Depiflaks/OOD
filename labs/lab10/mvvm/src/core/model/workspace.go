@@ -45,10 +45,15 @@ func (w *workspaceModel) Save(visibleShapes []types.ShapeId) {
 	w.SaveAs(w.sourcePath, visibleShapes)
 }
 
-func (w *workspaceModel) SaveAs(dir string, visibleShapes []types.ShapeId) {
+func (w *workspaceModel) SaveAs(path string, visibleShapes []types.ShapeId) {
+	filePath := path
+	if filepath.Ext(path) != ".xml" {
+		fmt.Println("error: file extension not supported")
+		return
+	}
+	dir := filepath.Dir(filePath)
 	fmt.Printf("SaveAs(%s)\n", dir)
 	ensureDir(dir)
-	filePath := filepath.Join(dir, workspaceFileName)
 
 	var xw xmlWorkspace
 	xw.Version = 1

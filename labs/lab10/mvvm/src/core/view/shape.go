@@ -36,7 +36,6 @@ type ShapeView interface {
 	StartDragging()
 	StopDragging()
 	Drag(delta geometry.Vector)
-	// TODO: эту хуйню можно вынести
 
 	StartResizing()
 	StopResizing()
@@ -51,6 +50,8 @@ type shapeView struct {
 	imgWidget widget.Image
 
 	handles map[geometry.ResizeHandle]image.Rectangle
+
+	tl, tr, bl, br *geometry.ResizeHandle
 }
 
 func NewShapeView(
@@ -60,10 +61,35 @@ func NewShapeView(
 	s := &shapeView{mv: mv, canvas: canvas}
 
 	s.handles = make(map[geometry.ResizeHandle]image.Rectangle)
+	tl := geometry.HandleTopLeft
+	s.tl = &tl
+
+	tr := geometry.HandleTopRight
+	s.tr = &tr
+
+	bl := geometry.HandleBottomLeft
+	s.bl = &bl
+
+	br := geometry.HandleBottomRight
+	s.br = &br
 
 	mv.AddObserver(s)
 
 	return s
+}
+
+func (s *shapeView) getTag(handle geometry.ResizeHandle) *geometry.ResizeHandle {
+	switch handle {
+	case geometry.HandleTopLeft:
+		return s.tl
+	case geometry.HandleTopRight:
+		return s.tr
+	case geometry.HandleBottomLeft:
+		return s.bl
+	case geometry.HandleBottomRight:
+		return s.br
+	}
+	return nil
 }
 
 func (s *shapeView) updateHandles(rect image.Rectangle) {
@@ -284,11 +310,11 @@ func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {
 
 		stack := handle.Push(gtx.Ops)
 
-		event.Op(gtx.Ops, handleType)
+		event.Op(gtx.Ops, s.getTag(handleType))
 
 		for {
 			ev, ok := gtx.Event(pointer.Filter{
-				Target: handleType,
+				Target: s.getTag(handleType),
 				Kinds:  pointer.Press | pointer.Release | pointer.Drag,
 			})
 			if !ok {
