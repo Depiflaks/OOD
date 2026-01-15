@@ -8,7 +8,6 @@ import (
 	"vector-editor/src/types/geometry"
 
 	"gioui.org/f32"
-	"gioui.org/gesture"
 	"gioui.org/io/event"
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
@@ -47,7 +46,7 @@ type shapeView struct {
 	mv     modelview.ShapeModelView
 	canvas CanvasView
 
-	drag gesture.Drag
+	handleTag int
 }
 
 func NewShapeView(
@@ -187,8 +186,98 @@ func getTrianglePoints(rect image.Rectangle) (f32.Point, f32.Point, f32.Point) {
 }
 
 func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {
-	//TODO implement me
-	panic("implement me")
+	modelPos := s.GetPosition()
+	modelSize := s.GetBounds()
+
+	pos := image.Point{X: modelPos.X, Y: modelPos.Y}
+	size := image.Point{X: modelSize.Width, Y: modelSize.Height}
+
+	rect := image.Rectangle{Min: pos, Max: pos.Add(size)}
+
+	selectionColor := color.NRGBA{R: 0, G: 120, B: 255, A: 255}
+
+	borderPath := clip.Rect(rect).Path()
+	borderStroke := clip.Stroke{Path: borderPath, Width: 2}.Op()
+	paint.FillShape(gtx.Ops, selectionColor, borderStroke)
+
+	halfHandle := HandleSize / 2
+	getHandleRect := func(x, y int) image.Rectangle {
+		p := image.Point{X: x - halfHandle, Y: y - halfHandle}
+		return image.Rectangle{Min: p, Max: p.Add(image.Pt(HandleSize, HandleSize))}
+	}
+
+	tl := getHandleRect(rect.Min.X, rect.Min.Y)
+	tr := getHandleRect(rect.Max.X, rect.Min.Y)
+	bl := getHandleRect(rect.Min.X, rect.Max.Y)
+	br := getHandleRect(rect.Max.X, rect.Max.Y)
+
+	handles := []struct {
+		rect image.Rectangle
+		kind geometry.ResizeHandle
+	}{
+		{tl, geometry.HandleTopLeft},
+		{tr, geometry.HandleTopRight},
+		{bl, geometry.HandleBottomLeft},
+		{br, geometry.HandleBottomRight},
+	}
+
+	for i := range handles {
+		h := handles[i]
+		handle := clip.Ellipse(h.rect)
+		paint.FillShape(gtx.Ops, selectionColor, handle.Op(gtx.Ops))
+
+		stack := handle.Push(gtx.Ops)
+
+		event.Op(gtx.Ops, h)
+
+		for {
+			ev, ok := gtx.Event(pointer.Filter{
+				Target: h,
+				Kinds:  pointer.Press | pointer.Release | pointer.Drag,
+			})
+			if !ok {
+				break
+			}
+			ptrEv, ok := ev.(pointer.Event)
+			if !ok {
+				break
+			}
+			mouseP := geometry.Point{
+				X: int(ptrEv.Position.X),
+				Y: int(ptrEv.Position.Y),
+			}
+
+			mouseEvent := mouseEvent{
+				pos:  mouseP,
+				ctrl: ptrEv.Modifiers.Contain(key.ModCtrl),
+			}
+
+			switch ptrEv.Kind {
+			case pointer.Press:
+				s.canvas.CurrentState().OnResizeActivated(mouseEvent, s, h.kind)
+			case pointer.Drag:
+				s.canvas.CurrentState().OnMouseMove(mouseEvent)
+			case pointer.Release:
+				s.canvas.CurrentState().OnMouseUp(mouseEvent)
+			}
+		}
+		stack.Pop()
+	}
+
+	return layout.Dimensions{Size: size}
+}
+
+func hitHandle(p geometry.Point, handles []struct {
+	rect image.Rectangle
+	kind geometry.ResizeHandle
+}) (geometry.ResizeHandle, bool) {
+	imgP := image.Point{X: p.X, Y: p.Y}
+	for _, h := range handles {
+		if imgP.In(h.rect) {
+			return h.kind, true
+		}
+	}
+	return 0, false
 }
 
 func (s *shapeView) Update() {

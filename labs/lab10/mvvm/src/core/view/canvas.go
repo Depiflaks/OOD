@@ -22,7 +22,7 @@ type mouseEvent struct {
 
 type State interface {
 	OnShapeClick(e mouseEvent, shape ShapeView)
-	OnEmptyClick(e mouseEvent)
+	OnEmptyClick()
 	OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle)
 	OnMouseMove(e mouseEvent)
 	OnMouseUp(e mouseEvent)
@@ -103,13 +103,13 @@ func (c *canvasView) Process(gtx layout.Context) layout.Dimensions {
 		sv.Process(gtx)
 	}
 
-	//for _, id := range c.drawOrder {
-	//	sv := c.shapes[id]
-	//	if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
-	//		continue
-	//	}
-	//	sv.DrawSelection(c.img)
-	//}
+	for _, id := range c.drawOrder {
+		sv := c.shapes[id]
+		if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
+			continue
+		}
+		sv.ProcessHandles(gtx)
+	}
 
 	return layout.Dimensions{Size: gtx.Constraints.Max}
 }
@@ -125,7 +125,7 @@ func (c *canvasView) processBackground(gtx layout.Context) {
 	for {
 		ev, ok := gtx.Event(pointer.Filter{
 			Target: c,
-			Kinds:  pointer.Drag,
+			Kinds:  pointer.Press,
 		})
 		if !ok {
 			break
@@ -134,16 +134,9 @@ func (c *canvasView) processBackground(gtx layout.Context) {
 		if !ok {
 			break
 		}
-		//mouseEvent := mouseEvent{
-		//	pos: geometry.Point{
-		//		X: int(pointerEv.Position.X),
-		//		Y: int(pointerEv.Position.Y),
-		//	},
-		//	ctrl: pointerEv.Modifiers.Contain(key.ModCtrl),
-		//}
 		switch pointerEv.Kind {
-		case pointer.Drag:
-			//c.current.OnMouseMove(mouseEvent)
+		case pointer.Press:
+			c.current.OnEmptyClick()
 		default:
 			panic("something goes wrong")
 		}
@@ -179,13 +172,6 @@ func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {
 //		return
 //	}
 //
-//	c.current.OnEmptyClick(me, ctrl)
-//}
-//
-//func (c *canvasView) MouseUp(ev *desktop.MouseEvent) {
-//	ctrl := ev.Modifier == fyne.KeyModifierControl
-//	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
-//	c.current.OnMouseUp(mouseEvent{pos: p, ctrl: ctrl})
 //}
 
 //func (c *canvasView) MouseMoved(ev *desktop.MouseEvent) {

@@ -22,7 +22,7 @@ func (s *idleState) OnShapeClick(e mouseEvent, shape ShapeView) {
 	s.c.SetDraggingState(e, shape)
 }
 
-func (s *idleState) OnEmptyClick(e mouseEvent) {
+func (s *idleState) OnEmptyClick() {
 	s.c.ClearSelection()
 }
 
@@ -61,7 +61,7 @@ func (s *draggingState) OnMouseLeave() {
 
 func (s *draggingState) OnShapeClick(e mouseEvent, shape ShapeView) {}
 
-func (s *draggingState) OnEmptyClick(e mouseEvent) {}
+func (s *draggingState) OnEmptyClick() {}
 
 func (s *draggingState) OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle) {
 }
@@ -122,7 +122,7 @@ func (s *resizingState) OnMouseLeave() {
 
 func (s *resizingState) OnShapeClick(e mouseEvent, shape ShapeView) {}
 
-func (s *resizingState) OnEmptyClick(e mouseEvent) {}
+func (s *resizingState) OnEmptyClick() {}
 
 func (s *resizingState) OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle) {
 }
