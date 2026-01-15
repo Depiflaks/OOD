@@ -8,7 +8,6 @@ import (
 )
 
 type CanvasManager interface {
-	History() history.History
 	ShapeManager() ShapeManager
 
 	RegisterCanvas(canvas EditableCanvas)
@@ -30,10 +29,6 @@ func NewCanvasManager(h history.History) CanvasManager {
 		history:      h,
 		shapeManager: NewShapeManager(h),
 	}
-}
-
-func (m *canvasManager) History() history.History {
-	return m.history
 }
 
 func (m *canvasManager) RegisterCanvas(canvas EditableCanvas) {

@@ -4,6 +4,7 @@ type History interface {
 	AppendAndExecute(cmd Command)
 	Undo()
 	Redo()
+	Clear()
 }
 
 type commandHistory struct {
@@ -49,6 +50,10 @@ func (h *commandHistory) Redo() {
 	}
 	h.commands[h.cursor].Execute()
 	h.cursor++
+}
+
+func (h *commandHistory) Clear() {
+	h.commands = h.commands[:0]
 }
 
 func (h *commandHistory) dispose(cmds []Command) {

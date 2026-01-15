@@ -11,6 +11,7 @@ type WorkspaceManager interface {
 
 	Undo()
 	Redo()
+	ClearHistory()
 }
 
 type workspaceManager struct {
@@ -40,4 +41,8 @@ func (w workspaceManager) Undo() {
 
 func (w workspaceManager) Redo() {
 	w.history.Redo()
+}
+
+func (w workspaceManager) ClearHistory() {
+	w.history.Clear()
 }

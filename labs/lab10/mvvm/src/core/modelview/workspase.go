@@ -30,9 +30,9 @@ type workspaceModelView struct {
 }
 
 func NewWorkspaceModelView(
-	workspaceManager manager.WorkspaceManager,
 	workspace model.Workspace,
 ) WorkspaceModelView {
+	workspaceManager := manager.NewWorkspaceManager()
 	return &workspaceModelView{
 		workspaceManager: workspaceManager,
 		workspace:        workspace,
@@ -46,15 +46,16 @@ func (w *workspaceModelView) Delete() {
 }
 
 func (w *workspaceModelView) Save() {
-	w.workspace.Save()
+	w.workspace.Save(w.canvas.visibleShapesIds())
 }
 
 func (w *workspaceModelView) SaveAs(path string) {
-	w.workspace.SaveAs(path)
+	w.workspace.SaveAs(path, w.canvas.visibleShapesIds())
 }
 
 func (w *workspaceModelView) Open(path string) {
 	w.workspace.Open(path)
+	w.workspaceManager.ClearHistory()
 }
 
 func (w *workspaceModelView) Canvas() CanvasModelView {

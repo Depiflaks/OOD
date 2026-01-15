@@ -16,6 +16,8 @@ type CanvasModelView interface {
 
 	AddObserver(o CanvasModelViewObserver)
 	GetBackgroundColor() color.Color
+
+	visibleShapesIds() []types.ShapeId
 }
 
 type canvasModelView struct {
@@ -24,6 +26,16 @@ type canvasModelView struct {
 	manager    manager.CanvasManager
 	background color.Color
 	shapes     map[types.ShapeId]ShapeModelView
+}
+
+func (c *canvasModelView) visibleShapesIds() []types.ShapeId {
+	ids := make([]types.ShapeId, 0)
+	for id, shape := range c.shapes {
+		if !shape.IsDeleted() {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }
 
 func NewCanvasModelView(

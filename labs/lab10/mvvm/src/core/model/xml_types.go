@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"image/color"
@@ -38,10 +39,15 @@ type xmlBounds struct {
 	H int `xml:"h,attr"`
 }
 
+type xmlImage struct {
+	Path string `xml:"path,attr,omitempty"`
+	Data string `xml:",chardata"`
+}
+
 type xmlStyle struct {
-	Fill   *xmlRGBA `xml:"fill,omitempty"`
-	Stroke *xmlRGBA `xml:"stroke,omitempty"`
-	Image  *string  `xml:"image,omitempty"`
+	Fill   *xmlRGBA  `xml:"fill,omitempty"`
+	Stroke *xmlRGBA  `xml:"stroke,omitempty"`
+	Image  *xmlImage `xml:"image,omitempty"`
 }
 
 type xmlRGBA struct {
@@ -76,15 +82,25 @@ func styleToXML(st draw.Style) xmlStyle {
 		strokeVal := toRGBA8(st.Stroke)
 		stroke = &strokeVal
 	}
-	var img *string
+
+	var img *xmlImage
 	if st.BackgroundImagePath != nil {
-		s := *st.BackgroundImagePath
-		img = &s
+		path := *st.BackgroundImagePath
+		data, err := os.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+		encoded := base64.StdEncoding.EncodeToString(data)
+		img = &xmlImage{
+			Path: path,
+			Data: encoded,
+		}
 	}
+
 	return xmlStyle{Fill: fill, Stroke: stroke, Image: img}
 }
 
-func styleFromXML(x xmlStyle) draw.Style {
+func styleFromXML(x xmlStyle, fs FileStorage) draw.Style {
 	var fill color.Color
 	if x.Fill != nil {
 		c := fromRGBA8(*x.Fill)
@@ -95,12 +111,32 @@ func styleFromXML(x xmlStyle) draw.Style {
 		c := fromRGBA8(*x.Stroke)
 		stroke = c
 	}
-	var img *string
-	if x.Image != nil {
-		s := *x.Image
-		img = &s
+
+	var imgPath *string
+	if x.Image != nil && x.Image.Data != "" {
+		data, err := base64.StdEncoding.DecodeString(x.Image.Data)
+		if err != nil {
+			panic(err)
+		}
+
+		tmpFile, err := os.CreateTemp("", "import_img_*")
+		if err != nil {
+			panic(err)
+		}
+
+		defer os.Remove(tmpFile.Name())
+
+		if _, err := tmpFile.Write(data); err != nil {
+			tmpFile.Close()
+			panic(err)
+		}
+		tmpFile.Close()
+
+		savedPath := fs.store(tmpFile.Name())
+		imgPath = &savedPath
 	}
-	return draw.Style{Fill: fill, Stroke: stroke, BackgroundImagePath: img}
+
+	return draw.Style{Fill: fill, Stroke: stroke, BackgroundImagePath: imgPath}
 }
 
 func ensureDir(path string) {

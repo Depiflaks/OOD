@@ -10,24 +10,26 @@ import (
 )
 
 const workspaceFileName = "workspace.xml"
-const sourcesDirName = ".sources"
 
 type Workspace interface {
 	Canvas() Canvas
 
-	Save()
-	SaveAs(path string)
+	Save(visibleShapes []types.ShapeId)
+	SaveAs(path string, visibleShapes []types.ShapeId)
 	Open(path string)
 }
 
 type workspaceModel struct {
 	sourcePath string
 	canvas     Canvas
+
+	fileStorage FileStorage
 }
 
 func NewWorkspaceModel() Workspace {
 	return &workspaceModel{
-		canvas: NewCanvas(),
+		canvas:      NewCanvas(),
+		fileStorage: NewStorage(),
 	}
 }
 
@@ -35,19 +37,17 @@ func (w *workspaceModel) Canvas() Canvas {
 	return w.canvas
 }
 
-func (w *workspaceModel) Save() {
+func (w *workspaceModel) Save(visibleShapes []types.ShapeId) {
 	if w.sourcePath == "" {
 		return
 	}
-	w.SaveAs(w.sourcePath)
+	w.SaveAs(w.sourcePath, visibleShapes)
 }
 
-func (w *workspaceModel) SaveAs(dir string) {
+func (w *workspaceModel) SaveAs(dir string, visibleShapes []types.ShapeId) {
 	fmt.Printf("SaveAs(%s)\n", dir)
 	ensureDir(dir)
 	filePath := filepath.Join(dir, workspaceFileName)
-	sourcesDir := filepath.Join(dir, sourcesDirName)
-	ensureDir(sourcesDir)
 
 	var xw xmlWorkspace
 	xw.Version = 1
@@ -55,23 +55,11 @@ func (w *workspaceModel) SaveAs(dir string) {
 	bg := w.canvas.GetBackground()
 	xw.Background = toRGBA8(bg)
 
-	// TODO: искать по существующим фигурам
-	shapes := w.canvas.Shapes()
 	xw.Shapes = make([]xmlShape, 0)
 
-	for id, sh := range shapes {
+	for _, id := range visibleShapes {
+		sh := w.canvas.GetShape(id)
 		st := sh.GetStyle()
-
-		if st.BackgroundImagePath != nil {
-			src := *st.BackgroundImagePath
-			dstName := filepath.Join(sourcesDirName,
-				formatImageName(int64(id), safeBaseName(src)),
-			)
-			dstAbs := filepath.Join(dir, dstName)
-
-			copyFile(src, dstAbs)
-			st.BackgroundImagePath = &dstName
-		}
 
 		xs := xmlShape{
 			ID:   int64(sh.GetShapeId()),
@@ -132,23 +120,17 @@ func (w *workspaceModel) Open(path string) {
 	for id := range c.shapes {
 		oldIds = append(oldIds, id)
 	}
-	c.shapes = make(map[types.ShapeId]Shape)
-	c.notifyShapesChanged(oldIds)
+	c.DeleteShapes(oldIds)
 
 	c.background = fromRGBA8(xw.Background)
 	shapeIds := make([]types.ShapeId, 0)
 	for _, xs := range xw.Shapes {
-		style := styleFromXML(xs.Style)
+		style := styleFromXML(xs.Style, w.fileStorage)
 		t := shapeTypeFromString(xs.Type)
 		id := xs.ID
 		shapeIds = append(shapeIds, types.ShapeId(id))
 		sh := NewShape(t, types.ShapeId(id), style)
 		c.shapes[types.ShapeId(id)] = sh
-		// TODO: прикрутить поддержку изображений
-		//if style.BackgroundImagePath != nil {
-		//	abs := filepath.Join(dir, *style.BackgroundImagePath)
-		//	style.BackgroundImagePath = &abs
-		//}
 		sh.UpdateRect(
 			geometry.Point{X: xs.Position.X, Y: xs.Position.Y},
 			geometry.Bounds{Width: xs.Size.W, Height: xs.Size.H},
