@@ -254,7 +254,7 @@ func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {
 
 			switch ptrEv.Kind {
 			case pointer.Press:
-				s.canvas.CurrentState().OnResizeActivated(mouseEvent, s, h.kind)
+				s.canvas.SetResizingState(mouseEvent, s, h.kind)
 			case pointer.Drag:
 				s.canvas.CurrentState().OnMouseMove(mouseEvent)
 			case pointer.Release:
