@@ -5,6 +5,11 @@ import (
 	"vector-editor/src/types/geometry"
 )
 
+var emptyEvent = mouseEvent{
+	pos:  geometry.Point{},
+	ctrl: false,
+}
+
 type idleState struct {
 	c CanvasView
 }
@@ -50,11 +55,13 @@ type draggingState struct {
 
 	active     ShapeView
 	startMouse geometry.Point
+	lastEv     mouseEvent
 }
 
 func (s *draggingState) OnMouseLeave() {
 	if s.active != nil {
 		s.active.StopDragging()
+		s.OnMouseMove(s.lastEv)
 	}
 	s.c.SetIdleState()
 }
@@ -70,6 +77,7 @@ func (s *draggingState) OnMouseMove(e mouseEvent) {
 	if s.active == nil {
 		return
 	}
+	s.lastEv = e
 	d := s.findDelta(e)
 	if math.Abs(float64(d.X)) < 5 && math.Abs(float64(d.Y)) < 5 {
 		return
@@ -111,11 +119,13 @@ type resizingState struct {
 	marker     geometry.ResizeHandle
 	startMouse geometry.Point
 	startSel   geometry.Rect
+	lastEv     mouseEvent
 }
 
 func (s *resizingState) OnMouseLeave() {
 	if s.active != nil {
 		s.active.StopResizing()
+		s.OnMouseMove(s.lastEv)
 	}
 	s.c.SetIdleState()
 }
@@ -131,6 +141,7 @@ func (s *resizingState) OnMouseMove(e mouseEvent) {
 	if s.active == nil {
 		return
 	}
+	s.lastEv = e
 
 	scale, deltaTL := s.findScaleAndDirection(e)
 	s.active.Resize(deltaTL, scale)

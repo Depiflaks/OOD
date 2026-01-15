@@ -88,7 +88,7 @@ func NewCanvasView(
 
 	c.current = NewIdleState(c)
 
-	mv.AddObserver(c)
+	mv.AddCanvasObserver(c)
 	return c
 }
 

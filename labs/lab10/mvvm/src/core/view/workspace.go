@@ -52,7 +52,7 @@ func NewWorkspaceView(
 	}
 	wv.loadFileActions()
 
-	wv.toolbar = NewToolbarView(wv.window, mv.Toolbar(), wv.fileActions, wv)
+	wv.toolbar = NewToolbarView(wv.window, mv.Toolbar(), mv.Canvas(), wv.fileActions, wv)
 	wv.canvas = NewCanvasView(wv.window, mv.Canvas())
 
 	return wv

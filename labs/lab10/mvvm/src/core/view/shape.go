@@ -80,6 +80,7 @@ func getHandleRect(x int, y int) image.Rectangle {
 }
 
 func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
+	canvasSize := gtx.Constraints.Max
 	modelPos := s.GetPosition()
 	modelSize := s.GetBounds()
 
@@ -97,7 +98,7 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 	clipArea := fillOp.Push(gtx.Ops)
 	event.Op(gtx.Ops, s)
 
-	s.processClick(gtx)
+	s.processMouse(gtx, canvasSize)
 
 	clipArea.Pop()
 	return D{Size: size}
@@ -186,7 +187,7 @@ func (s *shapeView) getShapeOptions(
 	return fillOp, strokeOp
 }
 
-func (s *shapeView) processClick(gtx layout.Context) {
+func (s *shapeView) processMouse(gtx layout.Context, canvasSize image.Point) {
 	for {
 		ev, ok := gtx.Event(pointer.Filter{
 			Target: s,
@@ -208,7 +209,11 @@ func (s *shapeView) processClick(gtx layout.Context) {
 		}
 		switch pointerEv.Kind {
 		case pointer.Drag:
-			s.canvas.CurrentState().OnMouseMove(mouseEvent)
+			if pointInCanvas(pointerEv.Position, canvasSize) {
+				s.canvas.CurrentState().OnMouseMove(mouseEvent)
+			} else {
+				s.canvas.CurrentState().OnMouseLeave()
+			}
 		case pointer.Press:
 			s.canvas.CurrentState().OnShapeClick(mouseEvent, s)
 		case pointer.Release:
@@ -217,6 +222,13 @@ func (s *shapeView) processClick(gtx layout.Context) {
 			panic("something goes wrong")
 		}
 	}
+}
+
+func pointInCanvas(p f32.Point, size image.Point) bool {
+	if p.X < 0 || p.Y < 0 || p.X > float32(size.X) || p.Y > float32(size.Y) {
+		return false
+	}
+	return true
 }
 
 func pointInTriangle(p f32.Point, rect image.Rectangle) bool {

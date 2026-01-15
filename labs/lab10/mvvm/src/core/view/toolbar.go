@@ -44,10 +44,11 @@ const (
 const verticalSpace = 10
 
 type toolbarView struct {
-	window      *app.Window
-	mv          modelview.ToolbarModelView
-	fileActions FileActions
-	locker      Locker
+	window           *app.Window
+	toolbarModelView modelview.ToolbarModelView
+	canvasModelView  modelview.CanvasModelView
+	fileActions      FileActions
+	locker           Locker
 
 	background color.NRGBA
 	stroke     color.NRGBA
@@ -65,19 +66,21 @@ type toolbarView struct {
 
 func NewToolbarView(
 	window *app.Window,
-	mv modelview.ToolbarModelView,
+	tmv modelview.ToolbarModelView,
+	cmv modelview.CanvasModelView,
 	fileActions FileActions,
 	locker Locker,
 ) ToolbarView {
 	view := &toolbarView{
-		window:        window,
-		mv:            mv,
-		background:    white,
-		fill:          defaultFill,
-		stroke:        defaultStroke,
-		currentOption: backgroundOption,
-		fileActions:   fileActions,
-		locker:        locker,
+		window:           window,
+		toolbarModelView: tmv,
+		canvasModelView:  cmv,
+		background:       white,
+		fill:             defaultFill,
+		stroke:           defaultStroke,
+		currentOption:    backgroundOption,
+		fileActions:      fileActions,
+		locker:           locker,
 	}
 
 	view.buttonTheme = material.NewTheme()
@@ -102,7 +105,9 @@ func NewToolbarView(
 			},
 		}...)
 
-	mv.AddObserver(view)
+	tmv.AddObserver(view)
+	cmv.AddToolbarObserver(view)
+
 	return view
 }
 
@@ -205,6 +210,7 @@ func (t *toolbarView) drawColorPickers(gtx layout.Context) layout.Dimensions {
 		}),
 	)
 }
+
 func (t *toolbarView) drawColorRow(
 	gtx layout.Context,
 	label string,
@@ -234,7 +240,6 @@ func (t *toolbarView) drawColorRow(
 		}),
 	)
 }
-
 func (t *toolbarView) updatePreviewColor() {
 	switch t.currentOption {
 	case fillOption:
@@ -251,7 +256,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 		go func() {
 			c, err := openColorPickerDialog()
 			if err == nil {
-				t.mv.SetFillColor(c)
+				t.toolbarModelView.SetFillColor(c)
 			}
 		}()
 	}
@@ -259,7 +264,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 		go func() {
 			c, err := openColorPickerDialog()
 			if err == nil {
-				t.mv.SetBorderColor(c)
+				t.toolbarModelView.SetBorderColor(c)
 			}
 		}()
 	}
@@ -267,25 +272,25 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 		go func() {
 			c, err := openColorPickerDialog()
 			if err == nil {
-				t.mv.SetBackgroundColor(c)
+				t.toolbarModelView.SetBackgroundColor(c)
 			}
 		}()
 	}
 
 	if t.btnRect.Clicked(gtx) {
-		t.mv.NewRectangle(draw.Style{
+		t.toolbarModelView.NewRectangle(draw.Style{
 			Fill:   t.fill,
 			Stroke: t.stroke,
 		})
 	}
 	if t.btnOval.Clicked(gtx) {
-		t.mv.NewEllipse(draw.Style{
+		t.toolbarModelView.NewEllipse(draw.Style{
 			Fill:   t.fill,
 			Stroke: t.stroke,
 		})
 	}
 	if t.btnTri.Clicked(gtx) {
-		t.mv.NewTriangle(draw.Style{
+		t.toolbarModelView.NewTriangle(draw.Style{
 			Fill:   t.fill,
 			Stroke: t.stroke,
 		})
@@ -296,7 +301,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 		go func() {
 			path, err := openFileDialog("Images", []string{"*.png", "*.jpg", "*.jpeg", "*.bmp"})
 			if err == nil {
-				t.mv.NewImage(path)
+				t.toolbarModelView.NewImage(path)
 			}
 		}()
 	}
@@ -325,6 +330,10 @@ func (t *toolbarView) OnSelectionChange(style draw.Style, selectedCount int) {
 	if normalized.Stroke != nil {
 		t.stroke = color.NRGBAModel.Convert(normalized.Stroke).(color.NRGBA)
 	}
+}
+
+func (t *toolbarView) OnBackgroundUpdate(newColor color.Color) {
+	t.background = color.NRGBAModel.Convert(newColor).(color.NRGBA)
 }
 
 func openColorPickerDialog() (color.Color, error) {

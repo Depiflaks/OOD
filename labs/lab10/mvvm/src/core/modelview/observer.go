@@ -1,12 +1,16 @@
 package modelview
 
 import (
+	"image/color"
 	"vector-editor/src/types"
 	"vector-editor/src/types/draw"
 )
 
+type BackgroundUpdateObserver interface {
+	OnBackgroundUpdate(color color.Color)
+}
+
 type WorkspaceModelViewObserver interface {
-	// TODO: добавить что-то сюда
 	Update()
 }
 

@@ -13,18 +13,20 @@ type CanvasModelView interface {
 	ClearSelection()
 	Delete()
 
-	AddObserver(o CanvasModelViewObserver)
+	AddCanvasObserver(o CanvasModelViewObserver)
+	AddToolbarObserver(o BackgroundUpdateObserver)
 	GetBackgroundColor() color.Color
 
 	visibleShapesIds() []types.ShapeId
 }
 
 type canvasModelView struct {
-	observers  []CanvasModelViewObserver
-	canvas     model.Canvas
-	manager    manager.CanvasManager
-	background color.Color
-	shapes     map[types.ShapeId]ShapeModelView
+	canvasObservers  []CanvasModelViewObserver
+	toolbarObservers []BackgroundUpdateObserver
+	canvas           model.Canvas
+	manager          manager.CanvasManager
+	background       color.Color
+	shapes           map[types.ShapeId]ShapeModelView
 }
 
 func (c *canvasModelView) visibleShapesIds() []types.ShapeId {
@@ -73,7 +75,7 @@ func (c *canvasModelView) OnShapesChanged(ids []types.ShapeId) {
 		}
 		c.shapes[id] = c.newShapeMV(shape)
 	}
-	for _, o := range c.observers {
+	for _, o := range c.canvasObservers {
 		o.OnShapesChanged(ids)
 	}
 }
@@ -84,8 +86,11 @@ func (c *canvasModelView) newShapeMV(shape model.Shape) ShapeModelView {
 
 func (c *canvasModelView) OnBackgroundChanged() {
 	c.background = c.canvas.GetBackground()
-	for _, o := range c.observers {
+	for _, o := range c.canvasObservers {
 		o.OnBackgroundChanged()
+	}
+	for _, o := range c.toolbarObservers {
+		o.OnBackgroundUpdate(c.background)
 	}
 }
 
@@ -123,6 +128,10 @@ func (c *canvasModelView) Delete() {
 	c.manager.Delete()
 }
 
-func (c *canvasModelView) AddObserver(o CanvasModelViewObserver) {
-	c.observers = append(c.observers, o)
+func (c *canvasModelView) AddCanvasObserver(o CanvasModelViewObserver) {
+	c.canvasObservers = append(c.canvasObservers, o)
+}
+
+func (c *canvasModelView) AddToolbarObserver(o BackgroundUpdateObserver) {
+	c.toolbarObservers = append(c.toolbarObservers, o)
 }
