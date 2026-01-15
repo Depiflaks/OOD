@@ -134,6 +134,7 @@ func NewShapeModelView(
 		shapeType: shape.GetShapeType(),
 	}
 	shape.AddObserver(mv)
+	manager.AppendToSelection(mv, true)
 
 	return mv
 }

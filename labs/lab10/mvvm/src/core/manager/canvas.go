@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"image/color"
 	"vector-editor/src/history"
 	"vector-editor/src/types"
@@ -16,6 +17,7 @@ type CanvasManager interface {
 	Delete()
 	ClearSelection()
 	SetStyle(style draw.Style)
+	SetBackgroundColor(color color.Color)
 }
 
 type canvasManager struct {
@@ -68,17 +70,9 @@ func (m *canvasManager) Delete() {
 }
 
 func (m *canvasManager) SetStyle(newStyle draw.Style) {
-	if len(m.shapeManager.GetSelectedShapeIds()) == 0 && newStyle.Fill != nil {
-		cmd := history.NewSetBackgroundCommand(
-			m.newSetBackgroundColorFn(),
-			m.canvas.GetCanvas().GetBackground(),
-			newStyle.Fill,
-		)
-		m.history.AppendAndExecute(cmd)
-		return
-	}
 
 	if newStyle.BackgroundImagePath != nil && len(m.shapeManager.GetSelectedShapeIds()) != 1 {
+		fmt.Println("Пока такие приколы не поддерживаются")
 		return
 	}
 
@@ -90,6 +84,15 @@ func (m *canvasManager) SetStyle(newStyle draw.Style) {
 		newStyles[id] = newStyle
 	}
 	cmd := history.NewSetStyleCommand(m.newSetStyleFn(), prevStyles, newStyles)
+	m.history.AppendAndExecute(cmd)
+}
+
+func (m *canvasManager) SetBackgroundColor(color color.Color) {
+	cmd := history.NewSetBackgroundCommand(
+		m.newSetBackgroundColorFn(),
+		m.canvas.GetCanvas().GetBackground(),
+		color,
+	)
 	m.history.AppendAndExecute(cmd)
 }
 
@@ -106,10 +109,8 @@ func (m *canvasManager) newMarkDeleteShapesFn() history.MarkDeleteShapesFn {
 }
 
 func (m *canvasManager) newRestoreShapesFn() history.RestoreShapesFn {
-	selected := snapshotSelected(m.shapeManager.GetSelectedShapes())
 	return func(ids []types.ShapeId) {
 		m.canvas.Restore(ids)
-		m.shapeManager.SetSelectedShapes(selected)
 	}
 }
 

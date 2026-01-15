@@ -15,6 +15,7 @@ type ToolbarModelView interface {
 
 	SetFillColor(c color.Color)
 	SetBorderColor(c color.Color)
+	SetBackgroundColor(c color.Color)
 	NewImage(path string)
 }
 
@@ -70,6 +71,10 @@ func (t *toolbarModelView) SetBorderColor(c color.Color) {
 		Fill:   nil,
 		Stroke: c,
 	})
+}
+
+func (t *toolbarModelView) SetBackgroundColor(c color.Color) {
+	t.manager.SetBackgroundColor(c)
 }
 
 func (t *toolbarModelView) OnSelectionChange(style draw.Style, count int) {

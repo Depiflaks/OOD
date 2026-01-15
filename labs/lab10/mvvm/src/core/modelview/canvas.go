@@ -53,6 +53,7 @@ func NewCanvasModelView(
 }
 
 func (c *canvasModelView) OnShapesChanged(ids []types.ShapeId) {
+	hasNewShapes := false
 	for _, id := range ids {
 		shape := c.canvas.GetShape(id)
 
@@ -65,6 +66,10 @@ func (c *canvasModelView) OnShapesChanged(ids []types.ShapeId) {
 
 		if _, ok := c.shapes[id]; ok {
 			continue
+		}
+		if !hasNewShapes {
+			hasNewShapes = true
+			c.ClearSelection()
 		}
 		c.shapes[id] = c.newShapeMV(shape)
 	}
@@ -99,8 +104,10 @@ func (c *canvasModelView) MarkDeleted(ids []types.ShapeId) {
 }
 
 func (c *canvasModelView) Restore(ids []types.ShapeId) {
+	c.ClearSelection()
 	for _, id := range ids {
 		c.shapes[id].SetDeleted(false)
+		c.shapes[id].Select(true)
 	}
 }
 

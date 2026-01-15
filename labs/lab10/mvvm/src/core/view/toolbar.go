@@ -111,7 +111,7 @@ func (t *toolbarView) Process(gtx layout.Context) layout.Dimensions {
 
 	rect := image.Rectangle{Max: gtx.Constraints.Max}
 	areaStack := clip.Rect(rect).Push(gtx.Ops)
-	paint.Fill(gtx.Ops, color.NRGBA{R: 255, G: 250, B: 240, A: 255})
+	paint.Fill(gtx.Ops, color.NRGBA{R: 227, G: 242, B: 253, A: 255})
 	areaStack.Pop()
 
 	return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx C) D {
@@ -264,7 +264,12 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 		}()
 	}
 	if t.btnBackground.Clicked(gtx) {
-		// TODO: отдельная обработка background
+		go func() {
+			c, err := openColorPickerDialog()
+			if err == nil {
+				t.mv.SetBackgroundColor(c)
+			}
+		}()
 	}
 
 	if t.btnRect.Clicked(gtx) {
@@ -310,41 +315,16 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 }
 
 func (t *toolbarView) OnSelectionChange(style draw.Style, selectedCount int) {
+	if selectedCount == 0 {
+		return
+	}
 	normalized := style
-	if normalized.Fill == nil {
-		c := color.Color(defaultFill)
-		normalized.Fill = c
+	if normalized.Fill != nil {
+		t.fill = color.NRGBAModel.Convert(normalized.Fill).(color.NRGBA)
 	}
-	if normalized.Stroke == nil {
-		c := color.Color(defaultStroke)
-		normalized.Stroke = c
+	if normalized.Stroke != nil {
+		t.stroke = color.NRGBAModel.Convert(normalized.Stroke).(color.NRGBA)
 	}
-
-	{
-		//if t.curStyle.Fill == nil {
-		//	t.fillPreview.FillColor = t.defaultFill
-		//} else if rgba, ok := (*t.curStyle.Fill).(color.RGBA); ok {
-		//	t.fillPreview.FillColor = rgba
-		//} else {
-		//	r, g, b, a := (*t.curStyle.Fill).RGBA()
-		//	t.fillPreview.FillColor = color.RGBA{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8), uint8(a >> 8)}
-		//}
-		//t.fillPreview.Refresh()
-	}
-
-	{
-		//if t.curStyle.Stroke == nil {
-		//	t.strokePreview.FillColor = t.defaultStroke
-		//} else if rgba, ok := (*t.curStyle.Stroke).(color.RGBA); ok {
-		//	t.strokePreview.FillColor = rgba
-		//} else {
-		//	r, g, b, a := (*t.curStyle.Stroke).RGBA()
-		//	t.strokePreview.FillColor = color.RGBA{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8), uint8(a >> 8)}
-		//}
-		//t.strokePreview.Refresh()
-	}
-
-	_ = selectedCount
 }
 
 func openColorPickerDialog() (color.Color, error) {
