@@ -114,30 +114,6 @@ func (c *canvasView) fillBackground(gtx layout.Context) {
 	paint.Fill(gtx.Ops, col)
 }
 
-//func (c *canvasView) redraw() {
-//	if c.img == nil {
-//		return
-//	}
-//
-//	draw.Draw(c.img, c.img.Bounds(), &image.Uniform{C: c.mv.GetBackgroundColor()}, image.Point{}, draw.Src)
-//
-//	for _, id := range c.drawOrder {
-//		sv := c.shapes[id]
-//		if sv == nil || sv.IsDeleted() {
-//			continue
-//		}
-//		sv.Draw(c.img)
-//	}
-//
-//	for _, id := range c.drawOrder {
-//		sv := c.shapes[id]
-//		if sv == nil || sv.IsDeleted() || !sv.IsSelected() {
-//			continue
-//		}
-//		sv.DrawSelection(c.img)
-//	}
-//}
-
 func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {
 	for _, id := range ids {
 		shape := c.mv.GetShape(id)

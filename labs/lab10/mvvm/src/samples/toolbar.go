@@ -96,8 +96,6 @@ func ToolbarLoop(w *app.Window) error {
 				layout.Rigid(func(gtx C) D {
 					return layout.UniformInset(unit.Dp(5)).Layout(gtx, func(gtx C) D {
 						return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
-							layout.Rigid(func(gtx C) D { return material.Button(th, &btnUndo, "Undo").Layout(gtx) }),
-							layout.Rigid(func(gtx C) D { return material.Button(th, &btnRedo, "Redo").Layout(gtx) }),
 							layout.Rigid(func(gtx C) D { return layout.Spacer{Width: unit.Dp(20)}.Layout(gtx) }),
 							layout.Rigid(func(gtx C) D { return material.Button(th, &btnSave, "Save").Layout(gtx) }),
 							layout.Rigid(func(gtx C) D { return material.Button(th, &btnSaveAs, "Save As").Layout(gtx) }),

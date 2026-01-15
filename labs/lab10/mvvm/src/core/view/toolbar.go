@@ -264,19 +264,19 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 
 	if t.btnRect.Clicked(gtx) {
 		t.mv.NewRectangle(draw.Style{
-			Fill:   t.background,
+			Fill:   t.fill,
 			Stroke: t.stroke,
 		})
 	}
 	if t.btnOval.Clicked(gtx) {
 		t.mv.NewEllipse(draw.Style{
-			Fill:   t.background,
+			Fill:   t.fill,
 			Stroke: t.stroke,
 		})
 	}
 	if t.btnTri.Clicked(gtx) {
 		t.mv.NewTriangle(draw.Style{
-			Fill:   t.background,
+			Fill:   t.fill,
 			Stroke: t.stroke,
 		})
 	}

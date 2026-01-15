@@ -17,7 +17,7 @@ func Run(
 		wv := view.NewWorkspaceView(mv, window)
 		loop := func() error {
 			return wv.Run()
-			//return samples.ColorPickerLoop(window)
+			//return samples.TriangleLoop(window)
 		}
 		if err := loop(); err != nil {
 			log.Fatal(err)
