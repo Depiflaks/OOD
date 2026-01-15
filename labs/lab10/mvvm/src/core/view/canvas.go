@@ -1,9 +1,13 @@
 package view
 
 import (
+	"fmt"
 	"image/color"
 
 	"gioui.org/app"
+	"gioui.org/io/event"
+	"gioui.org/io/key"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
@@ -91,7 +95,7 @@ func NewCanvasView(
 }
 
 func (c *canvasView) Process(gtx layout.Context) layout.Dimensions {
-	c.fillBackground(gtx)
+	c.processBackground(gtx)
 
 	for _, id := range c.drawOrder {
 		sv := c.shapes[id]
@@ -112,11 +116,42 @@ func (c *canvasView) Process(gtx layout.Context) layout.Dimensions {
 	return layout.Dimensions{Size: gtx.Constraints.Max}
 }
 
-func (c *canvasView) fillBackground(gtx layout.Context) {
+func (c *canvasView) processBackground(gtx layout.Context) {
 	background := c.mv.GetBackgroundColor()
-	clip.Rect{Max: gtx.Constraints.Max}.Push(gtx.Ops)
+	st := clip.Rect{Max: gtx.Constraints.Max}.Push(gtx.Ops)
 	col := color.NRGBAModel.Convert(background).(color.NRGBA)
 	paint.Fill(gtx.Ops, col)
+
+	event.Op(gtx.Ops, c)
+
+	for {
+		ev, ok := gtx.Event(pointer.Filter{
+			Target: c,
+			Kinds:  pointer.Drag,
+		})
+		if !ok {
+			break
+		}
+		pointerEv, ok := ev.(pointer.Event)
+		if !ok {
+			break
+		}
+		mouseEvent := mouseEvent{
+			pos: geometry.Point{
+				X: int(pointerEv.Position.X),
+				Y: int(pointerEv.Position.Y),
+			},
+			ctrl: pointerEv.Modifiers.Contain(key.ModCtrl),
+		}
+		switch ev.(pointer.Event).Kind {
+		case pointer.Drag:
+			fmt.Println("moving...")
+			c.current.OnMouseMove(mouseEvent)
+		default:
+			panic("something goes wrong")
+		}
+	}
+	st.Pop()
 }
 
 func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {

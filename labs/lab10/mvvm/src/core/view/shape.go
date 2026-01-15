@@ -1,7 +1,6 @@
 package view
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"vector-editor/src/core/modelview"
@@ -9,6 +8,7 @@ import (
 	"vector-editor/src/types/geometry"
 
 	"gioui.org/f32"
+	"gioui.org/gesture"
 	"gioui.org/io/event"
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
@@ -47,6 +47,8 @@ type ShapeView interface {
 type shapeView struct {
 	mv     modelview.ShapeModelView
 	canvas CanvasView
+
+	drag gesture.Drag
 }
 
 func NewShapeView(
@@ -78,8 +80,9 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 
 	clipArea := fillOp.Push(gtx.Ops)
 	event.Op(gtx.Ops, s)
+	//s.drag.Add(gtx.Ops)
 
-	s.processClick(gtx)
+	s.processClick(gtx, pos)
 
 	clipArea.Pop()
 	offset.Pop()
@@ -121,11 +124,12 @@ func (s *shapeView) getShapeOptions(
 	return fillOp, strokeOp
 }
 
-func (s *shapeView) processClick(gtx layout.Context) {
+func (s *shapeView) processClick(gtx layout.Context, offset image.Point) {
 	for {
+
 		ev, ok := gtx.Event(pointer.Filter{
 			Target: s,
-			Kinds:  pointer.Press | pointer.Release,
+			Kinds:  pointer.Press | pointer.Release | pointer.Drag,
 		})
 		if !ok {
 			break
@@ -134,20 +138,21 @@ func (s *shapeView) processClick(gtx layout.Context) {
 		if !ok {
 			break
 		}
-		stateEvent := mouseEvent{
+		mouseEvent := mouseEvent{
 			pos: geometry.Point{
-				X: int(pointerEv.Position.X),
-				Y: int(pointerEv.Position.Y),
+				X: int(pointerEv.Position.X) + offset.X,
+				Y: int(pointerEv.Position.Y) + offset.Y,
 			},
 			ctrl: pointerEv.Modifiers.Contain(key.ModCtrl),
 		}
-		switch ev.(pointer.Event).Kind {
+		//fmt.Println("mouseEvent:", mouseEvent)
+		switch pointerEv.Kind {
+		case pointer.Drag:
+			s.canvas.CurrentState().OnMouseMove(mouseEvent)
 		case pointer.Press:
-			s.canvas.CurrentState().OnShapeClick(stateEvent, s)
-			fmt.Println("shape pressed")
+			s.canvas.CurrentState().OnShapeClick(mouseEvent, s)
 		case pointer.Release:
-			s.canvas.CurrentState().OnMouseUp(stateEvent)
-			fmt.Println("shape released")
+			s.canvas.CurrentState().OnMouseUp(mouseEvent)
 		default:
 			panic("something goes wrong")
 		}
