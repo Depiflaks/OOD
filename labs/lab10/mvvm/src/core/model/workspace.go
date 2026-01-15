@@ -42,18 +42,10 @@ func (w *workspaceModel) Save() {
 	w.SaveAs(w.sourcePath)
 }
 
-func (w *workspaceModel) SaveAs(path string) {
-	fmt.Printf("SaveAs(%s)\n", path)
-	dir := path
-	if filepath.Ext(path) != ".xml" {
-		dir = path
-		path = filepath.Join(path, workspaceFileName)
-	} else {
-		dir = filepath.Dir(path)
-	}
-
+func (w *workspaceModel) SaveAs(dir string) {
+	fmt.Printf("SaveAs(%s)\n", dir)
 	ensureDir(dir)
-
+	filePath := filepath.Join(dir, workspaceFileName)
 	sourcesDir := filepath.Join(dir, sourcesDirName)
 	ensureDir(sourcesDir)
 
@@ -63,8 +55,9 @@ func (w *workspaceModel) SaveAs(path string) {
 	bg := w.canvas.GetBackground()
 	xw.Background = toRGBA8(bg)
 
+	// TODO: искать по существующим фигурам
 	shapes := w.canvas.Shapes()
-	xw.Shapes = make([]xmlShape, 0, len(shapes))
+	xw.Shapes = make([]xmlShape, 0)
 
 	for id, sh := range shapes {
 		st := sh.GetStyle()
@@ -84,12 +77,12 @@ func (w *workspaceModel) SaveAs(path string) {
 			ID:   int64(sh.GetShapeId()),
 			Type: shapeTypeToString(sh.GetShapeType()),
 			Position: xmlPoint{
-				X: float32(sh.GetPosition().X),
-				Y: float32(sh.GetPosition().Y),
+				X: sh.GetPosition().X,
+				Y: sh.GetPosition().Y,
 			},
 			Size: xmlBounds{
-				W: float32(sh.GetBounds().Width),
-				H: float32(sh.GetBounds().Height),
+				W: sh.GetBounds().Width,
+				H: sh.GetBounds().Height,
 			},
 			Style: styleToXML(st),
 		}
@@ -98,24 +91,28 @@ func (w *workspaceModel) SaveAs(path string) {
 
 	xw.NextID = inferNextID(w.canvas)
 
+	storeFile(filePath, xw)
+
+	w.sourcePath = dir
+}
+
+func storeFile(filePath string, xw xmlWorkspace) {
 	data, err := xml.MarshalIndent(xw, "", "  ")
 	if err != nil {
 		panic(err)
 	}
 	data = append([]byte(xml.Header), data...)
 
-	if err := os.WriteFile(path, data, 0o644); err != nil {
+	if err := os.WriteFile(filePath, data, 0o644); err != nil {
 		panic(err)
 	}
-
-	w.sourcePath = path
 }
 
 func (w *workspaceModel) Open(path string) {
-	fmt.Println("OPEN?")
 	xmlPath := path
 	if filepath.Ext(path) != ".xml" {
-		xmlPath = filepath.Join(path, workspaceFileName)
+		fmt.Println("error: file extension not supported")
+		return
 	}
 	fmt.Println("XML:", xmlPath)
 	dir := filepath.Dir(xmlPath)
@@ -130,33 +127,39 @@ func (w *workspaceModel) Open(path string) {
 		panic(err)
 	}
 
-	c := NewCanvas()
+	c := w.canvas.(*canvas)
+	oldIds := make([]types.ShapeId, 0)
+	for id := range c.shapes {
+		oldIds = append(oldIds, id)
+	}
+	c.shapes = make(map[types.ShapeId]Shape)
+	c.notifyShapesChanged(oldIds)
 
-	c.SetBackground(fromRGBA8(xw.Background))
-
+	c.background = fromRGBA8(xw.Background)
+	shapeIds := make([]types.ShapeId, 0)
 	for _, xs := range xw.Shapes {
 		style := styleFromXML(xs.Style)
 		t := shapeTypeFromString(xs.Type)
-		c.NewShape(t, style)
-		if style.BackgroundImagePath != nil {
-			abs := filepath.Join(dir, *style.BackgroundImagePath)
-			style.BackgroundImagePath = &abs
-		}
-
-		id := types.ShapeId(xs.ID)
-
-		sh := NewShape(t, id, style)
+		id := xs.ID
+		shapeIds = append(shapeIds, types.ShapeId(id))
+		sh := NewShape(t, types.ShapeId(id), style)
+		c.shapes[types.ShapeId(id)] = sh
+		// TODO: прикрутить поддержку изображений
+		//if style.BackgroundImagePath != nil {
+		//	abs := filepath.Join(dir, *style.BackgroundImagePath)
+		//	style.BackgroundImagePath = &abs
+		//}
 		sh.UpdateRect(
-			geometry.Point{X: int(xs.Position.X), Y: int(xs.Position.Y)},
-			geometry.Bounds{Width: int(xs.Size.W), Height: int(xs.Size.H)},
+			geometry.Point{X: xs.Position.X, Y: xs.Position.Y},
+			geometry.Bounds{Width: xs.Size.W, Height: xs.Size.H},
 		)
-		//cc.shapes[id] = sh
 	}
 
-	//cc.nextId = ShapeId(xw.NextID)
+	c.nextId = types.ShapeId(xw.NextID)
 
-	w.canvas = c
-	w.sourcePath = xmlPath
+	c.notifyShapesChanged(shapeIds)
+	c.notifyBackgroundChanged()
+	w.sourcePath = dir
 }
 
 func formatImageName(id int64, base string) string {

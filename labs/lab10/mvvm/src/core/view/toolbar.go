@@ -289,7 +289,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 	if t.btnImage.Clicked(gtx) {
 		fmt.Println("Action: Load Image")
 		go func() {
-			path, err := openFileDialog("Images", []string{".png", ".jpg", ".jpeg", ".bmp"})
+			path, err := openFileDialog("Images", []string{"*.png", "*.jpg", "*.jpeg", "*.bmp"})
 			if err == nil {
 				t.mv.NewImage(path)
 			}

@@ -23,19 +23,19 @@ type xmlWorkspace struct {
 type xmlShape struct {
 	ID       int64     `xml:"id,attr"`
 	Type     string    `xml:"type,attr"`
-	Position xmlPoint  `xml:"positionition"`
+	Position xmlPoint  `xml:"position"`
 	Size     xmlBounds `xml:"bounds"`
-	Style    xmlStyle  `xml:"stylele"`
+	Style    xmlStyle  `xml:"style"`
 }
 
 type xmlPoint struct {
-	X float32 `xml:"x,attr"`
-	Y float32 `xml:"y,attr"`
+	X int `xml:"x,attr"`
+	Y int `xml:"y,attr"`
 }
 
 type xmlBounds struct {
-	W float32 `xml:"w,attr"`
-	H float32 `xml:"h,attr"`
+	W int `xml:"w,attr"`
+	H int `xml:"h,attr"`
 }
 
 type xmlStyle struct {
@@ -52,7 +52,7 @@ type xmlRGBA struct {
 }
 
 func toRGBA8(c color.Color) xmlRGBA {
-	r, g, b, a := c.RGBA() // 0..65535
+	r, g, b, a := c.RGBA()
 	return xmlRGBA{
 		R: uint8(r >> 8),
 		G: uint8(g >> 8),

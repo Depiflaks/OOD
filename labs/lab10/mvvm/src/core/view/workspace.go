@@ -61,7 +61,7 @@ func NewWorkspaceView(
 func (v *workspaceView) loadFileActions() {
 	v.fileActions = FileActions{
 		Open: func() {
-			path, err := openFileDialog("config", []string{"xml"})
+			path, err := openFileDialog("config", []string{"*.xml"})
 			if err == nil {
 				v.workspaceMV.Open(path)
 				v.window.Invalidate()

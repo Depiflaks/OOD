@@ -1,9 +1,10 @@
 package modelview
 
 import (
+	"fmt"
 	"image/color"
 	"vector-editor/src/core/manager"
-	model2 "vector-editor/src/core/model"
+	"vector-editor/src/core/model"
 	"vector-editor/src/types"
 )
 
@@ -19,14 +20,14 @@ type CanvasModelView interface {
 
 type canvasModelView struct {
 	observers  []CanvasModelViewObserver
-	canvas     model2.Canvas
+	canvas     model.Canvas
 	manager    manager.CanvasManager
 	background color.Color
 	shapes     map[types.ShapeId]ShapeModelView
 }
 
 func NewCanvasModelView(
-	canvas model2.Canvas,
+	canvas model.Canvas,
 	canvasManager manager.CanvasManager,
 ) CanvasModelView {
 	canvasMV := &canvasModelView{
@@ -41,6 +42,7 @@ func NewCanvasModelView(
 }
 
 func (c *canvasModelView) OnShapesChanged(ids []types.ShapeId) {
+	fmt.Println("OnShapesChanged")
 	for _, id := range ids {
 		shape := c.canvas.GetShape(id)
 
@@ -61,7 +63,7 @@ func (c *canvasModelView) OnShapesChanged(ids []types.ShapeId) {
 	}
 }
 
-func (c *canvasModelView) newShapeMV(shape model2.Shape) ShapeModelView {
+func (c *canvasModelView) newShapeMV(shape model.Shape) ShapeModelView {
 	return NewShapeModelView(shape, c.manager.ShapeManager())
 }
 
@@ -76,7 +78,7 @@ func (c *canvasModelView) GetBackgroundColor() color.Color {
 	return c.background
 }
 
-func (c *canvasModelView) GetCanvas() model2.Canvas {
+func (c *canvasModelView) GetCanvas() model.Canvas {
 	return c.canvas
 }
 
