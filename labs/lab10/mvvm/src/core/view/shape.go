@@ -10,6 +10,7 @@ import (
 
 	"gioui.org/f32"
 	"gioui.org/io/event"
+	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -39,9 +40,6 @@ type ShapeView interface {
 	StartResizing()
 	StopResizing()
 	Resize(delta geometry.Vector, scale geometry.Scale)
-
-	Hit(p geometry.Point) bool
-	HitHandle(p geometry.Point) (geometry.ResizeHandle, bool)
 
 	Process(gtx layout.Context) layout.Dimensions
 	ProcessHandles(gtx layout.Context) layout.Dimensions
@@ -132,10 +130,23 @@ func (s *shapeView) processClick(gtx layout.Context) {
 		if !ok {
 			break
 		}
+		pointerEv, ok := ev.(pointer.Event)
+		if !ok {
+			break
+		}
+		stateEvent := mouseEvent{
+			pos: geometry.Point{
+				X: int(pointerEv.Position.X),
+				Y: int(pointerEv.Position.Y),
+			},
+			ctrl: pointerEv.Modifiers.Contain(key.ModCtrl),
+		}
 		switch ev.(pointer.Event).Kind {
 		case pointer.Press:
+			s.canvas.CurrentState().OnShapeClick(stateEvent, s)
 			fmt.Println("shape pressed")
 		case pointer.Release:
+			s.canvas.CurrentState().OnMouseUp(stateEvent)
 			fmt.Println("shape released")
 		default:
 			panic("something goes wrong")
@@ -205,22 +216,6 @@ func (s *shapeView) StartResizing() { s.mv.StartResizing() }
 func (s *shapeView) StopResizing()  { s.mv.StopResizing() }
 func (s *shapeView) Resize(delta geometry.Vector, scale geometry.Scale) {
 	s.mv.Resize(delta, scale)
-}
-
-func (s *shapeView) Hit(p geometry.Point) bool {
-	//pos := s.mv.GetPosition()
-	//b := s.mv.GetBounds()
-	//t := s.mv.GetShapeType()
-	return false
-	//return geometry.HitShape(p, pos, b, t)
-}
-
-func (s *shapeView) HitHandle(p geometry.Point) (geometry.ResizeHandle, bool) {
-	//pos := s.mv.GetPosition()
-	//b := s.mv.GetBounds()
-
-	//return geometry.HitHandle(p, pos, b, HandleSize)
-	return geometry.HandleTopLeft, false
 }
 
 //		if s.mv.GetStyle().BackgroundImagePath == nil {

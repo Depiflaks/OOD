@@ -14,13 +14,13 @@ import (
 )
 
 type mouseEvent struct {
-	Pos  geometry.Point
-	Ctrl bool
+	pos  geometry.Point
+	ctrl bool
 }
 
 type State interface {
-	OnShapeClick(e mouseEvent, shape ShapeView, ctrl bool)
-	OnEmptyClick(e mouseEvent, ctrl bool)
+	OnShapeClick(e mouseEvent, shape ShapeView)
+	OnEmptyClick(e mouseEvent)
 	OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle)
 	OnMouseMove(e mouseEvent)
 	OnMouseUp(e mouseEvent)
@@ -28,6 +28,7 @@ type State interface {
 }
 
 type stateMachine interface {
+	CurrentState() State
 	SetIdleState()
 	SetDraggingState(e mouseEvent, active ShapeView)
 	SetResizingState(e mouseEvent, active ShapeView, marker geometry.ResizeHandle)
@@ -51,6 +52,10 @@ type canvasView struct {
 	drawOrder []types.ShapeId
 
 	current State
+}
+
+func (c *canvasView) CurrentState() State {
+	return c.current
 }
 
 func (c *canvasView) OnBackgroundChanged() {
@@ -136,19 +141,9 @@ func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {
 }
 
 //func (c *canvasView) MouseDown(ev *desktop.MouseEvent) {
-//	ctrl := ev.Modifier == fyne.KeyModifierControl
-//	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
-//	me := mouseEvent{Pos: p, Ctrl: ctrl}
-//
 //	shape, marker, hitMarker := c.hitHandles(p)
 //	if hitMarker {
 //		c.current.OnResizeActivated(me, shape, marker)
-//		return
-//	}
-//
-//	shape = c.hitTestShape(p)
-//	if shape != nil {
-//		c.current.OnShapeClick(me, shape, ctrl)
 //		return
 //	}
 //
@@ -158,15 +153,13 @@ func (c *canvasView) OnShapesChanged(ids []types.ShapeId) {
 //func (c *canvasView) MouseUp(ev *desktop.MouseEvent) {
 //	ctrl := ev.Modifier == fyne.KeyModifierControl
 //	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
-//	c.current.OnMouseUp(mouseEvent{Pos: p, Ctrl: ctrl})
+//	c.current.OnMouseUp(mouseEvent{pos: p, ctrl: ctrl})
 //}
-//
-//func (c *canvasView) MouseIn(ev *desktop.MouseEvent) {}
-//
+
 //func (c *canvasView) MouseMoved(ev *desktop.MouseEvent) {
 //	ctrl := ev.Modifier == fyne.KeyModifierControl
 //	p := geometry.Point{X: float64(ev.Position.X), Y: float64(ev.Position.Y)}
-//	c.current.OnMouseMove(mouseEvent{Pos: p, Ctrl: ctrl})
+//	c.current.OnMouseMove(mouseEvent{pos: p, ctrl: ctrl})
 //}
 
 func (c *canvasView) MouseOut() {
@@ -187,39 +180,4 @@ func (c *canvasView) DeleteSelection() {
 
 func (c *canvasView) Invalidate() {
 	c.window.Invalidate()
-}
-
-func (c *canvasView) hitTestShape(p geometry.Point) ShapeView {
-	for i := len(c.drawOrder) - 1; i >= 0; i-- {
-		id := c.drawOrder[i]
-		sv := c.shapes[id]
-		if sv == nil {
-			continue
-		}
-		if sv.IsDeleted() {
-			continue
-		}
-		if sv.Hit(p) {
-			return sv
-		}
-	}
-	return nil
-}
-
-func (c *canvasView) hitHandles(p geometry.Point) (ShapeView, geometry.ResizeHandle, bool) {
-	for i := len(c.drawOrder) - 1; i >= 0; i-- {
-		id := c.drawOrder[i]
-		sv := c.shapes[id]
-		if sv == nil {
-			continue
-		}
-		if sv.IsDeleted() || !sv.IsSelected() {
-			continue
-		}
-		m, ok := sv.HitHandle(p)
-		if ok {
-			return sv, m, true
-		}
-	}
-	return nil, 0, false
 }

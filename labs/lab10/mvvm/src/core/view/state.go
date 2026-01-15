@@ -1,6 +1,9 @@
 package view
 
-import "vector-editor/src/types/geometry"
+import (
+	"math"
+	"vector-editor/src/types/geometry"
+)
 
 type idleState struct {
 	c CanvasView
@@ -12,14 +15,14 @@ func NewIdleState(c CanvasView) State {
 
 func (s *idleState) OnMouseLeave() {}
 
-func (s *idleState) OnShapeClick(e mouseEvent, shape ShapeView, ctrl bool) {
+func (s *idleState) OnShapeClick(e mouseEvent, shape ShapeView) {
 	if !shape.IsSelected() {
-		shape.Select(ctrl)
+		shape.Select(e.ctrl)
 	}
 	s.c.SetDraggingState(e, shape)
 }
 
-func (s *idleState) OnEmptyClick(e mouseEvent, ctrl bool) {
+func (s *idleState) OnEmptyClick(e mouseEvent) {
 	s.c.ClearSelection()
 }
 
@@ -38,7 +41,7 @@ func NewDraggingState(c CanvasView, e mouseEvent, active ShapeView) State {
 	return &draggingState{
 		c:          c,
 		active:     active,
-		startMouse: e.Pos,
+		startMouse: e.pos,
 	}
 }
 
@@ -56,9 +59,9 @@ func (s *draggingState) OnMouseLeave() {
 	s.c.SetIdleState()
 }
 
-func (s *draggingState) OnShapeClick(e mouseEvent, shape ShapeView, ctrl bool) {}
+func (s *draggingState) OnShapeClick(e mouseEvent, shape ShapeView) {}
 
-func (s *draggingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
+func (s *draggingState) OnEmptyClick(e mouseEvent) {}
 
 func (s *draggingState) OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle) {
 }
@@ -68,14 +71,14 @@ func (s *draggingState) OnMouseMove(e mouseEvent) {
 		return
 	}
 	d := s.findDelta(e)
-	if d.X < 5 && d.Y < 5 {
+	if math.Abs(float64(d.X)) < 5 && math.Abs(float64(d.Y)) < 5 {
 		return
 	}
 	s.active.Drag(d)
 }
 
 func (s *draggingState) findDelta(e mouseEvent) geometry.Vector {
-	return geometry.Vector{X: e.Pos.X - s.startMouse.X, Y: e.Pos.Y - s.startMouse.Y}
+	return geometry.Vector{X: e.pos.X - s.startMouse.X, Y: e.pos.Y - s.startMouse.Y}
 }
 
 func (s *draggingState) OnMouseUp(e mouseEvent) {
@@ -93,7 +96,7 @@ func NewResizingState(c CanvasView, e mouseEvent, active ShapeView, marker geome
 		c:          c,
 		active:     active,
 		marker:     marker,
-		startMouse: e.Pos,
+		startMouse: e.pos,
 		startSel: geometry.Rect{
 			Position: active.GetPosition(),
 			Size:     active.GetBounds(),
@@ -117,9 +120,9 @@ func (s *resizingState) OnMouseLeave() {
 	s.c.SetIdleState()
 }
 
-func (s *resizingState) OnShapeClick(e mouseEvent, shape ShapeView, ctrl bool) {}
+func (s *resizingState) OnShapeClick(e mouseEvent, shape ShapeView) {}
 
-func (s *resizingState) OnEmptyClick(e mouseEvent, ctrl bool) {}
+func (s *resizingState) OnEmptyClick(e mouseEvent) {}
 
 func (s *resizingState) OnResizeActivated(e mouseEvent, shape ShapeView, marker geometry.ResizeHandle) {
 }
@@ -134,7 +137,7 @@ func (s *resizingState) OnMouseMove(e mouseEvent) {
 }
 
 func (s *resizingState) findScaleAndDirection(e mouseEvent) (geometry.Scale, geometry.Vector) {
-	dm := geometry.Vector{X: e.Pos.X - s.startMouse.X, Y: e.Pos.Y - s.startMouse.Y}
+	dm := geometry.Vector{X: e.pos.X - s.startMouse.X, Y: e.pos.Y - s.startMouse.Y}
 
 	left := s.startSel.Position.X
 	top := s.startSel.Position.Y
