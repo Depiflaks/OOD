@@ -3,6 +3,7 @@ package view
 import (
 	"image"
 	"image/color"
+	"os"
 	"vector-editor/src/core/modelview"
 	"vector-editor/src/types"
 	"vector-editor/src/types/geometry"
@@ -12,8 +13,10 @@ import (
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
+	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/widget"
 )
 
 const (
@@ -43,8 +46,9 @@ type ShapeView interface {
 	ProcessHandles(gtx layout.Context) layout.Dimensions
 }
 type shapeView struct {
-	mv     modelview.ShapeModelView
-	canvas CanvasView
+	mv        modelview.ShapeModelView
+	canvas    CanvasView
+	imgWidget widget.Image
 
 	handles map[geometry.ResizeHandle]image.Rectangle
 }
@@ -78,12 +82,9 @@ func getHandleRect(x int, y int) image.Rectangle {
 func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 	modelPos := s.GetPosition()
 	modelSize := s.GetBounds()
-	modelStyle := s.mv.GetStyle()
 
 	pos := image.Point{X: modelPos.X, Y: modelPos.Y}
 	size := image.Point{X: modelSize.Width, Y: modelSize.Height}
-	fillColor := color.NRGBAModel.Convert(modelStyle.Fill).(color.NRGBA)
-	strokeColor := color.NRGBAModel.Convert(modelStyle.Stroke).(color.NRGBA)
 
 	rect := image.Rectangle{
 		Min: pos,
@@ -91,8 +92,7 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 	}
 	fillOp, strokeOp := s.getShapeOptions(gtx, rect)
 
-	paint.FillShape(gtx.Ops, strokeColor, strokeOp)
-	paint.FillShape(gtx.Ops, fillColor, fillOp)
+	s.drawShape(gtx, strokeOp, fillOp, rect)
 
 	clipArea := fillOp.Push(gtx.Ops)
 	event.Op(gtx.Ops, s)
@@ -101,6 +101,55 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 
 	clipArea.Pop()
 	return D{Size: size}
+}
+
+func (s *shapeView) drawShape(
+	gtx layout.Context,
+	strokeOp clip.Op,
+	fillOp clip.Op,
+	rect image.Rectangle,
+) {
+	modelStyle := s.mv.GetStyle()
+	fillColor := color.NRGBAModel.Convert(modelStyle.Fill).(color.NRGBA)
+	strokeColor := color.NRGBAModel.Convert(modelStyle.Stroke).(color.NRGBA)
+	paint.FillShape(gtx.Ops, fillColor, fillOp)
+	s.drawImage(gtx, fillOp, rect)
+	paint.FillShape(gtx.Ops, strokeColor, strokeOp)
+}
+
+func (s *shapeView) drawImage(
+	gtx layout.Context,
+	fillOp clip.Op,
+	rect image.Rectangle,
+) {
+	pathPtr := s.mv.GetStyle().BackgroundImagePath
+	if pathPtr == nil {
+		return
+	}
+	f, err := os.Open(*pathPtr)
+	if err != nil {
+		return
+	}
+	img, _, err := image.Decode(f)
+	f.Close()
+
+	if err != nil {
+		return
+	}
+	w := widget.Image{
+		Src: paint.NewImageOp(img),
+		Fit: widget.Fill,
+	}
+
+	clipStack := fillOp.Push(gtx.Ops)
+	offStack := op.Offset(rect.Min).Push(gtx.Ops)
+
+	gtx.Constraints = layout.Exact(rect.Size())
+
+	w.Layout(gtx)
+
+	offStack.Pop()
+	clipStack.Pop()
 }
 
 func (s *shapeView) getShapeOptions(
@@ -114,7 +163,6 @@ func (s *shapeView) getShapeOptions(
 		obj := clip.Rect(rect)
 		fillOp = obj.Op()
 		strokePath = obj.Path()
-
 	case types.Ellipse:
 		obj := clip.Ellipse(rect)
 		fillOp = obj.Op(gtx.Ops)

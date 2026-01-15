@@ -48,6 +48,8 @@ func (t *toolbarModelView) NewEllipse(style draw.Style) {
 func (t *toolbarModelView) NewImage(path string) {
 	style := draw.Style{
 		BackgroundImagePath: &path,
+		Stroke:              color.NRGBA{},
+		Fill:                color.NRGBA{},
 	}
 	t.manager.NewShape(types.Rect, style)
 }

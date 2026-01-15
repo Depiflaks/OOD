@@ -115,11 +115,16 @@ func (t *toolbarView) Process(gtx layout.Context) layout.Dimensions {
 	areaStack.Pop()
 
 	return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx C) D {
-		return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+		return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 			layout.Rigid(func(gtx C) D {
 				return t.drawShapeButtons(gtx)
 			}),
 			layout.Rigid(layout.Spacer{Width: unit.Dp(40)}.Layout),
+			layout.Rigid(func(gtx C) D {
+				gtx.Constraints = layout.Exact(buttonSize)
+				return material.Button(t.buttonTheme, &t.btnImage, "Image").Layout(gtx)
+			}),
+			layout.Rigid(layout.Spacer{Width: unit.Dp(10)}.Layout),
 			layout.Rigid(func(gtx C) D {
 				return t.drawColorPickers(gtx)
 			}),
@@ -156,7 +161,7 @@ func (t *toolbarView) drawFileOperationButtons(gtx layout.Context) layout.Dimens
 
 func (t *toolbarView) drawShapeButtons(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{
-		Axis:      layout.Vertical,
+		Axis:      layout.Horizontal,
 		Spacing:   layout.SpaceBetween,
 		Alignment: layout.Middle,
 	}.Layout(gtx,
@@ -164,12 +169,12 @@ func (t *toolbarView) drawShapeButtons(gtx layout.Context) layout.Dimensions {
 			gtx.Constraints = layout.Exact(buttonSize)
 			return material.Button(t.buttonTheme, &t.btnRect, "Rect").Layout(gtx)
 		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(verticalSpace)}.Layout),
+		layout.Rigid(layout.Spacer{Width: unit.Dp(verticalSpace)}.Layout),
 		layout.Rigid(func(gtx C) D {
 			gtx.Constraints = layout.Exact(buttonSize)
 			return material.Button(t.buttonTheme, &t.btnTri, "Tri").Layout(gtx)
 		}),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(verticalSpace)}.Layout),
+		layout.Rigid(layout.Spacer{Width: unit.Dp(verticalSpace)}.Layout),
 		layout.Rigid(func(gtx C) D {
 			gtx.Constraints = layout.Exact(buttonSize)
 			return material.Button(t.buttonTheme, &t.btnOval, "Oval").Layout(gtx)
@@ -284,7 +289,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 	if t.btnImage.Clicked(gtx) {
 		fmt.Println("Action: Load Image")
 		go func() {
-			path, err := openFileDialog("Images", []string{"png", "jpg", "jpeg", "bmp"})
+			path, err := openFileDialog("Images", []string{".png", ".jpg", ".jpeg", ".bmp"})
 			if err == nil {
 				t.mv.NewImage(path)
 			}
