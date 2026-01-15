@@ -61,7 +61,7 @@ func NewWorkspaceView(
 func (v *workspaceView) loadFileActions() {
 	v.fileActions = FileActions{
 		Open: func() {
-			path, err := zenity.SelectFile(zenity.Directory())
+			path, err := openFileDialog("config", []string{"xml"})
 			if err == nil {
 				v.workspaceMV.Open(path)
 				v.window.Invalidate()
@@ -78,6 +78,17 @@ func (v *workspaceView) loadFileActions() {
 			}
 		},
 	}
+}
+
+func openFileDialog(name string, extensions []string) (string, error) {
+	return zenity.SelectFile(
+		zenity.FileFilters{
+			{Name: name, Patterns: extensions},
+		})
+}
+
+func openFolderDialog() (string, error) {
+	return zenity.SelectFile(zenity.Directory())
 }
 
 func (v *workspaceView) Run() error {

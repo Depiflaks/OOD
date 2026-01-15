@@ -284,7 +284,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 	if t.btnImage.Clicked(gtx) {
 		fmt.Println("Action: Load Image")
 		go func() {
-			path, err := openFileDialog([]string{"png", "jpg", "jpeg", "bmp"})
+			path, err := openFileDialog("Images", []string{"png", "jpg", "jpeg", "bmp"})
 			if err == nil {
 				t.mv.NewImage(path)
 			}
@@ -292,17 +292,14 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 	}
 
 	if t.btnOpen.Clicked(gtx) {
-		fmt.Println("File: Open")
 		go t.fileActions.Open()
 	}
 
 	if t.btnSave.Clicked(gtx) {
-		fmt.Println("File: Save")
 		t.fileActions.Save()
 	}
 
 	if t.btnSaveAs.Clicked(gtx) {
-		fmt.Println("File: Save As")
 		go t.fileActions.SaveAs()
 	}
 }
@@ -347,15 +344,4 @@ func (t *toolbarView) OnSelectionChange(style draw.Style, selectedCount int) {
 
 func openColorPickerDialog() (color.Color, error) {
 	return zenity.SelectColor()
-}
-
-func openFileDialog(extensions []string) (string, error) {
-	return zenity.SelectFile(
-		zenity.FileFilters{
-			{Name: "Images", Patterns: extensions},
-		})
-}
-
-func openFolderDialog() (string, error) {
-	return zenity.SelectFile(zenity.Directory())
 }
