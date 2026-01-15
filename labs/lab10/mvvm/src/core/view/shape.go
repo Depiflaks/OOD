@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	HandleSize  = 10
+	HandleSize  = 14
 	strokeWidth = 3
 )
 
@@ -46,7 +46,7 @@ type shapeView struct {
 	mv     modelview.ShapeModelView
 	canvas CanvasView
 
-	handleTag int
+	handles map[geometry.ResizeHandle]image.Rectangle
 }
 
 func NewShapeView(
@@ -54,9 +54,25 @@ func NewShapeView(
 	canvas CanvasView,
 ) ShapeView {
 	s := &shapeView{mv: mv, canvas: canvas}
+
+	s.handles = make(map[geometry.ResizeHandle]image.Rectangle)
+
 	mv.AddObserver(s)
 
 	return s
+}
+
+func (s *shapeView) updateHandles(rect image.Rectangle) {
+	s.handles[geometry.HandleTopLeft] = getHandleRect(rect.Min.X, rect.Min.Y)
+	s.handles[geometry.HandleTopRight] = getHandleRect(rect.Max.X, rect.Min.Y)
+	s.handles[geometry.HandleBottomLeft] = getHandleRect(rect.Min.X, rect.Max.Y)
+	s.handles[geometry.HandleBottomRight] = getHandleRect(rect.Max.X, rect.Max.Y)
+}
+
+func getHandleRect(x int, y int) image.Rectangle {
+	halfHandle := HandleSize / 2
+	p := image.Point{X: x - halfHandle, Y: y - halfHandle}
+	return image.Rectangle{Min: p, Max: p.Add(image.Pt(HandleSize, HandleSize))}
 }
 
 func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
@@ -200,39 +216,19 @@ func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {
 	borderStroke := clip.Stroke{Path: borderPath, Width: 2}.Op()
 	paint.FillShape(gtx.Ops, selectionColor, borderStroke)
 
-	halfHandle := HandleSize / 2
-	getHandleRect := func(x, y int) image.Rectangle {
-		p := image.Point{X: x - halfHandle, Y: y - halfHandle}
-		return image.Rectangle{Min: p, Max: p.Add(image.Pt(HandleSize, HandleSize))}
-	}
+	s.updateHandles(rect)
 
-	tl := getHandleRect(rect.Min.X, rect.Min.Y)
-	tr := getHandleRect(rect.Max.X, rect.Min.Y)
-	bl := getHandleRect(rect.Min.X, rect.Max.Y)
-	br := getHandleRect(rect.Max.X, rect.Max.Y)
-
-	handles := []struct {
-		rect image.Rectangle
-		kind geometry.ResizeHandle
-	}{
-		{tl, geometry.HandleTopLeft},
-		{tr, geometry.HandleTopRight},
-		{bl, geometry.HandleBottomLeft},
-		{br, geometry.HandleBottomRight},
-	}
-
-	for i := range handles {
-		h := handles[i]
-		handle := clip.Ellipse(h.rect)
+	for handleType, handleRect := range s.handles {
+		handle := clip.Ellipse(handleRect)
 		paint.FillShape(gtx.Ops, selectionColor, handle.Op(gtx.Ops))
 
 		stack := handle.Push(gtx.Ops)
 
-		event.Op(gtx.Ops, h)
+		event.Op(gtx.Ops, handleType)
 
 		for {
 			ev, ok := gtx.Event(pointer.Filter{
-				Target: h,
+				Target: handleType,
 				Kinds:  pointer.Press | pointer.Release | pointer.Drag,
 			})
 			if !ok {
@@ -251,12 +247,11 @@ func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {
 				pos:  mouseP,
 				ctrl: ptrEv.Modifiers.Contain(key.ModCtrl),
 			}
-
 			switch ptrEv.Kind {
-			case pointer.Press:
-				s.canvas.SetResizingState(mouseEvent, s, h.kind)
 			case pointer.Drag:
 				s.canvas.CurrentState().OnMouseMove(mouseEvent)
+			case pointer.Press:
+				s.canvas.CurrentState().OnResizeActivated(mouseEvent, s, handleType)
 			case pointer.Release:
 				s.canvas.CurrentState().OnMouseUp(mouseEvent)
 			}
@@ -265,19 +260,6 @@ func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {
 	}
 
 	return layout.Dimensions{Size: size}
-}
-
-func hitHandle(p geometry.Point, handles []struct {
-	rect image.Rectangle
-	kind geometry.ResizeHandle
-}) (geometry.ResizeHandle, bool) {
-	imgP := image.Point{X: p.X, Y: p.Y}
-	for _, h := range handles {
-		if imgP.In(h.rect) {
-			return h.kind, true
-		}
-	}
-	return 0, false
 }
 
 func (s *shapeView) Update() {
@@ -315,27 +297,3 @@ func (s *shapeView) StopResizing()  { s.mv.StopResizing() }
 func (s *shapeView) Resize(delta geometry.Vector, scale geometry.Scale) {
 	s.mv.Resize(delta, scale)
 }
-
-//		if s.mv.GetStyle().BackgroundImagePath == nil {
-//			drawRect(img, pos, b, fill, stroke)
-//		} else {
-//			drawRectImage(
-//				img,
-//				pos,
-//				b,
-//				file.Open(*s.mv.GetStyle().BackgroundImagePath),
-//			)
-//		}
-
-//func (s *shapeView) DrawSelection(img *image.RGBA) {
-//	stroke := color.RGBA{0, 120, 255, 255}
-//	handle := 8.0
-//	pos := s.mv.GetPosition()
-//	b := s.mv.GetBounds()
-//	drawRect(img, pos, b, color.RGBA{0, 0, 0, 0}, stroke)
-//
-//	drawRect(img, pos, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
-//	drawRect(img, geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
-//	drawRect(img, geometry.Point{X: pos.X, Y: pos.Y + b.Height - handle}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
-//	drawRect(img, geometry.Point{X: pos.X + b.Width - handle, Y: pos.Y + b.Height - handle}, geometry.Bounds{Width: handle, Height: handle}, stroke, stroke)
-//}
