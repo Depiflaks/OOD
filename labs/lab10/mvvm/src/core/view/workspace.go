@@ -99,6 +99,7 @@ func (v *workspaceView) Run() error {
 	for {
 		switch e := v.window.Event().(type) {
 		case app.DestroyEvent:
+			v.workspaceMV.Close()
 			return e.Err
 		case app.FrameEvent:
 			gtx := app.NewContext(&ops, e)

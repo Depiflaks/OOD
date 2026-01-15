@@ -17,6 +17,7 @@ type WorkspaceModelView interface {
 	Open(path string)
 
 	Delete()
+	Close()
 
 	AddObserver(o WorkspaceModelViewObserver)
 }
@@ -51,6 +52,10 @@ func (w *workspaceModelView) Save() {
 
 func (w *workspaceModelView) SaveAs(path string) {
 	w.workspace.SaveAs(path, w.canvas.visibleShapesIds())
+}
+
+func (w *workspaceModelView) Close() {
+	w.workspace.Close()
 }
 
 func (w *workspaceModelView) Open(path string) {

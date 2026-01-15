@@ -11,6 +11,7 @@ import (
 type FileStorage interface {
 	store(localPath string) string
 	delete(path string)
+	close()
 }
 
 type storage struct {
@@ -18,6 +19,14 @@ type storage struct {
 
 func NewStorage() FileStorage {
 	return &storage{}
+}
+
+func (s *storage) close() {
+	tmpDir := ".tmp"
+	err := os.RemoveAll(tmpDir)
+	if err != nil {
+		fmt.Println("Failed to cleanup temp dir:", err)
+	}
 }
 
 func (s *storage) store(localPath string) string {

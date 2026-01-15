@@ -54,6 +54,7 @@ func (h *commandHistory) Redo() {
 
 func (h *commandHistory) Clear() {
 	h.commands = h.commands[:0]
+	h.cursor = 0
 }
 
 func (h *commandHistory) dispose(cmds []Command) {

@@ -17,6 +17,7 @@ type Workspace interface {
 	Save(visibleShapes []types.ShapeId)
 	SaveAs(path string, visibleShapes []types.ShapeId)
 	Open(path string)
+	Close()
 }
 
 type workspaceModel struct {
@@ -144,8 +145,8 @@ func (w *workspaceModel) Open(path string) {
 	w.sourcePath = dir
 }
 
-func formatImageName(id int64, base string) string {
-	return fmt.Sprintf("%d_%s", id, base)
+func (w *workspaceModel) Close() {
+	w.fileStorage.close()
 }
 
 func inferNextID(c Canvas) int64 {

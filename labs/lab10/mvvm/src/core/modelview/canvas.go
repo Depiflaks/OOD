@@ -1,7 +1,6 @@
 package modelview
 
 import (
-	"fmt"
 	"image/color"
 	"vector-editor/src/core/manager"
 	"vector-editor/src/core/model"
@@ -54,7 +53,6 @@ func NewCanvasModelView(
 }
 
 func (c *canvasModelView) OnShapesChanged(ids []types.ShapeId) {
-	fmt.Println("OnShapesChanged")
 	for _, id := range ids {
 		shape := c.canvas.GetShape(id)
 
