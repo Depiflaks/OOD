@@ -293,16 +293,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 
 	if t.btnOpen.Clicked(gtx) {
 		fmt.Println("File: Open")
-		if t.fileActions.Open != nil {
-			go func() {
-				path, err := zenity.SelectFile(zenity.Directory())
-				if err == nil {
-					t.fileActions.Open(path)
-					// TODO: возможно надо обновлять экран
-					//w.Invalidate()
-				}
-			}()
-		}
+		go t.fileActions.Open()
 	}
 
 	if t.btnSave.Clicked(gtx) {
@@ -312,16 +303,7 @@ func (t *toolbarView) processButtonsClick(gtx layout.Context) {
 
 	if t.btnSaveAs.Clicked(gtx) {
 		fmt.Println("File: Save As")
-		if t.fileActions.SaveAs != nil {
-			go func() {
-				path, err := openFolderDialog()
-				if err == nil {
-					t.fileActions.SaveAs(path)
-					// TODO: возможно надо обновлять экран
-					//w.Invalidate()
-				}
-			}()
-		}
+		go t.fileActions.SaveAs()
 	}
 }
 

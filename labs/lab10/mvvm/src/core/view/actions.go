@@ -1,7 +1,7 @@
 package view
 
 type FileActions struct {
-	Open   func(string)
+	Open   func()
 	Save   func()
-	SaveAs func(string)
+	SaveAs func()
 }

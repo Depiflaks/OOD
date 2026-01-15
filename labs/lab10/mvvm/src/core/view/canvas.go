@@ -1,12 +1,10 @@
 package view
 
 import (
-	"fmt"
 	"image/color"
 
 	"gioui.org/app"
 	"gioui.org/io/event"
-	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op/clip"
@@ -136,17 +134,16 @@ func (c *canvasView) processBackground(gtx layout.Context) {
 		if !ok {
 			break
 		}
-		mouseEvent := mouseEvent{
-			pos: geometry.Point{
-				X: int(pointerEv.Position.X),
-				Y: int(pointerEv.Position.Y),
-			},
-			ctrl: pointerEv.Modifiers.Contain(key.ModCtrl),
-		}
-		switch ev.(pointer.Event).Kind {
+		//mouseEvent := mouseEvent{
+		//	pos: geometry.Point{
+		//		X: int(pointerEv.Position.X),
+		//		Y: int(pointerEv.Position.Y),
+		//	},
+		//	ctrl: pointerEv.Modifiers.Contain(key.ModCtrl),
+		//}
+		switch pointerEv.Kind {
 		case pointer.Drag:
-			fmt.Println("moving...")
-			c.current.OnMouseMove(mouseEvent)
+			//c.current.OnMouseMove(mouseEvent)
 		default:
 			panic("something goes wrong")
 		}

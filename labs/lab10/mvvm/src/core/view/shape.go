@@ -13,7 +13,6 @@ import (
 	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
-	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 )
@@ -71,8 +70,10 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 	fillColor := color.NRGBAModel.Convert(modelStyle.Fill).(color.NRGBA)
 	strokeColor := color.NRGBAModel.Convert(modelStyle.Stroke).(color.NRGBA)
 
-	rect := image.Rectangle{Max: size}
-	offset := op.Offset(pos).Push(gtx.Ops)
+	rect := image.Rectangle{
+		Min: pos,
+		Max: pos.Add(size),
+	}
 	fillOp, strokeOp := s.getShapeOptions(gtx, rect)
 
 	paint.FillShape(gtx.Ops, strokeColor, strokeOp)
@@ -80,12 +81,10 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 
 	clipArea := fillOp.Push(gtx.Ops)
 	event.Op(gtx.Ops, s)
-	//s.drag.Add(gtx.Ops)
 
-	s.processClick(gtx, pos)
+	s.processClick(gtx)
 
 	clipArea.Pop()
-	offset.Pop()
 	return D{Size: size}
 }
 
@@ -124,9 +123,8 @@ func (s *shapeView) getShapeOptions(
 	return fillOp, strokeOp
 }
 
-func (s *shapeView) processClick(gtx layout.Context, offset image.Point) {
+func (s *shapeView) processClick(gtx layout.Context) {
 	for {
-
 		ev, ok := gtx.Event(pointer.Filter{
 			Target: s,
 			Kinds:  pointer.Press | pointer.Release | pointer.Drag,
@@ -140,12 +138,11 @@ func (s *shapeView) processClick(gtx layout.Context, offset image.Point) {
 		}
 		mouseEvent := mouseEvent{
 			pos: geometry.Point{
-				X: int(pointerEv.Position.X) + offset.X,
-				Y: int(pointerEv.Position.Y) + offset.Y,
+				X: int(pointerEv.Position.X),
+				Y: int(pointerEv.Position.Y),
 			},
 			ctrl: pointerEv.Modifiers.Contain(key.ModCtrl),
 		}
-		//fmt.Println("mouseEvent:", mouseEvent)
 		switch pointerEv.Kind {
 		case pointer.Drag:
 			s.canvas.CurrentState().OnMouseMove(mouseEvent)
@@ -176,10 +173,17 @@ func pointInTriangle(p f32.Point, rect image.Rectangle) bool {
 }
 
 func getTrianglePoints(rect image.Rectangle) (f32.Point, f32.Point, f32.Point) {
+	minX := float32(rect.Min.X)
+	minY := float32(rect.Min.Y)
+
 	w := float32(rect.Dx())
 	h := float32(rect.Dy())
 
-	return f32.Pt(w/2, 0), f32.Pt(w, h), f32.Pt(0, h)
+	top := f32.Pt(minX+w/2, minY)
+	bottomRight := f32.Pt(minX+w, minY+h)
+	bottomLeft := f32.Pt(minX, minY+h)
+
+	return top, bottomRight, bottomLeft
 }
 
 func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {

@@ -1,15 +1,14 @@
 package view
 
 import (
-	"fmt"
 	"image/color"
 
 	"gioui.org/app"
-	"gioui.org/io/event"
 	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/widget/material"
+	"github.com/ncruces/zenity"
 
 	"vector-editor/src/core/modelview"
 )
@@ -38,6 +37,8 @@ type workspaceView struct {
 	canvas  CanvasView
 
 	locked bool
+
+	fileActions FileActions
 }
 
 func NewWorkspaceView(
@@ -49,23 +50,34 @@ func NewWorkspaceView(
 		workspaceMV: mv,
 		window:      window,
 	}
+	wv.loadFileActions()
 
-	fileActions := FileActions{
-		Open: func(path string) {
-			mv.Open(path)
-		},
-		Save: func() {
-			mv.Save()
-		},
-		SaveAs: func(path string) {
-			mv.SaveAs(path)
-		},
-	}
-
-	wv.toolbar = NewToolbarView(wv.window, mv.Toolbar(), fileActions, wv)
+	wv.toolbar = NewToolbarView(wv.window, mv.Toolbar(), wv.fileActions, wv)
 	wv.canvas = NewCanvasView(wv.window, mv.Canvas())
 
 	return wv
+}
+
+func (v *workspaceView) loadFileActions() {
+	v.fileActions = FileActions{
+		Open: func() {
+			path, err := zenity.SelectFile(zenity.Directory())
+			if err == nil {
+				v.workspaceMV.Open(path)
+				v.window.Invalidate()
+			}
+		},
+		Save: func() {
+			v.workspaceMV.Save()
+		},
+		SaveAs: func() {
+			path, err := openFolderDialog()
+			if err == nil {
+				v.workspaceMV.SaveAs(path)
+				v.window.Invalidate()
+			}
+		},
+	}
 }
 
 func (v *workspaceView) Run() error {
@@ -93,51 +105,56 @@ func (v *workspaceView) Run() error {
 				}),
 			)
 
+			v.processWorkspace(gtx)
+
 			e.Frame(gtx.Ops)
 		}
 	}
 }
 
-func ProcessKeys(gtx layout.Context, tag event.Tag) {
+func (v *workspaceView) processWorkspace(gtx layout.Context) {
 	for {
-		ev, ok := gtx.Event(key.Filter{Focus: tag})
+		ev, ok := gtx.Event(key.Filter{
+			Optional: key.ModCtrl | key.ModShift,
+		})
 		if !ok {
 			break
 		}
+		e, ok := ev.(key.Event)
+		if !ok {
+			break
+		}
+		if e.State != key.Press {
+			break
+		}
+		switch e.Name {
 
-		if e, ok := ev.(key.Event); ok {
-			if e.State == key.Press {
-				switch e.Name {
-				case key.NameReturn, key.NameEnter:
-					fmt.Println("Нажат Enter")
-				case key.NameEscape:
-					fmt.Println("Нажат Escape")
-				case key.NameLeftArrow:
-					fmt.Println("Стрелка Влево")
-				case key.NameRightArrow:
-					fmt.Println("Стрелка Вправо")
-				case "Q", "q":
-					fmt.Println("Нажата буква Q")
-				default:
-					fmt.Printf("Нажата клавиша: %v\n", e.Name)
+		case "Z":
+			if e.Modifiers.Contain(key.ModCtrl) {
+				if e.Modifiers.Contain(key.ModShift) {
+					v.workspaceMV.Redo()
+				} else {
+					v.workspaceMV.Undo()
 				}
 			}
+		case "S":
+			if e.Modifiers.Contain(key.ModCtrl) {
+				if e.Modifiers.Contain(key.ModShift) {
+					go v.fileActions.SaveAs()
+				} else {
+					v.workspaceMV.Save()
+				}
+			}
+
+		case "O":
+			if e.Modifiers.Contain(key.ModCtrl) {
+				go v.fileActions.Open()
+			}
+		case key.NameDeleteForward:
+			v.workspaceMV.Delete()
 		}
 	}
 }
-
-//func (v *workspaceView) installShortcuts() {
-//	v.window.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
-//		switch k.Name {
-//		case fyne.KeyZ:
-//			v.workspaceMV.Undo()
-//		case fyne.KeyU:
-//			v.workspaceMV.Redo()
-//		case fyne.KeyDelete:
-//			v.workspaceMV.Delete()
-//		}
-//	})
-//}
 
 type Locker interface {
 	Lock()
