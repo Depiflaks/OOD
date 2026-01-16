@@ -111,7 +111,6 @@ func (s *shape) SetStyle(st draw.Style) {
 		}
 		newPath := s.storage.store(*st.BackgroundImagePath)
 		s.style.BackgroundImagePath = &newPath
-		// TODO: предусмотреть замену изображений
 		panic("Пока что замена изображений не предусмотрена")
 	}
 	if st.Fill != nil {

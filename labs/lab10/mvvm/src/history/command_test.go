@@ -593,7 +593,6 @@ func TestSetStyle_ExecuteDispose(t *testing.T) {
 
 	cmd := NewSetStyleCommand(setStyle, prevStyles, newStyles)
 	cmd.Execute()
-	// Dispose для SetStyleCommand пока ничего не делает (согласно TODO), но тест проверяет, что стиль не сломался
 
 	if !stylesEqual(shape.style, newStyle) {
 		t.Error("Style changed after dispose")

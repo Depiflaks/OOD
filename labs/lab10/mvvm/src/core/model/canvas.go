@@ -14,7 +14,6 @@ type CanvasObserver interface {
 
 type Canvas interface {
 	NewShape(t types.ShapeType, style draw.Style) types.ShapeId
-	ImportImage()
 	GetShape(id types.ShapeId) Shape
 	Shapes() map[types.ShapeId]Shape
 	DeleteShapes(ids []types.ShapeId)
@@ -50,10 +49,6 @@ func (c *canvas) NewShape(t types.ShapeType, style draw.Style) types.ShapeId {
 	c.shapes[shape.GetShapeId()] = shape
 	c.notifyShapesChanged([]types.ShapeId{shape.GetShapeId()})
 	return c.nextId
-}
-
-func (c *canvas) ImportImage() {
-	// TODO: implement me
 }
 
 func (c *canvas) GetShape(id types.ShapeId) Shape {

@@ -194,8 +194,7 @@ func NewSetStyleCommand(
 	newStyles map[types.ShapeId]draw.Style,
 ) *SetStyleCommand {
 	return &SetStyleCommand{
-		setStyle: setStyle,
-		// TODO: добавить сюда dispose
+		setStyle:   setStyle,
 		prevStyles: prevStyles,
 		newStyles:  newStyles,
 	}
