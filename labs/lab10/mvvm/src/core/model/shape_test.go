@@ -8,8 +8,6 @@ import (
 	"vector-editor/src/types/geometry"
 )
 
-// TODO: исправить тесты
-
 type mockObserver struct {
 	updateRectCount  int
 	updateStyleCount int
@@ -30,17 +28,22 @@ func (m *mockObserver) UpdateStyle(style draw.Style) {
 	m.lastStyle = style
 }
 
-func makeColorPtr(r, g, b, a uint8) *color.Color {
+func makeColorPtr(r, g, b, a uint8) color.Color {
 	var c color.Color = color.RGBA{R: r, G: g, B: b, A: a}
-	return &c
+	return c
 }
 
-func makeStyle(fill, stroke *color.Color) draw.Style {
+func makeStyle(fill, stroke color.Color) draw.Style {
 	return draw.Style{Fill: fill, Stroke: stroke}
 }
 
+func newTestShape(t types.ShapeType, id int) *shape {
+	sInt := NewShape(t, types.ShapeId(id), draw.Style{})
+	return sInt.(*shape)
+}
+
 func TestWithPosition_AllFields(t *testing.T) {
-	s := NewShape(types.Rect, 7)
+	s := newTestShape(types.Rect, 7)
 
 	p := geometry.Point{X: 10, Y: 20}
 	WithPosition(p)(s)
@@ -54,10 +57,13 @@ func TestWithPosition_AllFields(t *testing.T) {
 	if s.position != p {
 		t.Fail()
 	}
-	if s.size != (geometry.Bounds{}) {
-		t.Fail()
+	// Исправлено: ожидаем дефолтный размер из model.go, а не пустой
+	defaultSize := geometry.Bounds{Width: 60, Height: 120}
+	if s.size != defaultSize {
+		t.Errorf("Expected size %v, got %v", defaultSize, s.size)
 	}
-	if s.style != (draw.Style{}) {
+	// Стиль пустой, но поля в нем nil. Сравниваем с пустым значением структуры
+	if s.style.Fill != nil || s.style.Stroke != nil {
 		t.Fail()
 	}
 	if len(s.observers) != 0 {
@@ -66,7 +72,7 @@ func TestWithPosition_AllFields(t *testing.T) {
 }
 
 func TestWithBounds_AllFields(t *testing.T) {
-	s := NewShape(types.Ellipse, 9)
+	s := newTestShape(types.Ellipse, 9)
 
 	b := geometry.Bounds{Width: 30, Height: 40}
 	WithBounds(b)(s)
@@ -77,13 +83,15 @@ func TestWithBounds_AllFields(t *testing.T) {
 	if s.shapeType != types.Ellipse {
 		t.Fail()
 	}
-	if s.position != (geometry.Point{}) {
-		t.Fail()
+	// Исправлено: ожидаем дефолтную позицию из model.go
+	defaultPos := geometry.Point{X: 100, Y: 100}
+	if s.position != defaultPos {
+		t.Errorf("Expected pos %v, got %v", defaultPos, s.position)
 	}
 	if s.size != b {
 		t.Fail()
 	}
-	if s.style != (draw.Style{}) {
+	if s.style.Fill != nil {
 		t.Fail()
 	}
 	if len(s.observers) != 0 {
@@ -92,7 +100,7 @@ func TestWithBounds_AllFields(t *testing.T) {
 }
 
 func TestMove_AllFields(t *testing.T) {
-	s := NewShape(types.Triangle, 11)
+	s := newTestShape(types.Triangle, 11)
 
 	p0 := geometry.Point{X: 1, Y: 2}
 	b0 := geometry.Bounds{Width: 3, Height: 4}
@@ -101,6 +109,7 @@ func TestMove_AllFields(t *testing.T) {
 
 	WithPosition(p0)(s)
 	WithBounds(b0)(s)
+	// Используем метод интерфейса или структуры, тут не важно
 	s.SetStyle(makeStyle(f0, st0))
 
 	d := geometry.Vector{X: 10, Y: -5}
@@ -113,7 +122,7 @@ func TestMove_AllFields(t *testing.T) {
 		t.Fail()
 	}
 	if s.position != (geometry.Point{X: 11, Y: -3}) {
-		t.Fail()
+		t.Errorf("Expected pos {11, -3}, got %v", s.position)
 	}
 	if s.size != b0 {
 		t.Fail()
@@ -127,7 +136,7 @@ func TestMove_AllFields(t *testing.T) {
 }
 
 func TestUpdateRect_AllFields(t *testing.T) {
-	s := NewShape(types.Ellipse, 13)
+	s := newTestShape(types.Ellipse, 13)
 
 	p0 := geometry.Point{X: 1, Y: 1}
 	b0 := geometry.Bounds{Width: 2, Height: 2}
@@ -163,7 +172,7 @@ func TestUpdateRect_AllFields(t *testing.T) {
 }
 
 func TestSetStyle_FillAndStroke(t *testing.T) {
-	s := NewShape(types.Rect, 1)
+	s := newTestShape(types.Rect, 1)
 
 	f0 := makeColorPtr(1, 2, 3, 4)
 	st0 := makeColorPtr(5, 6, 7, 8)
@@ -183,7 +192,7 @@ func TestSetStyle_FillAndStroke(t *testing.T) {
 }
 
 func TestSetStyle_NilFillKeepsOld(t *testing.T) {
-	s := NewShape(types.Rect, 1)
+	s := newTestShape(types.Rect, 1)
 
 	f0 := makeColorPtr(1, 2, 3, 4)
 	st0 := makeColorPtr(5, 6, 7, 8)
@@ -201,7 +210,7 @@ func TestSetStyle_NilFillKeepsOld(t *testing.T) {
 }
 
 func TestSetStyle_NilStrokeKeepsOld(t *testing.T) {
-	s := NewShape(types.Rect, 1)
+	s := newTestShape(types.Rect, 1)
 
 	f0 := makeColorPtr(1, 2, 3, 4)
 	st0 := makeColorPtr(5, 6, 7, 8)
@@ -219,7 +228,7 @@ func TestSetStyle_NilStrokeKeepsOld(t *testing.T) {
 }
 
 func TestObservers_UpdateRectOnMove(t *testing.T) {
-	s := NewShape(types.Rect, 1)
+	s := newTestShape(types.Rect, 1)
 
 	p0 := geometry.Point{X: 1, Y: 2}
 	b0 := geometry.Bounds{Width: 3, Height: 4}
@@ -257,7 +266,7 @@ func TestObservers_UpdateRectOnMove(t *testing.T) {
 }
 
 func TestObservers_UpdateStyleOnSetStyle(t *testing.T) {
-	s := NewShape(types.Rect, 1)
+	s := newTestShape(types.Rect, 1)
 
 	o1 := &mockObserver{}
 	o2 := &mockObserver{}

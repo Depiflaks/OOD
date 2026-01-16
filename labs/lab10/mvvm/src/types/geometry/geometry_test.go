@@ -1,21 +1,15 @@
 package geometry
 
 import (
-	"math"
 	"testing"
 )
 
-func feq(a, b float64) bool {
-	const eps = 1e-9
-	return math.Abs(a-b) <= eps
-}
-
 func pointEq(a, b Point) bool {
-	return feq(a.X, b.X) && feq(a.Y, b.Y)
+	return a.X == b.X && a.Y == b.Y
 }
 
 func boundsEq(a, b Bounds) bool {
-	return feq(a.Width, b.Width) && feq(a.Height, b.Height)
+	return a.Width == b.Width && a.Height == b.Height
 }
 
 func TestCalculateScale_FromTopLeft(t *testing.T) {
