@@ -48,6 +48,7 @@ type shapeView struct {
 	mv        modelview.ShapeModelView
 	canvas    CanvasView
 	imgWidget widget.Image
+	strategy  ShapeStrategy
 
 	handles map[geometry.ResizeHandle]image.Rectangle
 
@@ -76,6 +77,17 @@ func NewShapeView(
 	mv.AddObserver(s)
 
 	return s
+}
+
+func (s *shapeView) updateStrategy() {
+	switch s.mv.GetShapeType() {
+	case types.Rect:
+		s.strategy = RectStrategy{}
+	case types.Ellipse:
+		s.strategy = EllipseStrategy{}
+	case types.Triangle:
+		s.strategy = TriangleStrategy{}
+	}
 }
 
 func (s *shapeView) getTag(handle geometry.ResizeHandle) *geometry.ResizeHandle {
@@ -117,7 +129,7 @@ func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
 		Min: pos,
 		Max: pos.Add(size),
 	}
-	fillOp, strokeOp := s.getShapeOptions(gtx, rect)
+	fillOp, strokeOp := s.strategy.GetOptions(gtx, rect)
 
 	s.drawShape(gtx, strokeOp, fillOp, rect)
 
@@ -167,50 +179,12 @@ func (s *shapeView) drawImage(
 		Src: paint.NewImageOp(img),
 		Fit: widget.Fill,
 	}
-
 	clipStack := fillOp.Push(gtx.Ops)
 	offStack := op.Offset(rect.Min).Push(gtx.Ops)
-
 	gtx.Constraints = layout.Exact(rect.Size())
-
 	w.Layout(gtx)
-
 	offStack.Pop()
 	clipStack.Pop()
-}
-
-func (s *shapeView) getShapeOptions(
-	gtx layout.Context,
-	rect image.Rectangle,
-) (fillOp clip.Op, strokeOp clip.Op) {
-	var strokePath clip.PathSpec
-
-	switch s.mv.GetShapeType() {
-	case types.Rect:
-		obj := clip.Rect(rect)
-		fillOp = obj.Op()
-		strokePath = obj.Path()
-	case types.Ellipse:
-		obj := clip.Ellipse(rect)
-		fillOp = obj.Op(gtx.Ops)
-		strokePath = obj.Path(gtx.Ops)
-
-	case types.Triangle:
-		var path clip.Path
-
-		a, b, c := getTrianglePoints(rect)
-
-		path.Begin(gtx.Ops)
-		path.MoveTo(a)
-		path.LineTo(b)
-		path.LineTo(c)
-		path.Close()
-
-		strokePath = path.End()
-		fillOp = clip.Outline{Path: strokePath}.Op()
-	}
-	strokeOp = clip.Stroke{Path: strokePath, Width: strokeWidth}.Op()
-	return fillOp, strokeOp
 }
 
 func (s *shapeView) processMouse(gtx layout.Context, canvasSize image.Point) {
@@ -257,7 +231,7 @@ func pointInCanvas(p f32.Point, size image.Point) bool {
 	return true
 }
 
-func getTrianglePoints(rect image.Rectangle) (f32.Point, f32.Point, f32.Point) {
+func GetTrianglePoints(rect image.Rectangle) (f32.Point, f32.Point, f32.Point) {
 	minX := float32(rect.Min.X)
 	minY := float32(rect.Min.Y)
 
@@ -333,6 +307,7 @@ func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {
 }
 
 func (s *shapeView) Update() {
+	s.updateStrategy()
 	s.canvas.Invalidate()
 }
 
