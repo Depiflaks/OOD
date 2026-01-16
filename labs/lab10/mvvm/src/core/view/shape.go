@@ -257,22 +257,6 @@ func pointInCanvas(p f32.Point, size image.Point) bool {
 	return true
 }
 
-func pointInTriangle(p f32.Point, rect image.Rectangle) bool {
-	a, b, c := getTrianglePoints(rect)
-	asX := p.X - a.X
-	asY := p.Y - a.Y
-
-	sAB := (b.X-a.X)*asY-(b.Y-a.Y)*asX > 0
-
-	if ((c.X-a.X)*asY-(c.Y-a.Y)*asX > 0) == sAB {
-		return false
-	}
-	if ((c.X-b.X)*(p.Y-b.Y)-(c.Y-b.Y)*(p.X-b.X) > 0) != sAB {
-		return false
-	}
-	return true
-}
-
 func getTrianglePoints(rect image.Rectangle) (f32.Point, f32.Point, f32.Point) {
 	minX := float32(rect.Min.X)
 	minY := float32(rect.Min.Y)

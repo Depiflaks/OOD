@@ -9,8 +9,6 @@ import (
 	"vector-editor/src/types/geometry"
 )
 
-const workspaceFileName = "workspace.xml"
-
 type Workspace interface {
 	Canvas() Canvas
 
