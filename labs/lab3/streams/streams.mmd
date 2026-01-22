@@ -160,7 +160,7 @@ classDiagram
     -TransferData(streams: &StreamsData) void
   }
 
-  FileTransformer --> StreamsData : use
+  FileTransformer ..> StreamsData : use
   StreamsData *--> IInputStream
   StreamsData *--> IOutputStream
 

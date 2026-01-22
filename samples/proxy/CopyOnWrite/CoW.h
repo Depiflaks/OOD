@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <cassert>
+#include <memory>
 
 template <typename T>
 class CoW
@@ -23,10 +23,9 @@ class CoW
 			return other.Clone();
 		}
 	};
-	using CopyClass = typename std::conditional<
-		!std::is_abstract<T>::value && std::is_copy_constructible<T>::value,
-		CopyConstr<T>,
-		CloneConstr<T>>::type;
+	using CopyClass = typename std::conditional<!std::is_abstract<T>::value
+			&& std::is_copy_constructible<T>::value,
+		CopyConstr<T>, CloneConstr<T>>::type;
 
 	class WriteProxy
 	{
@@ -55,7 +54,8 @@ class CoW
 	};
 
 public:
-	template <typename... Args, typename = std::enable_if<!std::is_abstract<T>::value>::type>
+	template <typename... Args,
+		typename = std::enable_if<!std::is_abstract<T>::value>::type>
 	CoW(Args&&... args)
 		: m_shared(std::make_shared<T>(std::forward<Args>(args)...))
 	{
@@ -141,6 +141,5 @@ private:
 		}
 	}
 
-private:
 	std::shared_ptr<T> m_shared;
 };

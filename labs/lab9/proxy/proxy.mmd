@@ -1,0 +1,50 @@
+classDiagram
+    direction TB
+
+    class Point {
+        + x: int
+        + y: int
+    }
+
+    class Size {
+        + width: int
+        + height: int
+    }
+
+    %% Color = uint32_t
+    class Image {
+        + Image(size: Size, color: Color)
+        + GetSize() Size
+        + GetPixel(p: Point) Color
+        + SetPixel(p: Point, color: Color) void
+        - m_size: Size
+    }
+
+    class ImageProcessor {
+        + Print(image: &Image, out: &ostream) void
+        + LoadImage(pixels: string) Image
+        %% Сохранение в формате .ppm
+        + SaveImage(image: &Image, dst: string) void
+        %% Импорт из формата .ppm
+        + ImportImage(source: string) Image
+    }
+
+    class Tile {
+        + SIZE: int
+        + Tile(color: Color)
+        + Tile(other: Tile)
+        + SetPixel(p: Point, color: Color) void
+        + GetPixel(p: Point) Color
+        + GetInstanceCount() int
+        - m_pixels: vector~Color~
+        - m_instanceCount: int
+    }
+
+    class Drawer {
+        + DrawLine(image: &Image, from: Point, to: Point, color: Color) void
+        + DrawCircle(image: &Image, center: Point, radius: int, color: Color) void
+        + FillCircle(image: &Image, center: Point, radius: int, color: Color) void
+    }
+
+    Point --> Size
+    Image *--> Tile

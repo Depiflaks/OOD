@@ -116,8 +116,8 @@ private:
 		auto outputFile = std::make_unique<std::ofstream>(outputFileName, std::ios::binary);
 
 		StreamsData streams;
-		streams.m_inputStream = std::make_shared<FileInputStream>(std::move(inputFile));
-		streams.m_outputStream = std::make_shared<FileOutputStream>(std::move(outputFile));
+		streams.m_inputStream = std::make_unique<FileInputStream>(std::move(inputFile));
+		streams.m_outputStream = std::make_unique<FileOutputStream>(std::move(outputFile));
 
 		return streams;
 	}
@@ -130,20 +130,20 @@ private:
 			if (arg == k_encryptArg)
 			{
 				int key = std::stoi(args[++i]);
-				streams.m_outputStream = streams.m_outputStream << MakeDecorator<EncodingOutputStreamDecorator>(key);
+				streams.m_outputStream = std::move(streams.m_outputStream) << MakeDecorator<EncodingOutputStreamDecorator>(key);
 			}
 			else if (arg == k_decryptArg)
 			{
 				int key = std::stoi(args[++i]);
-				streams.m_inputStream = streams.m_inputStream << MakeDecorator<DecodingInputStreamDecorator>(key);
+				streams.m_inputStream = std::move(streams.m_inputStream) << MakeDecorator<DecodingInputStreamDecorator>(key);
 			}
 			else if (arg == k_compressArg)
 			{
-				streams.m_outputStream = streams.m_outputStream << MakeDecorator<PackingOutputStreamDecorator>();
+				streams.m_outputStream = std::move(streams.m_outputStream) << MakeDecorator<PackingOutputStreamDecorator>();
 			}
 			else if (arg == k_decompressArg)
 			{
-				streams.m_inputStream = streams.m_inputStream << MakeDecorator<UnpackingInputStreamDecorator>();
+				streams.m_inputStream = std::move(streams.m_inputStream) << MakeDecorator<UnpackingInputStreamDecorator>();
 			}
 		}
 	}

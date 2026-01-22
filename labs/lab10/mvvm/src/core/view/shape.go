@@ -1,0 +1,344 @@
+package view
+
+import (
+	"image"
+	"image/color"
+	"os"
+	"vector-editor/src/core/modelview"
+	"vector-editor/src/types"
+	"vector-editor/src/types/geometry"
+
+	"gioui.org/f32"
+	"gioui.org/io/event"
+	"gioui.org/io/key"
+	"gioui.org/io/pointer"
+	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
+	"gioui.org/widget"
+)
+
+const (
+	HandleSize  = 14
+	strokeWidth = 3
+)
+
+type ShapeView interface {
+	Update()
+	IsDeleted() bool
+	IsSelected() bool
+	Select(ctrl bool)
+
+	GetPosition() geometry.Point
+	GetBounds() geometry.Bounds
+
+	StartDragging()
+	StopDragging()
+	Drag(delta geometry.Vector)
+
+	StartResizing()
+	StopResizing()
+	Resize(delta geometry.Vector, scale geometry.Scale)
+
+	Process(gtx layout.Context) layout.Dimensions
+	ProcessHandles(gtx layout.Context) layout.Dimensions
+}
+type shapeView struct {
+	mv        modelview.ShapeModelView
+	canvas    CanvasView
+	imgWidget widget.Image
+	strategy  ShapeStrategy
+
+	handles map[geometry.ResizeHandle]image.Rectangle
+
+	tl, tr, bl, br *geometry.ResizeHandle
+}
+
+func NewShapeView(
+	mv modelview.ShapeModelView,
+	canvas CanvasView,
+) ShapeView {
+	s := &shapeView{mv: mv, canvas: canvas}
+
+	s.handles = make(map[geometry.ResizeHandle]image.Rectangle)
+	tl := geometry.HandleTopLeft
+	s.tl = &tl
+
+	tr := geometry.HandleTopRight
+	s.tr = &tr
+
+	bl := geometry.HandleBottomLeft
+	s.bl = &bl
+
+	br := geometry.HandleBottomRight
+	s.br = &br
+
+	mv.AddObserver(s)
+
+	return s
+}
+
+func (s *shapeView) updateStrategy() {
+	switch s.mv.GetShapeType() {
+	case types.Rect:
+		s.strategy = RectStrategy{}
+	case types.Ellipse:
+		s.strategy = EllipseStrategy{}
+	case types.Triangle:
+		s.strategy = TriangleStrategy{}
+	}
+}
+
+func (s *shapeView) getTag(handle geometry.ResizeHandle) *geometry.ResizeHandle {
+	switch handle {
+	case geometry.HandleTopLeft:
+		return s.tl
+	case geometry.HandleTopRight:
+		return s.tr
+	case geometry.HandleBottomLeft:
+		return s.bl
+	case geometry.HandleBottomRight:
+		return s.br
+	}
+	return nil
+}
+
+func (s *shapeView) updateHandles(rect image.Rectangle) {
+	s.handles[geometry.HandleTopLeft] = getHandleRect(rect.Min.X, rect.Min.Y)
+	s.handles[geometry.HandleTopRight] = getHandleRect(rect.Max.X, rect.Min.Y)
+	s.handles[geometry.HandleBottomLeft] = getHandleRect(rect.Min.X, rect.Max.Y)
+	s.handles[geometry.HandleBottomRight] = getHandleRect(rect.Max.X, rect.Max.Y)
+}
+
+func getHandleRect(x int, y int) image.Rectangle {
+	halfHandle := HandleSize / 2
+	p := image.Point{X: x - halfHandle, Y: y - halfHandle}
+	return image.Rectangle{Min: p, Max: p.Add(image.Pt(HandleSize, HandleSize))}
+}
+
+func (s *shapeView) Process(gtx layout.Context) layout.Dimensions {
+	canvasSize := gtx.Constraints.Max
+	modelPos := s.GetPosition()
+	modelSize := s.GetBounds()
+
+	pos := image.Point{X: modelPos.X, Y: modelPos.Y}
+	size := image.Point{X: modelSize.Width, Y: modelSize.Height}
+
+	rect := image.Rectangle{
+		Min: pos,
+		Max: pos.Add(size),
+	}
+	fillOp, strokeOp := s.strategy.GetOptions(gtx, rect)
+
+	s.drawShape(gtx, strokeOp, fillOp, rect)
+
+	clipArea := fillOp.Push(gtx.Ops)
+	event.Op(gtx.Ops, s)
+
+	s.processMouse(gtx, canvasSize)
+
+	clipArea.Pop()
+	return D{Size: size}
+}
+
+func (s *shapeView) drawShape(
+	gtx layout.Context,
+	strokeOp clip.Op,
+	fillOp clip.Op,
+	rect image.Rectangle,
+) {
+	modelStyle := s.mv.GetStyle()
+	fillColor := color.NRGBAModel.Convert(modelStyle.Fill).(color.NRGBA)
+	strokeColor := color.NRGBAModel.Convert(modelStyle.Stroke).(color.NRGBA)
+	paint.FillShape(gtx.Ops, fillColor, fillOp)
+	s.drawImage(gtx, fillOp, rect)
+	paint.FillShape(gtx.Ops, strokeColor, strokeOp)
+}
+
+func (s *shapeView) drawImage(
+	gtx layout.Context,
+	fillOp clip.Op,
+	rect image.Rectangle,
+) {
+	pathPtr := s.mv.GetStyle().BackgroundImagePath
+	if pathPtr == nil {
+		return
+	}
+	f, err := os.Open(*pathPtr)
+	if err != nil {
+		return
+	}
+	img, _, err := image.Decode(f)
+	f.Close()
+
+	if err != nil {
+		return
+	}
+	w := widget.Image{
+		Src: paint.NewImageOp(img),
+		Fit: widget.Fill,
+	}
+	clipStack := fillOp.Push(gtx.Ops)
+	offStack := op.Offset(rect.Min).Push(gtx.Ops)
+	gtx.Constraints = layout.Exact(rect.Size())
+	w.Layout(gtx)
+	offStack.Pop()
+	clipStack.Pop()
+}
+
+func (s *shapeView) processMouse(gtx layout.Context, canvasSize image.Point) {
+	for {
+		ev, ok := gtx.Event(pointer.Filter{
+			Target: s,
+			Kinds:  pointer.Press | pointer.Release | pointer.Drag,
+		})
+		if !ok {
+			break
+		}
+		pointerEv, ok := ev.(pointer.Event)
+		if !ok {
+			break
+		}
+		mouseEvent := mouseEvent{
+			pos: geometry.Point{
+				X: int(pointerEv.Position.X),
+				Y: int(pointerEv.Position.Y),
+			},
+			ctrl: pointerEv.Modifiers.Contain(key.ModCtrl),
+		}
+		switch pointerEv.Kind {
+		case pointer.Drag:
+			if pointInCanvas(pointerEv.Position, canvasSize) {
+				s.canvas.CurrentState().OnMouseMove(mouseEvent)
+			} else {
+				s.canvas.CurrentState().OnMouseLeave()
+			}
+		case pointer.Press:
+			s.canvas.CurrentState().OnShapeClick(mouseEvent, s)
+		case pointer.Release:
+			s.canvas.CurrentState().OnMouseUp(mouseEvent)
+		default:
+			panic("something goes wrong")
+		}
+	}
+}
+
+func pointInCanvas(p f32.Point, size image.Point) bool {
+	if p.X < 0 || p.Y < 0 || p.X > float32(size.X) || p.Y > float32(size.Y) {
+		return false
+	}
+	return true
+}
+
+func GetTrianglePoints(rect image.Rectangle) (f32.Point, f32.Point, f32.Point) {
+	minX := float32(rect.Min.X)
+	minY := float32(rect.Min.Y)
+
+	w := float32(rect.Dx())
+	h := float32(rect.Dy())
+
+	top := f32.Pt(minX+w/2, minY)
+	bottomRight := f32.Pt(minX+w, minY+h)
+	bottomLeft := f32.Pt(minX, minY+h)
+
+	return top, bottomRight, bottomLeft
+}
+
+func (s *shapeView) ProcessHandles(gtx layout.Context) layout.Dimensions {
+	modelPos := s.GetPosition()
+	modelSize := s.GetBounds()
+
+	pos := image.Point{X: modelPos.X, Y: modelPos.Y}
+	size := image.Point{X: modelSize.Width, Y: modelSize.Height}
+
+	rect := image.Rectangle{Min: pos, Max: pos.Add(size)}
+
+	selectionColor := color.NRGBA{R: 0, G: 120, B: 255, A: 255}
+
+	borderPath := clip.Rect(rect).Path()
+	borderStroke := clip.Stroke{Path: borderPath, Width: 2}.Op()
+	paint.FillShape(gtx.Ops, selectionColor, borderStroke)
+
+	s.updateHandles(rect)
+
+	for handleType, handleRect := range s.handles {
+		handle := clip.Ellipse(handleRect)
+		paint.FillShape(gtx.Ops, selectionColor, handle.Op(gtx.Ops))
+
+		stack := handle.Push(gtx.Ops)
+
+		event.Op(gtx.Ops, s.getTag(handleType))
+
+		for {
+			ev, ok := gtx.Event(pointer.Filter{
+				Target: s.getTag(handleType),
+				Kinds:  pointer.Press | pointer.Release | pointer.Drag,
+			})
+			if !ok {
+				break
+			}
+			ptrEv, ok := ev.(pointer.Event)
+			if !ok {
+				break
+			}
+			mouseP := geometry.Point{
+				X: int(ptrEv.Position.X),
+				Y: int(ptrEv.Position.Y),
+			}
+
+			mouseEvent := mouseEvent{
+				pos:  mouseP,
+				ctrl: ptrEv.Modifiers.Contain(key.ModCtrl),
+			}
+			switch ptrEv.Kind {
+			case pointer.Drag:
+				s.canvas.CurrentState().OnMouseMove(mouseEvent)
+			case pointer.Press:
+				s.canvas.CurrentState().OnResizeActivated(mouseEvent, s, handleType)
+			case pointer.Release:
+				s.canvas.CurrentState().OnMouseUp(mouseEvent)
+			}
+		}
+		stack.Pop()
+	}
+
+	return layout.Dimensions{Size: size}
+}
+
+func (s *shapeView) Update() {
+	s.updateStrategy()
+	s.canvas.Invalidate()
+}
+
+func (s *shapeView) IsDeleted() bool {
+	return s.mv.IsDeleted()
+}
+
+func (s *shapeView) IsSelected() bool {
+	return s.mv.IsSelected()
+}
+
+func (s *shapeView) GetPosition() geometry.Point {
+	return s.mv.GetPosition()
+}
+
+func (s *shapeView) GetBounds() geometry.Bounds {
+	return s.mv.GetBounds()
+}
+
+func (s *shapeView) Select(ctrl bool) {
+	s.mv.Select(ctrl)
+}
+
+func (s *shapeView) StartDragging() { s.mv.StartDragging() }
+func (s *shapeView) StopDragging()  { s.mv.StopDragging() }
+func (s *shapeView) Drag(delta geometry.Vector) {
+	s.mv.Drag(delta)
+}
+
+func (s *shapeView) StartResizing() { s.mv.StartResizing() }
+func (s *shapeView) StopResizing()  { s.mv.StopResizing() }
+func (s *shapeView) Resize(delta geometry.Vector, scale geometry.Scale) {
+	s.mv.Resize(delta, scale)
+}

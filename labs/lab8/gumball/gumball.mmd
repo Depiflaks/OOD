@@ -1,0 +1,117 @@
+classDiagram
+    namespace gumball {
+        class IState {
+            + InsertQuarter()
+            + EjectQuarter()
+            + TurnCrank()
+            + Dispense()
+            + ToString() string
+        }
+
+        class IGumballMachine {
+            + ReleaseBall()
+            + GetBallCount() unsigned
+            + DepositQuarter()
+            + CanDepositQuarter() bool
+            + SetSoldOutState()
+            + SetNoQuarterState()
+            + SetSoldState()
+            + SetHasQuarterState()
+        }
+
+        class SoldState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class SoldOutState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class HasQuartersState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class FullQuartersState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class NoQuarterState {
+            - m_gumballMachine: IGumballMachine&
+        }
+
+        class GumballMachine {
+            - m_ballCount: unsigned
+            - m_coinCount: unsigned
+            - m_soldState: SoldState
+            - m_soldOutState: SoldOutState
+            - m_noQuarterState: NoQuarterState
+            - m_fullQuarterState: FullQuartersState
+            - m_hasQuarterState: HasQuartersState
+            - m_state: IState*
+        %% public
+            + InsertQuarter()
+            + EjectQuarter()
+            + TurnCrank()
+            + ToString() string
+            + RefillMachine(count: unsigned)
+        %% private
+            - ReleaseBall()
+            - GetBallCount() unsigned
+            - DepositQuarter()
+            - CanDepositQuarter() bool
+            - SetSoldState()
+            - SetSoldOutState()
+            - SetHasQuartersState()
+            - SetNoQuarterState()
+            - SetFullQuartersState()
+        }
+    }
+
+    namespace command {
+        class CommandFactory {
+            + CommandFactory(machine: &GumballMachine)
+            + Parse(line: string) ICommand
+
+            - m_machinePtr: &GumballMachine
+        }
+
+        class ICommand {
+            <<interface>>
+            + Execute(machine: &GumballMachine) void
+        }
+
+        class HelpCommand {
+            + HelpCommand()
+        }
+
+        class InsertQuarterCommand {
+            + InsertQuarterCommand()
+        }
+
+        class EjectQuarterCommand {
+            + EjectQuarterCommand()
+        }
+
+        class TurnCrankCommand {
+            + TurnCrankCommand()
+        }
+
+        class RefillMachineCommand {
+            + RefillMachineCommand(count: unsigned)
+        }
+    }
+
+    IState <|.. SoldState
+    IState <|.. SoldOutState
+    IState <|.. HasQuartersState
+    IState <|.. NoQuarterState
+    IState <|.. FullQuartersState
+    IGumballMachine <|.. GumballMachine
+    GumballMachine *--> IState
+
+
+    ICommand <|.. HelpCommand
+    ICommand <|.. InsertQuarterCommand
+    ICommand <|.. EjectQuarterCommand
+    ICommand <|.. TurnCrankCommand
+    ICommand <|.. RefillMachineCommand

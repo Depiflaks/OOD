@@ -1,0 +1,299 @@
+classDiagram
+    direction TB
+
+    class client {
+    }
+
+    namespace factory {
+        class ICommandFactory:::tested {
+            + CreateCommand() ICommand
+            + CanCreateCommand() bool
+            + AppendCommand(name: string, command: ICommand)
+        }
+
+        class AbstractCommandFactory:::tested {
+            + AbstractCommandFactory(document: IDocument&)
+
+            # m_document: std::shared_ptr~IDocument~
+        }
+
+        class DocumentCommandFactory:::tested {
+            + DocumentCommandFactory(stream: std::istream&)
+
+            - CreateInsertParagraph(std::string arguments) void
+            - CreateInsertImage(std::string arguments) void
+            - CreateSetTitle(std::string arguments) void
+            - CreateList() void
+            - CreateReplaceText(std::string arguments) void
+            - CreateResizeImage(std::string arguments) void
+            - CreateDeleteItem(std::string arguments) void
+            - CreateHelp() void
+            - CreateUndo() void
+            - CreateRedo() void
+            - CreateSave(std::string arguments) void
+
+            - m_stream: std::unique_ptr~std::istream~
+            - m_macroCommands: map~string, ICommand[]~
+        }
+    }
+
+    namespace command {
+        class ICommand {
+            + Execute() void
+        }
+    }
+
+    namespace editor_command {
+        class IEditorCommand:::tested {
+        }
+
+        class AbstractEditorCommand:::tested {
+            # m_document: IDocument&
+        }
+
+        class UnexecutableEditorCommand:::tested {
+            + Unexecute() void
+            + IsExecuted() bool
+            # m_executed: bool
+        }
+
+
+        class MergableCommand:::tested {
+            + TryReplace(command: MergableCommand&) bool
+        }
+
+        class StartMacroRecordingCommand {
+            + StartMacroRecordingCommand(factory: ICommandFactory)
+        }
+
+        class EndMacroRecordingCommand {
+            + EndMacroRecordingCommand(factory: ICommandFactory)
+        }
+
+        class MacroExecutionCommand {
+            + MacroExecutionCommand(document: IDocument)
+        }
+
+        class InsertParagraphCommand:::tested {
+            + InsertParagraphCommand(document: IDocument, position: std::optional~size_t~, text: std::string)
+        }
+
+        class InsertImageCommand:::tested {
+            + InsertImageCommand(document: IDocument, position: std::optional~size_t~, width: int, height: int)
+        }
+
+        class SetTitleCommand:::tested {
+            + SetTitleCommand(document: IDocument, newTitle: std::string)
+        }
+
+        class ListCommand:::tested {
+            + ListCommand(document: IDocument)
+        }
+
+        class ReplaceTextCommand:::tested {
+            + ReplaceTextCommand(document: IDocument, position: size_t, newText: string)
+        }
+
+        class ResizeImageCommand:::tested {
+            + ResizeImageCommand(document: IDocument, position: size_t, newWidth: int, newHeight: int)
+        }
+
+        class DeleteItemCommand:::tested {
+            + DeleteItemCommand(document: IDocument, position: size_t)
+        }
+
+        class SaveCommand:::tested {
+            + SaveCommand(document: IDocument, path: string)
+        }
+    }
+
+    namespace menu_command {
+        class IMenuCommand {
+        }
+
+        class HelpCommand:::tested {
+            + HelpCommand()
+        }
+
+        class UndoCommand:::tested {
+            + UndoCommand(manager: IHistoryManager&)
+        }
+
+        class RedoCommand:::tested {
+            + RedoCommand(manager: IHistoryManager&)
+        }
+    }
+
+    namespace invoker {
+
+        class ICommandManager:::tested {
+            + ExecuteAndAddCommand(command: ICommand&&)
+        }
+
+        class ConsoleCommandExecutor {
+            + ConsoleCommandExecutor(commandManager: ICommandManager&, factory: ICommandFactory&)
+            + Start() void
+
+            - factory: std::unique_ptr~ICommandFactory~
+            - manager: std::shared_ptr~ICommandManager~
+        }
+
+    }
+
+    namespace history {
+
+        class IHistoryManager:::tested {
+            + Undo() void
+            + Redo() void
+            + CanUndo() bool
+            + CanRedo() bool
+        }
+
+        class CommandHistoryManager:::tested {
+            - m_commands: std::list~std::shared_ptr~IEditorCommand~~
+            - m_currentActionIndex: std::list~std::shared_ptr~IEditorCommand~~::iterator
+        }
+    }
+
+    namespace resiever {
+        class IEditorMenu {
+            + CanUndo() bool
+            + Undo() void
+            + CanRedo() bool
+            + Redo() void
+        }
+
+        class DocumentEditorMenu {
+            - m_historyManager: IHistoryManager
+        }
+
+        class AbstractDocument:::tested {
+            + InsertParagraph(text: string, position: optional~size_t~ = none) shared_ptr~IParagraph~
+            + InsertImage(path: Path, width: int, height: int, position: optional~size_t~ = none) shared_ptr~IImage~
+            + GetItemsCount() size_t
+            + GetItem(index: size_t) ConstDocumentItem
+            + GetItem(index: size_t) DocumentItem
+            + DeleteItem(index: size_t) void
+            + GetTitle() string
+            + SetTitle(title: string) void
+            + Save(path: Path) void = 0
+
+            - m_items: std::vector~DocumentItem~
+        }
+
+        class HtmlDocument:::tested {
+            + Save(path: Path) void
+        }
+
+        class IParagraph:::tested {
+            + GetText() const string
+            + SetText(text: const string&) void
+        }
+
+        class IImage:::tested {
+            + GetPath() const Path
+            + GetWidth() const int
+
+            + GetHeight() const int
+
+            + Resize(int width, int height) void
+        }
+
+        class Paragraph:::tested {
+        }
+
+        class Image:::tested {
+        }
+
+        class ConstDocumentItem:::tested {
+            + ConstDocumentItem(paragraph: std::shared_ptr~IParagraph~, isDeleted: bool = false)
+            + ConstDocumentItem(image: std::shared_ptr~IImage~, isDeleted: bool = false)
+            + GetImage() const shared_ptr~IImage~
+            + GetParagraph() const shared_ptr~IParagraph~
+            + IsDeleted() bool
+
+            -m_isDeleted: const bool = false
+        }
+
+        class DocumentItem:::tested {
+            + DocumentItem(paragraph: std::shared_ptr~IParagraph~, isDeleted: bool = false)
+            + DocumentItem(image: std::shared_ptr~IImage~, isDeleted: bool = false)
+
+            + GetImage() shared_ptr~IImage~
+            + GetParagraph() shared_ptr~IParagraph~
+            + IsDeleted() bool
+            + SetIsDeleted(isDeleted: bool) void
+
+            -m_isDeleted: bool = false
+        }
+    }
+
+    %% Client
+    client ..> CommandHistoryManager : creates
+    client ..> ICommandFactory : creates
+    client ..> HtmlDocument : creates
+
+    client *--> ConsoleCommandExecutor
+
+    %% Factory
+    ICommandFactory <|.. AbstractCommandFactory
+    AbstractCommandFactory <|-- DocumentCommandFactory
+    AbstractCommandFactory o--> AbstractDocument
+    ICommandFactory ..> ICommand : creates
+
+    %% Invoker
+    ConsoleCommandExecutor o--> ICommandManager
+    ConsoleCommandExecutor *--> ICommandFactory
+
+
+    %% History
+    IHistoryManager <|.. CommandHistoryManager
+    ICommandManager <|.. CommandHistoryManager
+
+    CommandHistoryManager *--> IEditorCommand
+
+    %% Document
+    IEditorMenu <|.. DocumentEditorMenu
+    DocumentEditorMenu <|-- AbstractDocument
+    AbstractDocument <|-- HtmlDocument
+    HtmlDocument *--> DocumentItem
+    DocumentItem o--> IParagraph
+    DocumentItem o--> IImage
+    IParagraph <|.. Paragraph
+    IImage <|.. Image
+    DocumentItem ..> ConstDocumentItem
+
+    HtmlDocument o--> IHistoryManager
+
+    %% Command
+    ICommand <|.. IEditorCommand
+    ICommand <|.. IMenuCommand
+
+    %% Editor Commands
+    IEditorCommand <|.. AbstractEditorCommand
+    AbstractEditorCommand <|-- UnexecutableEditorCommand
+
+    AbstractEditorCommand o--> AbstractDocument
+
+    AbstractEditorCommand <|-- ListCommand
+    AbstractEditorCommand <|-- SaveCommand
+    AbstractEditorCommand <|-- StartMacroRecordingCommand
+    AbstractEditorCommand <|-- EndMacroRecordingCommand
+
+    UnexecutableEditorCommand <|-- InsertParagraphCommand
+    UnexecutableEditorCommand <|-- InsertImageCommand
+    UnexecutableEditorCommand <|-- SetTitleCommand
+    UnexecutableEditorCommand <|-- DeleteItemCommand
+    UnexecutableEditorCommand <|-- ResizeImageCommand
+    UnexecutableEditorCommand <|-- MacroExecutionCommand
+
+    UnexecutableEditorCommand <|-- MergableCommand
+    MergableCommand <|-- ReplaceTextCommand
+
+    %% Editor Commands
+    IMenuCommand <|.. HelpCommand
+    IMenuCommand <|.. RedoCommand
+    IMenuCommand <|.. UndoCommand
+
+    classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;
+    classDef created fill:#FBE6FF,stroke:#333,stroke-width:2px;

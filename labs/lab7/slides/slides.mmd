@@ -1,0 +1,95 @@
+classDiagram
+    direction TB
+
+    class IDrawable {
+        + Draw(canvas: ICanvas&) void
+    }
+
+    class IStyle {
+        + IsEnabled() optional~bool~
+        + Enable(enable: bool) void
+        + GetColor() optional~RGBAColor~
+        + SetColor(color: RGBAColor) void
+    }
+
+    class Style {
+        - m_enabled: bool
+        - m_color: RGBAColor
+    }
+
+    class IShape {
+        + GetFrame() RectD
+        + SetFrame(rect: RectD) void
+        + GetOutlineStyle() IStyle&
+        + GetFillStyle() IStyle&
+        + GetGroup() shared_ptr~IGroupShape~
+        + GetGroup() shared_ptr~IGroupShape~
+    }
+
+    class IShapes {
+        + GetShapesCount() size_t
+        + InsertShape(shape: shared_ptr~IShape~, position: size_t) void
+        + GetShapeAtIndex(index: size_t) shared_ptr~IShape~
+        + RemoveShapeAtIndex(index: size_t) void
+    }
+
+    class ISlide {
+        + GetWidth() double
+        + GetHeight() double
+        + GetShapes() IShapes&
+    }
+
+    class Slide {
+        - m_shapes: IShapes
+    }
+
+    class SimpleShape {
+        + SimpleShape(drawingStrategy: DrawingStrategy)
+
+        - m_strategy: DrawingStrategy
+    }
+
+    class GroupShape {
+        - m_bounds: RectD
+        - m_fillStyle: IStyle
+        - m_outlineStyle: IStyle
+        - m_outlineWidth: int
+        - m_shapes: vector~shared_ptr~IShape~~
+
+    }
+
+    namespace gfx {
+        class ICanvas {
+            + SetLineColor(color: RGBAColor) void
+            + SetLineWidth(width: int) = 0;
+            + BeginFill(color: RGBAColor) void
+            + EndFill() void
+            + MoveTo(x: double, y: double) void
+            + LineTo(x: double, y: double) void
+            + DrawEllipse(left: double, top: double, width: double, height: double) void
+        }
+
+        class SFMLCanvas {
+        }
+    }
+
+%% Drawable
+    IDrawable <|.. IShape
+    IDrawable <|.. ISlide
+    IShape <|.. SimpleShape
+    IShape <|.. IGroupShape
+    IShapes <|.. IGroupShape
+    IGroupShape <|.. GroupShape
+    ISlide <|.. Slide
+    Slide *--> IShapes
+    IShape <--o GroupShape
+%% Style
+    GroupShape *--> IStyle
+    IStyle <|.. Style
+    Style *..> RGBAColor
+%% Canvas
+    ICanvas <|.. SFMLCanvas
+    IDrawable ..> ICanvas: use
+
+
+

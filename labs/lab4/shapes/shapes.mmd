@@ -1,0 +1,143 @@
+classDiagram
+
+    namespace performer {
+        class Painter {
+            + DrawPicture(PictureDraft draft, ICanvas canvas) void
+        }
+
+        class IDesigner:::tested {
+            <<interface>>
+            + CreateDraft(std::istream& strm) PictureDraft
+        }
+
+        class Designer:::tested {
+            + CreateDraft(std::istream& strm) PictureDraft
+        }
+
+        class Client
+    }
+
+    namespace shapes {
+
+        class PictureDraft:::tested {
+            + PictureDraft(std::vector~Shape~&& shapes)
+            + GetShapeCount() int
+            + GetShape(index) Shape
+            + AppendShape(Shape shape) void
+            - std::map~int, Shape~ m_shapes
+        }
+
+        class Shape:::tested {
+            + Draw(ICanvas canvas) void
+            + GetColor() Color
+        }
+
+        class Rectangle:::tested {
+            + Draw(ICanvas canvas) void
+            + GetLeftTop() Point
+            + GetRightBottom() Point
+        }
+
+        class Triangle:::tested {
+            + Draw(canvas) void
+            + GetVertex(1) Point
+            + GetVertex(2) Point
+            + GetVertex(3) Point
+        }
+
+        class Ellipse:::tested {
+            + Draw(canvas) void
+            + GetCenter() Point
+            + GetHorizontalRadius() int
+            + GetVerticalRadius() int
+        }
+
+        class RegularPolygon:::tested {
+            + Draw(ICanvas canvas) void
+            + GetVertexCount() int
+            + GetCenter() Point
+            + GetRadius() Point
+        }
+
+        class Point {
+            + double x
+            + double y
+        }
+    }
+
+    namespace gfx {
+        class Color {
+            +Value() uint32t
+            +ToString() std::string
+
+            -color uint32t
+        }
+
+        class SFMLCanvas
+        class MockCanvas:::tested
+
+        class ICanvas {
+            <<interface>>
+            + MoveTo(double x, double y)
+            + SetColor(color Color)
+            + LineTo(double x, double y)
+            + DrawEpilse(double cx, double cy, double rx, double ry)
+            + DrawText(double left, double top, double fontSize, text string)
+        }
+    }
+
+
+
+    namespace factory {
+        class IShapeFactory:::tested {
+            <<interface>>
+            + CreateShape(std::string descr) Shape
+        }
+
+        class ShapeFactory:::tested {
+            - ExtractShapeType(std::string descr) ShapeType
+            - CreateTriangle(std::string descr) Triangle
+            - CreateRectangle(std::string descr) Rectangle
+            - CreateEllipse(std::string descr) Ellipse
+            - CreateRegularPolygon(std::string descr) RegularPolygon
+        }
+
+        class ShapeType:::tested {
+            <<enumeration>>
+            Triangle
+            Rectangle
+            Ellipse
+            RegularPolygon
+            Unknown
+        }
+    }
+
+
+    Shape <|-- Rectangle 
+    Shape <|-- Triangle
+    Shape <|-- Ellipse
+    Shape <|-- RegularPolygon
+    PictureDraft "1" *-- "0..*" Shape
+    Designer ..> PictureDraft
+    Painter ..> PictureDraft
+
+    ICanvas <|.. SFMLCanvas
+    ICanvas <|.. MockCanvas
+
+    Painter ..> ICanvas
+    Shape ..> ICanvas
+
+    Client *--> ICanvas
+    ICanvas ..> Color : use
+
+    IShapeFactory <|.. ShapeFactory 
+    IShapeFactory ..> Shape
+    ShapeFactory ..> ShapeType : use
+    Designer *--> IShapeFactory
+
+    IDesigner <|.. Designer
+    Client ..> Painter
+    Client ..> IDesigner
+
+    classDef tested fill:#CCEEFF,stroke:#333,stroke-width:2px;
+
