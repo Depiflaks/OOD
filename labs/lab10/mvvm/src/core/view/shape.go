@@ -75,6 +75,7 @@ func NewShapeView(
 	s.br = &br
 
 	mv.AddObserver(s)
+	s.updateStrategy()
 
 	return s
 }
