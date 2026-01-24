@@ -16,10 +16,19 @@ type Disposable interface {
 	Dispose()
 }
 
+<<<<<<< Updated upstream
 type CreateShapeFn func() types.ShapeId
 type MarkDeleteShapesFn func(ids []types.ShapeId)
 type RestoreShapesFn func(ids []types.ShapeId)
 type DeleteShapesFn func(ids []types.ShapeId)
+=======
+type IdType int16
+
+type CreateFn func() IdType
+type MarkDeleteFn func(ids []IdType)
+type RestoreFn func(ids []IdType)
+type DeleteFn func(ids []IdType)
+>>>>>>> Stashed changes
 type SetBackgroundColorFn func(color color.Color)
 
 type MoveShapesFn func(delta geometry.Vector)
